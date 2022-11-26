@@ -1,5 +1,7 @@
 # Kingspan Connect Sensor integration for Home Assistant
 
+*THIS INTEGRATION IS CURRENTLY IN DEVELOPMENT AND IS NOT EXPECTED TO WORK*
+
 <!-- [![build:](https://github.com/masaccio/kingspan-connect-sensor/actions/workflows/run-all-tests.yml/badge.svg)](https://github.com/masaccio/kingspan-connect-sensor/actions/workflows/run-all-tests.yml)
 [![build:](https://github.com/masaccio/kingspan-connect-sensor/actions/workflows/codeql.yml/badge.svg)](https://github.com/masaccio/kingspan-connect-sensor/actions/workflows/codeql.yml) -->
 
