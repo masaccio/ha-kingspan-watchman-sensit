@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@main
     - name: copy file
-      uses: canastro/copy-file-action@main
+      uses: canastro/copy-file-action@master
       with:
         source: "Info.md"
         target: "Readme.md"
