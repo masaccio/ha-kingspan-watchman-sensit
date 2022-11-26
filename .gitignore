@@ -1,0 +1,36 @@
+# Local (private) files
+notifications.ini
+history.db
+
+# macOS
+.DS_Store
+.*.icloud
+
+# vim
+.*.swp
+
+# coverage
+.coverage
+coverage.xml
+coverage_html_report
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+tests/__pycache__/
+
+# Compiled python modules.
+*.pyc
+
+# Setuptools
+dist
+build
+
+# Python egg metadata, regenerated from source files by setuptools.
+*.egg-info
+
+# tox
+.tox
+
+# testinf
+*.db
+*.xlsx

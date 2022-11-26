@@ -2,7 +2,7 @@
 name = "aiohttp"
 version = "3.8.1"
 description = "Async http client/server framework (asyncio)"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -22,7 +22,7 @@ speedups = ["Brotli", "aiodns", "cchardet"]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -33,7 +33,7 @@ frozenlist = ">=1.1.0"
 name = "anyio"
 version = "3.6.2"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.2"
 
@@ -50,7 +50,7 @@ trio = ["trio (>=0.16,<0.22)"]
 name = "astral"
 version = "2.2"
 description = "Calculations for the position of the sun and moon."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -61,7 +61,7 @@ pytz = "*"
 name = "async-timeout"
 version = "4.0.2"
 description = "Timeout context manager for asyncio programs"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -69,7 +69,7 @@ python-versions = ">=3.6"
 name = "atomicwrites-homeassistant"
 version = "1.4.1"
 description = "Atomic file writes."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
@@ -91,7 +91,7 @@ tests-no-zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "p
 name = "awesomeversion"
 version = "22.9.0"
 description = "One version package to rule them all, One version package to find them, One version package to bring them all, and in the darkness bind them."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
@@ -99,7 +99,7 @@ python-versions = ">=3.7,<4.0"
 name = "bcrypt"
 version = "3.1.7"
 description = "Modern password hashing for your software and your servers"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
@@ -114,7 +114,7 @@ tests = ["pytest (>=3.2.1,!=3.3.0)"]
 name = "bleak"
 version = "0.19.5"
 description = "Bluetooth Low Energy platform Agnostic Klient"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
@@ -130,7 +130,7 @@ pyobjc-framework-libdispatch = {version = ">=8.5.1,<9.0.0", markers = "platform_
 name = "bleak-winrt"
 version = "1.2.0"
 description = "Python WinRT bindings for Bleak"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -146,7 +146,7 @@ python-versions = ">=3.6"
 name = "cffi"
 version = "1.15.1"
 description = "Foreign Function Interface for Python calling C code."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -168,7 +168,7 @@ unicode-backport = ["unicodedata2"]
 name = "ciso8601"
 version = "2.2.0"
 description = "Fast ISO8601 date time parser for Python written in C"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -198,7 +198,7 @@ toml = ["tomli"]
 name = "cryptography"
 version = "38.0.3"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -217,7 +217,7 @@ test = ["hypothesis (>=1.11.4,!=3.79.2)", "iso8601", "pretend", "pytest (>=6.2.0
 name = "dbus-fast"
 version = "1.75.0"
 description = "A faster version of dbus-next"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
@@ -258,7 +258,7 @@ python-dateutil = ">=2.7"
 name = "frozenlist"
 version = "1.3.3"
 description = "A list-like structure which implements collections.abc.MutableSequence"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -278,7 +278,7 @@ test = ["faulthandler", "objgraph", "psutil"]
 name = "h11"
 version = "0.12.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -286,7 +286,7 @@ python-versions = ">=3.6"
 name = "home-assistant-bluetooth"
 version = "1.6.0"
 description = "Home Assistant Bluetooth Models and Helpers"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
@@ -297,7 +297,7 @@ bleak = ">=0.19.0"
 name = "homeassistant"
 version = "2022.11.4"
 description = "Open-source home automation platform running on Python 3."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.9.0"
 
@@ -332,7 +332,7 @@ yarl = "1.8.1"
 name = "httpcore"
 version = "0.15.0"
 description = "A minimal low-level HTTP client."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -350,7 +350,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 name = "httpx"
 version = "0.23.0"
 description = "The next generation HTTP client."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -378,7 +378,7 @@ python-versions = ">=3.5"
 name = "ifaddr"
 version = "0.1.7"
 description = "Cross-platform network interface and IP address enumeration library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -405,7 +405,7 @@ six = "*"
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -431,7 +431,7 @@ zeep = "*"
 name = "lru-dict"
 version = "1.1.8"
 description = "An Dict like LRU container."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -456,7 +456,7 @@ source = ["Cython (>=0.29.7)"]
 name = "markupsafe"
 version = "2.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -472,7 +472,7 @@ python-versions = "*"
 name = "multidict"
 version = "6.0.2"
 description = "multidict implementation"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -488,7 +488,7 @@ python-versions = ">=3.8"
 name = "orjson"
 version = "3.8.1"
 description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -534,7 +534,7 @@ test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
 name = "pip"
 version = "22.3.1"
 description = "The PyPA recommended tool for installing Python packages."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -586,7 +586,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
@@ -594,7 +594,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 name = "pyjwt"
 version = "2.5.0"
 description = "JSON Web Token implementation in Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -608,7 +608,7 @@ tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 name = "pyobjc-core"
 version = "8.5.1"
 description = "Python<->ObjC Interoperability Module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -616,7 +616,7 @@ python-versions = ">=3.6"
 name = "pyobjc-framework-cocoa"
 version = "8.5.1"
 description = "Wrappers for the Cocoa frameworks on macOS"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -627,7 +627,7 @@ pyobjc-core = ">=8.5.1"
 name = "pyobjc-framework-corebluetooth"
 version = "8.5.1"
 description = "Wrappers for the framework CoreBluetooth on macOS"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -639,7 +639,7 @@ pyobjc-framework-Cocoa = ">=8.5.1"
 name = "pyobjc-framework-libdispatch"
 version = "8.5.1"
 description = "Wrappers for libdispatch on macOS"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -840,7 +840,7 @@ six = ">=1.5"
 name = "python-slugify"
 version = "4.0.1"
 description = "A Python Slugify application that handles Unicode"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -862,7 +862,7 @@ python-versions = "*"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -938,7 +938,7 @@ httpx = ">=0.21.0"
 name = "rfc3986"
 version = "1.5.0"
 description = "Validating URI References per RFC 3986"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -960,7 +960,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "sniffio"
 version = "1.3.0"
 description = "Sniff out which async library your code is running under"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -1022,7 +1022,7 @@ tests = ["pytest", "pytest-cov"]
 name = "text-unidecode"
 version = "1.3"
 description = "The most basic Text::Unidecode port"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1055,7 +1055,7 @@ telegram = ["requests"]
 name = "typing-extensions"
 version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -1076,7 +1076,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 name = "voluptuous"
 version = "0.13.1"
 description = ""
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1084,7 +1084,7 @@ python-versions = "*"
 name = "voluptuous-serialize"
 version = "2.5.0"
 description = "Convert voluptuous schemas to dictionaries"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1095,7 +1095,7 @@ voluptuous = "*"
 name = "yarl"
 version = "1.8.1"
 description = "Yet another URL library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -1130,7 +1130,7 @@ xmlsec = ["xmlsec (>=0.6.1)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5ab792673bfb7e30cc466ea821e647e0a67e98b453b712021199f1473db9122b"
+content-hash = "1cff7ea5ae98cef629f4265224b49ce6a119ab8a4d94a7f45f79b844b40e34bb"
 
 [metadata.files]
 aiohttp = [

@@ -1,9 +1,9 @@
 {
   "domain": "kingspan_connect",
   "name": "Kingspan Connect Sensor integration for Home Assistant",
-  "documentation": "https://github.com/masaccio/kingspan-connect-sensor",
+  "documentation": "https://github.com/masaccio/ha-kingspan-connect-sensor",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/masaccio/kingspan-connect-sensor/issues",
+  "issue_tracker": "https://github.com/masaccio/ha-kingspan-connect-sensor/issues",
   "version": "0.1.0",
   "config_flow": true,
   "codeowners": [

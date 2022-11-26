@@ -9,6 +9,8 @@ packages = [{include = "ha_kingspan_connect_sensor"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 kingspan-connect-sensor = "^1.0.1"
+homeassistant = "^2022.11.4"
+voluptuous = "^0.13.1"
 
 
 [tool.poetry.group.dev.dependencies]
