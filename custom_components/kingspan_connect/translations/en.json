@@ -2,7 +2,7 @@
     "config": {
         "step": {
             "user": {
-                "title": "Blueprint",
+                "title": "Kingspan Connect Sensor",
                 "description": "If you need help with configuration please visit https://github.com/masaccio/kingspan-connect-sensor",
                 "data": {
                     "username": "Username",
