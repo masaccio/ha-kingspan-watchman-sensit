@@ -1,0 +1,30 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Blueprint",
+                "description": "If you need help with configuration please visit https://github.com/masaccio/kingspan-connect-sensor",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            }
+        },
+        "error": {
+            "auth": "Username/Password is wrong."
+        },
+        "abort": {
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "binary_sensor": "Binary sensor enabled",
+                    "sensor": "Sensor enabled",
+                    "switch": "Switch enabled"
+                }
+            }
+        }
+    }
+}

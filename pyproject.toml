@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ha-kingspan-connect-sensor"
+version = "0.1.0"
+description = ""
+authors = ["Jon Connell <python@figsandfudge.com>"]
+readme = "README.md"
+packages = [{include = "ha_kingspan_connect_sensor"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+kingspan-connect-sensor = "^1.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest-homeassistant-custom-component = "^0.12.21"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
