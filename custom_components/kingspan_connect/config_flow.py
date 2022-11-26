@@ -3,7 +3,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 import voluptuous as vol
-from connectsensor import AsyncSensorClient
+from connectsensor import AsyncSensorClient, APIError
 
 from .const import (
     CONF_PASSWORD,
@@ -71,9 +71,8 @@ class KingspanConnectSensorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN)
             session = async_create_clientsession(self.hass)
             client = await AsyncSensorClient()
             await client.login(username, password)
-            # await client.async_get_data()
             return True
-        except Exception:  # pylint: disable=broad-except
+        except APIError:
             pass
         return False
 

@@ -1,21 +1,67 @@
 [tool.poetry]
-name = "ha-kingspan-connect-sensor"
-version = "0.1.0"
-description = ""
 authors = ["Jon Connell <python@figsandfudge.com>"]
-readme = "README.md"
-packages = [{include = "ha_kingspan_connect_sensor"}]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+]
+description = "Kingspan Connect Sensor integration for Home Assistant"
+documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/main/Info.md"
+license = "MIT"
+name = "ha-kingspan-connect-sensor"
+packages = [{include = "custom_components/kingspan_connect"}]
+readme = "Info.md"
+repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-kingspan-connect-sensor = "^1.0.1"
 homeassistant = "^2022.11.4"
+python = "^3.10"
 voluptuous = "^0.13.1"
-
+kingspan-connect-sensor = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest-homeassistant-custom-component = "^0.12.21"
 
 [build-system]
-requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.html]
+directory = "coverage_html_report"
+
+[tool.pytest.ini_options]
+addopts = "-ra -s -W ignore::DeprecationWarning"
+minversion = 6.0
+# pythonpath = [".", "tests"]
+testpaths = ["tests"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = py39, py310, py311
+[testenv]
+allowlist_externals = poetry
+commands_pre = poetry install --no-root --sync
+commands = poetry run -vvv pytest --import-mode importlib
+"""
+
+# linter settings
+[tool.pylama]
+linters = "pylint,mccabe,pyflakes"
+max_line_length = 100
+skip = ".tox/*"
+
+[tool.pylama.linter.pycodestyle]
+format = "pylint"
+ignore = "E203,E231,W503"
+
+[tool.pylama.linter.mccabe]
+max-complexity = 15
+
+[tool.pylama.linter.pyflakes]
+builtins = "_"

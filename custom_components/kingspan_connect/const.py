@@ -10,7 +10,7 @@ ISSUE_URL = "https://github.com/masaccio/kingspan-connect-sensor/issues"
 ICON = "mdi:format-quote-close"
 
 # Platforms
-SENSOR = "sensor"
+SENSOR = "oil_level"
 PLATFORMS = [SENSOR]
 
 # Configuration and options

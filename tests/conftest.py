@@ -31,13 +31,13 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 # This fixture is used to prevent HomeAssistant from attempting to create and dismiss persistent
 # notifications. These calls would fail without this fixture since the persistent_notification
 # integration is never loaded during a test.
-@pytest.fixture(name="skip_notifications", autouse=True)
-def skip_notifications_fixture():
-    """Skip notification calls."""
-    with patch("homeassistant.components.persistent_notification.async_create"), patch(
-        "homeassistant.components.persistent_notification.async_dismiss"
-    ):
-        yield
+# @pytest.fixture(name="skip_notifications", autouse=True)
+# def skip_notifications_fixture():
+#     """Skip notification calls."""
+#     with patch("homeassistant.components.persistent_notification.async_create"), patch(
+#         "homeassistant.components.persistent_notification.async_dismiss"
+#     ):
+#         yield
 
 
 # This fixture, when used, will result in calls to async_get_data to return None. To have the call
@@ -45,9 +45,7 @@ def skip_notifications_fixture():
 @pytest.fixture(name="bypass_get_data")
 def bypass_get_data_fixture():
     """Skip calls to get data from API."""
-    with patch(
-        "custom_components.kingspan_connect.IntegrationBlueprintApiClient.async_get_data"
-    ):
+    with patch("connectsensor.tank.AsyncTank.level"):
         yield
 
 
@@ -57,7 +55,7 @@ def bypass_get_data_fixture():
 def error_get_data_fixture():
     """Simulate error when retrieving data from API."""
     with patch(
-        "custom_components.kingspan_connect.IntegrationBlueprintApiClient.async_get_data",
+        "connectsensor.tank.AsyncTank.level",
         side_effect=Exception,
     ):
         yield

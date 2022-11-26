@@ -13,10 +13,9 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import KingspanConnectApiClient
+from connectsensor import AsyncSensorClient
 
 from .const import (
     CONF_PASSWORD,
@@ -45,10 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
-    session = async_get_clientsession(hass)
-    client = KingspanConnectApiClient(username, password, session)
-
-    coordinator = KingspanConnectSensorDataUpdateCoordinator(hass, client=client)
+    coordinator = KingspanConnectSensorDataUpdateCoordinator(hass, username, password)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -68,11 +64,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 
 class KingspanConnectSensorDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
+    """Class to manage fetching data from the Connect Sensor API."""
 
-    def __init__(self, hass: HomeAssistant, client: KingspanConnectApiClient) -> None:
+    def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:
         """Initialize."""
-        self.api = client
+        self.username = username
+        self.password = password
         self.platforms = []
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
@@ -80,7 +77,9 @@ class KingspanConnectSensorDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            return await self.api.async_get_data()
+            client = await AsyncSensorClient()
+            await client.login(self.username, self.password)
+            return await self.client.level
         except Exception as exception:
             raise UpdateFailed() from exception
 
