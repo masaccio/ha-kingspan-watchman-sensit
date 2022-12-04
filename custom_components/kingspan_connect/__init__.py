@@ -2,16 +2,17 @@
 Custom integration to integrate Kingspan SENSiT with Home Assistant.
 """
 
-import asyncio
 import logging
 
+from async_timeout import timeout
+from asyncio import gather, TimeoutError
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from connectsensor import AsyncSensorClient
+from connectsensor import AsyncSensorClient, APIError
 
 from .const import (
     CONF_PASSWORD,
@@ -19,6 +20,7 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     STARTUP_MESSAGE,
+    TIMEOUT,
 )
 
 SCAN_INTERVAL = timedelta(hours=12)
@@ -73,18 +75,21 @@ class KingspanConnectDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            client = await AsyncSensorClient()
-            await client.login(self.username, self.password)
-            return await self.client.level
-        except Exception as exception:
-            raise UpdateFailed() from exception
+            async with timeout(TIMEOUT):
+                client = await AsyncSensorClient()
+                await client.login(self.username, self.password)
+                return await self.client.level
+        except APIError as e:
+            raise UpdateFailed() from e
+        except TimeoutError as e:
+            _LOGGER.error(f"Timeout error logging in as {self.username}", e)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     unloaded = all(
-        await asyncio.gather(
+        await gather(
             *[
                 hass.config_entries.async_forward_entry_unload(entry, platform)
                 for platform in PLATFORMS
