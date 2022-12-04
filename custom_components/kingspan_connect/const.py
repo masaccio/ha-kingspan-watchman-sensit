@@ -20,6 +20,7 @@ CONF_PASSWORD = "password"
 
 # Defaults
 DEFAULT_NAME = DOMAIN
+TIMEOUT = 30
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

@@ -1,6 +1,9 @@
 """Adds config flow for Kingspan Connect Sensor."""
+import logging
 import voluptuous as vol
 
+from async_timeout import timeout
+from asyncio import TimeoutError
 from homeassistant import config_entries
 from homeassistant.core import callback
 from connectsensor import AsyncSensorClient, APIError
@@ -10,7 +13,10 @@ from .const import (
     CONF_USERNAME,
     DOMAIN,
     PLATFORMS,
+    TIMEOUT,
 )
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class KingspanConnectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -68,11 +74,14 @@ class KingspanConnectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, username, password):
         """Return true if credentials is valid."""
         try:
-            async with AsyncSensorClient() as client:
-                await client.login(username, password)
-                return True
+            async with timeout(TIMEOUT):
+                async with AsyncSensorClient() as client:
+                    await client.login(username, password)
+                    return True
         except APIError:
             pass
+        except TimeoutError as e:
+            _LOGGER.error(f"Timeout error logging in as {username}", e)
         return False
 
 
