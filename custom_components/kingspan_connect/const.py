@@ -7,7 +7,7 @@ ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/masaccio/kingspan-connect-sensor/issues"
 
 # Icons
-ICON = "mdi:format-quote-close"
+ICON = "mdi:gauge"
 
 # Platforms
 SENSOR = "oil_level"
