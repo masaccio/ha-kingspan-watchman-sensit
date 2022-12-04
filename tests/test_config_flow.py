@@ -31,9 +31,9 @@ def bypass_setup_fixture():
 
 
 # Here we simiulate a successful config flow from the backend.
-# Note that we use the `bypass_get_data` fixture here because
+# Note that we use the `bypass_api_fixture` fixture here because
 # we want the config flow validation to succeed during the test.
-async def test_successful_config_flow(hass, bypass_get_data):
+async def test_successful_config_flow(hass, mock_sensor_client):
     """Test a successful config flow."""
     # Initialize a config flow
     result = await hass.config_entries.flow.async_init(
@@ -53,7 +53,7 @@ async def test_successful_config_flow(hass, bypass_get_data):
     # Check that the config flow is complete and a new entry is created with
     # the input data
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result["title"] == "test_username"
+    assert result["title"] == "test@example.com"
     assert result["data"] == MOCK_CONFIG
     assert result["result"]
 
@@ -62,7 +62,7 @@ async def test_successful_config_flow(hass, bypass_get_data):
 # We use the `error_on_get_data` mock instead of `bypass_get_data`
 # (note the function parameters) to raise an Exception during
 # validation of the input config.
-async def test_failed_config_flow(hass, error_on_get_data):
+async def test_failed_config_flow(hass, error_sensor_client):
     """Test a failed config flow due to credential validation failure."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -84,7 +84,9 @@ async def test_options_flow(hass):
     """Test an options flow."""
     # Create a new MockConfigEntry and add to HASS (we're bypassing config
     # flow entirely)
-    entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=MOCK_CONFIG, entry_id="kingspan_connect"
+    )
     entry.add_to_hass(hass)
 
     # Initialize an options flow
@@ -102,7 +104,7 @@ async def test_options_flow(hass):
 
     # Verify that the flow finishes
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result["title"] == "test_username"
+    assert result["title"] == "test@example.com"
 
     # Verify that the options were updated
     assert entry.options == {SENSOR: True}
