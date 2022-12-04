@@ -19,6 +19,7 @@ homeassistant = "^2022.11.4"
 python = "^3.10"
 voluptuous = "^0.13.1"
 kingspan-connect-sensor = "^2.0.2"
+async-timeout = "^4.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest-homeassistant-custom-component = "^0.12.21"
