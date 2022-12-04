@@ -2,14 +2,10 @@
 Custom integration to integrate Kingspan SENSiT with Home Assistant.
 """
 
-# Adapted from https://github.com/custom-components/kingspan_connect
-# Copyright (c) 2020 Joakim Sørensen @ludeeus
-# Copyright (c) 2022 Jon Connell @masaccio
-
 import asyncio
-from datetime import timedelta
 import logging
 
+from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -25,7 +21,7 @@ from .const import (
     STARTUP_MESSAGE,
 )
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(hours=12)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
