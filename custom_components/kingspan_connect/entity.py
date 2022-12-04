@@ -1,4 +1,4 @@
-"""KingspanConnectSensorEntity class"""
+"""KingspanConnectEntity class"""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, NAME, VERSION, ATTRIBUTION

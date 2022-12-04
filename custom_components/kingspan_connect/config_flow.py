@@ -1,8 +1,8 @@
 """Adds config flow for Kingspan Connect Sensor."""
+import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
-import voluptuous as vol
 from connectsensor import AsyncSensorClient, APIError
 
 from .const import (
@@ -13,7 +13,7 @@ from .const import (
 )
 
 
-class KingspanConnectSensorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class KingspanConnectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Kingspan Connect Sensor."""
 
     VERSION = 1
@@ -50,7 +50,7 @@ class KingspanConnectSensorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN)
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return KingspanConnectSensorOptionsFlowHandler(config_entry)
+        return KingspanConnectOptionsFlowHandler(config_entry)
 
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
@@ -68,17 +68,16 @@ class KingspanConnectSensorFlowHandler(config_entries.ConfigFlow, domain=DOMAIN)
     async def _test_credentials(self, username, password):
         """Return true if credentials is valid."""
         try:
-            session = async_create_clientsession(self.hass)
-            client = await AsyncSensorClient()
-            await client.login(username, password)
-            return True
+            async with AsyncSensorClient() as client:
+                await client.login(username, password)
+                return True
         except APIError:
             pass
         return False
 
 
-class KingspanConnectSensorOptionsFlowHandler(config_entries.OptionsFlow):
-    """KingspanConnectSensor config flow options handler."""
+class KingspanConnectOptionsFlowHandler(config_entries.OptionsFlow):
+    """KingspanConnect config flow options handler."""
 
     def __init__(self, config_entry):
         """Initialize HACS options flow."""

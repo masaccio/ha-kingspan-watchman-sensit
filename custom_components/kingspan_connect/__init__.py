@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
-    coordinator = KingspanConnectSensorDataUpdateCoordinator(hass, username, password)
+    coordinator = KingspanConnectDataUpdateCoordinator(hass, username, password)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -63,7 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-class KingspanConnectSensorDataUpdateCoordinator(DataUpdateCoordinator):
+class KingspanConnectDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the Connect Sensor API."""
 
     def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:

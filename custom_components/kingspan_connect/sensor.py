@@ -8,10 +8,10 @@ from .entity import KingspanConnectEntity
 async def async_setup_entry(hass, entry, async_add_devices):
     """Setup sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([KingspanConnectSensor(coordinator, entry)])
+    async_add_devices([KingspanConnect(coordinator, entry)])
 
 
-class KingspanConnectSensor(KingspanConnectEntity, SensorEntity):
+class KingspanConnect(KingspanConnectEntity, SensorEntity):
     """kingspan_connect Sensor class."""
 
     @property
