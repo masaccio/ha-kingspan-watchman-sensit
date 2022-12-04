@@ -1,0 +1,8 @@
+{
+    "name": "Kingspan Connect Sensor",
+    "hacs": "1.6.0",
+    "domains": [
+        "sensor",
+    ],
+    "homeassistant": "0.118.0"
+}
