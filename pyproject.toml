@@ -22,6 +22,7 @@ kingspan-connect-sensor = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest-homeassistant-custom-component = "^0.12.21"
+pytest-mock = "^3.10.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

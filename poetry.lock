@@ -799,6 +799,20 @@ tomli = {version = "2.0.1", markers = "python_version < \"3.11\""}
 tqdm = "4.64.0"
 
 [[package]]
+name = "pytest-mock"
+version = "3.10.0"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pytest = ">=5.0"
+
+[package.extras]
+dev = ["pre-commit", "pytest-asyncio", "tox"]
+
+[[package]]
 name = "pytest-socket"
 version = "0.5.1"
 description = "Pytest Plugin to disable socket calls during tests"
@@ -1196,7 +1210,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fa8b097cfd0816a3b58385eed92631f16110afa69d27386607e8a6b6cd8d13f3"
+content-hash = "f1489bbc5e4f9b1fb2f1640a25fab0c133f08e6a485728b0a29fb34f84e330ce"
 
 [metadata.files]
 aiohttp = [
@@ -2173,6 +2187,10 @@ pytest-freezegun = [
 pytest-homeassistant-custom-component = [
     {file = "pytest-homeassistant-custom-component-0.12.21.tar.gz", hash = "sha256:eed7e8c71ac25788b2efa7c7eaf3c2384ef171af9f95f8e77127140a657a4f4d"},
     {file = "pytest_homeassistant_custom_component-0.12.21-py3-none-any.whl", hash = "sha256:08c17b72e3e322ee9a864e1d645edf6aa5356e9133862151129be2a1b5267983"},
+]
+pytest-mock = [
+    {file = "pytest-mock-3.10.0.tar.gz", hash = "sha256:fbbdb085ef7c252a326fd8cdcac0aa3b1333d8811f131bdcc701002e1be7ed4f"},
+    {file = "pytest_mock-3.10.0-py3-none-any.whl", hash = "sha256:f4c973eeae0282963eb293eb173ce91b091a79c1334455acfac9ddee8a1c784b"},
 ]
 pytest-socket = [
     {file = "pytest-socket-0.5.1.tar.gz", hash = "sha256:7c4b81dc6a51cbc0093f11791de00ff4a15ac698f5da96879a80f5d9ad4179b6"},
