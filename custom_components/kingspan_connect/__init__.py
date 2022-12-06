@@ -6,13 +6,12 @@ import logging
 
 from async_timeout import timeout
 from asyncio import gather, TimeoutError
+from connectsensor import AsyncSensorClient, APIError
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-
-from connectsensor import AsyncSensorClient, APIError
 
 from .const import (
     CONF_PASSWORD,
@@ -76,9 +75,11 @@ class KingspanConnectDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         try:
             async with timeout(TIMEOUT):
-                client = await AsyncSensorClient()
-                await client.login(self.username, self.password)
-                return await self.client.level
+                async with AsyncSensorClient() as client:
+                    await client.login(self.username, self.password)
+                    tanks = await client.tanks
+                    tank_level = await tanks[0].level
+                    return tank_level
         except APIError as e:
             raise UpdateFailed() from e
         except TimeoutError as e:
