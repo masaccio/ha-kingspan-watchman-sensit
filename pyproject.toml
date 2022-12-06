@@ -25,6 +25,7 @@ async-timeout = "^4.0.2"
 pytest-homeassistant-custom-component = "^0.12.21"
 pytest-mock = "^3.10.0"
 async-property = "^0.2.1"
+datetime = "^4.7"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

@@ -6,6 +6,15 @@ from async_property import async_property
 from unittest.mock import patch, AsyncMock
 from connectsensor import APIError
 
+from .const import (
+    MOCK_TANK_LEVEL,
+    MOCK_TANK_SERIAL_NUMBER,
+    MOCK_TANK_MODEL,
+    MOCK_TANK_NAME,
+    MOCK_TANK_CAPACITY,
+    MOCK_TANK_LAST_READ,
+)
+
 pytest_plugins = "pytest_homeassistant_custom_component"
 
 
@@ -44,6 +53,30 @@ class MockAsyncClient(AsyncMock):
     @async_property
     async def tanks(self):
         return [MockAsyncTank()]
+
+    @async_property
+    async def level(self) -> int:
+        return MOCK_TANK_LEVEL
+
+    @async_property
+    async def serial_number(self) -> str:
+        return MOCK_TANK_SERIAL_NUMBER
+
+    @async_property
+    async def model(self) -> str:
+        return MOCK_TANK_MODEL
+
+    @async_property
+    async def name(self) -> str:
+        return MOCK_TANK_NAME
+
+    @async_property
+    async def capacity(self) -> int:
+        return MOCK_TANK_CAPACITY
+
+    @async_property
+    async def last_read(self) -> str:
+        return MOCK_TANK_LAST_READ
 
 
 @pytest.fixture(name="mock_sensor_client")
