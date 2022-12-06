@@ -60,6 +60,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
+class TankData:
+    def __init__(self):
+        pass
+
+    # def __setattr__(self, name: str, value) -> None:
+    #     setattr(self, name, value)
+
+
 class KingspanConnectDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the Connect Sensor API."""
 
@@ -78,8 +86,15 @@ class KingspanConnectDataUpdateCoordinator(DataUpdateCoordinator):
                 async with AsyncSensorClient() as client:
                     await client.login(self.username, self.password)
                     tanks = await client.tanks
-                    tank_level = await tanks[0].level
-                    return tank_level
+                    tank = tanks[0]
+                    self.data = TankData()
+                    self.data.level = await tank.level
+                    self.data.serial_number = await tank.serial_number
+                    self.data.model = await tank.model
+                    self.data.name = await tank.name
+                    self.data.capacity = await tank.capacity
+                    self.data.last_read = await tank.last_read
+                    return self.data
         except APIError as e:
             raise UpdateFailed() from e
         except TimeoutError as e:

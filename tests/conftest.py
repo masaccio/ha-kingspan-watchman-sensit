@@ -45,16 +45,6 @@ class MockAsyncTank:
         pass
 
     @async_property
-    async def level(self):
-        return 1000
-
-
-class MockAsyncClient(AsyncMock):
-    @async_property
-    async def tanks(self):
-        return [MockAsyncTank()]
-
-    @async_property
     async def level(self) -> int:
         return MOCK_TANK_LEVEL
 
@@ -77,6 +67,12 @@ class MockAsyncClient(AsyncMock):
     @async_property
     async def last_read(self) -> str:
         return MOCK_TANK_LAST_READ
+
+
+class MockAsyncClient(AsyncMock):
+    @async_property
+    async def tanks(self):
+        return [MockAsyncTank()]
 
 
 @pytest.fixture(name="mock_sensor_client")
