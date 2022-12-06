@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Test",
+            "type": "python",
+            "request": "test",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
+        // {
+        //     "name": "Debug Test incl. system libraries",
+        //     "type": "python",
+        //     "request": "test",
+        //     "console": "integratedTerminal",
+        //     "justMyCode": false,
+        // },
+    ]
+}
