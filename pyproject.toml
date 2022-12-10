@@ -15,17 +15,19 @@ repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
-homeassistant = "^2022.11.4"
+async-timeout = "^4.0.2"
+homeassistant = "^2022.12.1"
+kingspan-connect-sensor = "^2.0.3"
 python = "^3.10"
 voluptuous = "^0.13.1"
-kingspan-connect-sensor = "^2.0.2"
-async-timeout = "^4.0.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest-homeassistant-custom-component = "^0.12.21"
-pytest-mock = "^3.10.0"
 async-property = "^0.2.1"
+black = {version = "^22.12.0", allow-prereleases = true}
 datetime = "^4.7"
+pylama = "^8.4.1"
+pytest-homeassistant-custom-component = "0.12.30"
+pytest-mock = "^3.10.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -38,9 +40,9 @@ branch = true
 directory = "coverage_html_report"
 
 [tool.pytest.ini_options]
-addopts = "-ra -s -W ignore::DeprecationWarning"
+# addopts = "-ra -s -W ignore::DeprecationWarning"
+addopts = "-W ignore::DeprecationWarning"
 minversion = 6.0
-# pythonpath = [".", "tests"]
 testpaths = ["tests"]
 
 [tool.tox]

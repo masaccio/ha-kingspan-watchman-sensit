@@ -1,5 +1,5 @@
 {
-    "name": "Kingspan Connect Sensor",
+    "name": "Watchman SENSiT integration for Home Assistant",
     "hacs": "1.6.0",
     "homeassistant": "0.118.0"
 }

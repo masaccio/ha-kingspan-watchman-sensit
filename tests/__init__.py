@@ -1,1 +1,1 @@
-"""Tests for kingspan_connect integration."""
+"""Tests for Watchman SENSiT integration."""

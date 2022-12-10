@@ -2,8 +2,8 @@
     "config": {
         "step": {
             "user": {
-                "title": "Kingspan Connect Sensor",
-                "description": "If you need help with configuration please visit https://github.com/masaccio/kingspan-connect-sensor",
+                "title": "Watchman SENSiTr",
+                "description": "If you need help with configuration please visit https://github.com/masaccio/ha-kingspan-watchman-sensit",
                 "data": {
                     "username": "Username",
                     "password": "Password"
