@@ -1,10 +1,15 @@
 """SENSiTEntity class"""
+import logging
+
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.core import callback
 
 from .const import ATTRIBUTION
 from .const import DOMAIN
 from .const import NAME
 from .const import VERSION
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTEntity(CoordinatorEntity):
@@ -43,5 +48,6 @@ class SENSiTEntity(CoordinatorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        _LOGGER.debug("SENSiTEntity._handle_coordinator_update")
         self._tank_data = self.coordinator.data
         self.async_write_ha_state()

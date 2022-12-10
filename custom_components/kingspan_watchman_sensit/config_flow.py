@@ -7,8 +7,6 @@ from .const import CONF_PASSWORD
 from .const import CONF_USERNAME
 from .const import DOMAIN
 
-# from .const import PLATFORMS
-
 
 class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for kingspan_watchman_sensit."""

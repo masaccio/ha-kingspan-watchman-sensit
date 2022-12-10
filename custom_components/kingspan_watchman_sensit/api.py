@@ -33,6 +33,7 @@ class SENSiTApiClient:
 
     async def _get_tank_data(self):
         async with AsyncSensorClient() as client:
+            _LOGGER.debug(f"login: username={self._username}")
             await client.login(self._username, self._password)
             tanks = await client.tanks
             tank = tanks[0]
@@ -43,4 +44,5 @@ class SENSiTApiClient:
             self.data.name = await tank.name
             self.data.capacity = await tank.capacity
             self.data.last_read = await tank.last_read
+            _LOGGER.debug(f"_get_tank_data: level={self.data.level}")
             return self.data
