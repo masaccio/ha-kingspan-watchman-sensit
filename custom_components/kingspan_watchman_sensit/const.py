@@ -11,13 +11,8 @@ ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
 # Icons
 ICON = "mdi:format-quote-close"
 
-# Device classes
-# BINARY_SENSOR_DEVICE_CLASS = "connectivity"
-
 # Platforms
-# BINARY_SENSOR = "binary_sensor"
 SENSOR = "sensor"
-# SWITCH = "switch"
 PLATFORMS = [SENSOR]
 
 
@@ -28,7 +23,7 @@ CONF_PASSWORD = "password"
 
 # Defaults
 DEFAULT_NAME = DOMAIN
-
+API_TIMEOUT = 30
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

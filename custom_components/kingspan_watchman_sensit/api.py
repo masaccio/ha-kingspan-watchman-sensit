@@ -1,17 +1,13 @@
 """Sample API Client."""
 import logging
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from connectsensor import AsyncSensorClient, APIError
 from asyncio import TimeoutError
 from async_timeout import timeout
 
-TIMEOUT = 10
-
+from .const import API_TIMEOUT
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
-
-HEADERS = {"Content-type": "application/json; charset=UTF-8"}
 
 
 class TankData:
@@ -28,11 +24,11 @@ class SENSiTApiClient:
     async def async_get_data(self) -> dict:
         """Get tank data from the API"""
         try:
-            async with timeout(TIMEOUT):
+            async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
         except APIError as e:
             _LOGGER.error(f"API error logging in as {self._username}: {e}")
-        except TimeoutError as e:
+        except TimeoutError:
             _LOGGER.error(f"Timeout error logging in as {self._username}")
 
     async def _get_tank_data(self):
