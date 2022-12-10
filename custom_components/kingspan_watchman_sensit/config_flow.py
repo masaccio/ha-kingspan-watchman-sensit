@@ -1,14 +1,13 @@
 """Adds config flow for Watchman SENSiT."""
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .api import SENSiTApiClient
 from .const import CONF_PASSWORD
 from .const import CONF_USERNAME
 from .const import DOMAIN
-from .const import PLATFORMS
+
+# from .const import PLATFORMS
 
 
 class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -44,10 +43,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        return SENSiTOptionsFlowHandler(config_entry)
+    # @staticmethod
+    # @callback
+    # def async_get_options_flow(config_entry):
+    #     return SENSiTOptionsFlowHandler(config_entry)
 
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
@@ -62,8 +61,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, username, password):
         """Return true if credentials is valid."""
         try:
-            session = async_create_clientsession(self.hass)
-            client = SENSiTApiClient(username, password, session)
+            client = SENSiTApiClient(username, password)
             await client.async_get_data()
             return True
         except Exception:  # pylint: disable=broad-except
@@ -71,36 +69,36 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return False
 
 
-class SENSiTOptionsFlowHandler(config_entries.OptionsFlow):
-    """Config flow options handler for kingspan_watchman_sensit."""
+# class SENSiTOptionsFlowHandler(config_entries.OptionsFlow):
+#     """Config flow options handler for kingspan_watchman_sensit."""
 
-    def __init__(self, config_entry):
-        """Initialize HACS options flow."""
-        self.config_entry = config_entry
-        self.options = dict(config_entry.options)
+#     def __init__(self, config_entry):
+#         """Initialize HACS options flow."""
+#         self.config_entry = config_entry
+#         self.options = dict(config_entry.options)
 
-    async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
-        """Manage the options."""
-        return await self.async_step_user()
+#     async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
+#         """Manage the options."""
+#         return await self.async_step_user()
 
-    async def async_step_user(self, user_input=None):
-        """Handle a flow initialized by the user."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return await self._update_options()
+#     async def async_step_user(self, user_input=None):
+#         """Handle a flow initialized by the user."""
+#         if user_input is not None:
+#             self.options.update(user_input)
+#             return await self._update_options()
 
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(x, default=self.options.get(x, True)): bool
-                    for x in sorted(PLATFORMS)
-                }
-            ),
-        )
+#         return self.async_show_form(
+#             step_id="user",
+#             data_schema=vol.Schema(
+#                 {
+#                     vol.Required(x, default=self.options.get(x, True)): bool
+#                     for x in sorted(PLATFORMS)
+#                 }
+#             ),
+#         )
 
-    async def _update_options(self):
-        """Update config entry options."""
-        return self.async_create_entry(
-            title=self.config_entry.data.get(CONF_USERNAME), data=self.options
-        )
+#     async def _update_options(self):
+#         """Update config entry options."""
+#         return self.async_create_entry(
+#             title=self.config_entry.data.get(CONF_USERNAME), data=self.options
+#         )
