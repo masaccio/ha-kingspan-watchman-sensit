@@ -3,14 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.kingspan_watchman_sensit.const import (
-    DOMAIN,
-    PLATFORMS,
-    SENSOR,
-)
+from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant import data_entry_flow
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG
 
@@ -55,7 +50,7 @@ async def test_successful_config_flow(hass, bypass_get_data):
     # Check that the config flow is complete and a new entry is created with
     # the input data
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result["title"] == "test_username"
+    assert result["title"] == "test@example.com"
     assert result["data"] == MOCK_CONFIG
     assert result["result"]
 

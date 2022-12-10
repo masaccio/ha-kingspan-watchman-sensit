@@ -6,7 +6,7 @@ from custom_components.kingspan_watchman_sensit.const import (
     CONF_USERNAME,
 )
 
-MOCK_CONFIG = {CONF_USERNAME: "test_username", CONF_PASSWORD: "test_password"}
+MOCK_CONFIG = {CONF_USERNAME: "test@example.com", CONF_PASSWORD: "s3cret"}
 
 MOCK_GET_DATA_METHOD = (
     "custom_components.kingspan_watchman_sensit.SENSiTApiClient._get_tank_data"
