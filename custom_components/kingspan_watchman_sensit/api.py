@@ -3,6 +3,7 @@ import logging
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from connectsensor import AsyncSensorClient, APIError
+from asyncio import TimeoutError
 from async_timeout import timeout
 
 TIMEOUT = 10
@@ -28,19 +29,22 @@ class SENSiTApiClient:
         """Get tank data from the API"""
         try:
             async with timeout(TIMEOUT):
-                async with AsyncSensorClient() as client:
-                    await client.login(self._username, self._password)
-                    tanks = await client.tanks
-                    tank = tanks[0]
-                    self.data = TankData()
-                    self.data.level = await tank.level
-                    self.data.serial_number = await tank.serial_number
-                    self.data.model = await tank.model
-                    self.data.name = await tank.name
-                    self.data.capacity = await tank.capacity
-                    self.data.last_read = await tank.last_read
-                    return self.data
+                return await self._get_tank_data()
         except APIError as e:
-            raise UpdateFailed() from e
+            _LOGGER.error(f"API error logging in as {self._username}: {e}")
         except TimeoutError as e:
-            _LOGGER.error(f"Timeout error logging in as {self.username}", e)
+            _LOGGER.error(f"Timeout error logging in as {self._username}")
+
+    async def _get_tank_data(self):
+        async with AsyncSensorClient() as client:
+            await client.login(self._username, self._password)
+            tanks = await client.tanks
+            tank = tanks[0]
+            self.data = TankData()
+            self.data.level = await tank.level
+            self.data.serial_number = await tank.serial_number
+            self.data.model = await tank.model
+            self.data.name = await tank.name
+            self.data.capacity = await tank.capacity
+            self.data.last_read = await tank.last_read
+            return self.data

@@ -9,7 +9,7 @@ from custom_components.kingspan_watchman_sensit.const import (
 MOCK_CONFIG = {CONF_USERNAME: "test_username", CONF_PASSWORD: "test_password"}
 
 MOCK_GET_DATA_METHOD = (
-    "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"
+    "custom_components.kingspan_watchman_sensit.SENSiTApiClient._get_tank_data"
 )
 
 # Mock tank data to readings
