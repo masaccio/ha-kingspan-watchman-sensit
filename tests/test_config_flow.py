@@ -3,22 +3,11 @@ from unittest.mock import patch
 
 import pytest
 
-# from custom_components.kingspan_watchman_sensit.const import (
-#     BINARY_SENSOR,
-# )
 from custom_components.kingspan_watchman_sensit.const import (
     DOMAIN,
-)
-from custom_components.kingspan_watchman_sensit.const import (
     PLATFORMS,
-)
-from custom_components.kingspan_watchman_sensit.const import (
     SENSOR,
 )
-
-# from custom_components.kingspan_watchman_sensit.const import (
-#     SWITCH,
-# )
 from homeassistant import config_entries
 from homeassistant import data_entry_flow
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -120,6 +109,3 @@ async def test_options_flow(hass):
     # Verify that the flow finishes
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
     assert result["title"] == "test_username"
-
-    # Verify that the options were updated
-    # assert entry.options == {BINARY_SENSOR: True, SENSOR: False, SWITCH: True}
