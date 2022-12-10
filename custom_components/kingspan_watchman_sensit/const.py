@@ -9,7 +9,7 @@ ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
 
 # Icons
-ICON = "mdi:format-quote-close"
+ICON = "mdi:gauge"
 
 # Platforms
 SENSOR = "sensor"
