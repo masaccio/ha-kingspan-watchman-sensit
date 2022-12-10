@@ -1,4 +1,4 @@
-"""Tests for Watchman SENSiT api."""
+"""Tests for Kingspan Watchman SENSiT api."""
 import asyncio
 import pytest
 
