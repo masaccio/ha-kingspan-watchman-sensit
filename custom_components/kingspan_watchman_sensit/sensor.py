@@ -1,36 +1,49 @@
 """Sensor platform for Watchman SENSiT."""
-from .const import DEFAULT_NAME
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfVolume
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
 from .const import DOMAIN
-from .const import ICON
-from .const import SENSOR
 from .entity import SENSiTEntity
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Setup sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([SENSiTSensor(coordinator, entry)])
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    async_add_entities(
+        [OilLevel(coordinator, config_entry), TankCapacity(coordinator, config_entry)]
+    )
 
 
-class SENSiTSensor(SENSiTEntity):
-    """kingspan_watchman_sensit Sensor class."""
+class OilLevel(SENSiTEntity):
+    _attr_icon = "mdi:gauge"
+    _attr_name = "Oil Level"
+    _attr_native_unit_of_measurement = UnitOfVolume.LITERS
 
     @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{DEFAULT_NAME}_{SENSOR}"
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self.coordinator.data.get("body")
+    def native_value(self):
+        """Return the oil level in litres"""
+        return self._tank_data.level
+        # return self.coordinator.data.level
 
     @property
     def icon(self):
-        """Return the icon of the sensor."""
-        return ICON
+        """Icon to use in the frontend"""
+        return "mdi:gauge"
+
+
+class TankCapacity(SENSiTEntity):
+    _attr_icon = "mdi:gauge"
+    _attr_name = "Oil Level"
+    _attr_native_unit_of_measurement = UnitOfVolume.LITERS
 
     @property
-    def device_class(self):
-        """Return de device class of the sensor."""
-        return "kingspan_watchman_sensit__custom_device_class"
+    def native_value(self):
+        """Return thetank capacity in litres"""
+        return self._tank_data.capacity
+        # return self.coordinator.data.capacity

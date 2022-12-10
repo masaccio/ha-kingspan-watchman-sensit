@@ -34,3 +34,14 @@ class SENSiTEntity(CoordinatorEntity):
             "id": str(self.coordinator.data.get("id")),
             "integration": DOMAIN,
         }
+
+    @property
+    def last_reset(self):
+        """Time sensor was initialised (returns None)"""
+        return None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._tank_data = self.coordinator.data
+        self.async_write_ha_state()
