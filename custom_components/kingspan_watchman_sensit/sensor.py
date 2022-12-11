@@ -29,6 +29,7 @@ async def async_setup_entry(
             OilLevel(coordinator, config_entry),
             TankPercentageFull(coordinator, config_entry),
             TankCapacity(coordinator, config_entry),
+            # LastReadDate(coordinator, config_entry),
         ]
     )
 
@@ -77,9 +78,21 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 
     @property
     def native_value(self):
-        """Return thetank capacity in litres"""
+        """Return the tank capacity in litres"""
         _LOGGER.debug("Read tank capcity: %d litres", self.coordinator.data.capacity)
         return self.coordinator.data.capacity
+
+
+class LastReadDate(SENSiTEntity, SensorEntity):
+    _attr_icon = "mdi:clock-outline"
+    _attr_name = "Last Reading Date"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    @property
+    def native_value(self):
+        """Return date of the last reading"""
+        _LOGGER.debug("Tank last read %s", str(self.coordinator.data.last_read))
+        return self.coordinator.data.last_read
 
 
 def tank_icon(level: int, capacity: int) -> str:
