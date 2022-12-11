@@ -33,7 +33,7 @@ class SENSiTApiClient:
             _LOGGER.error("timeout error logging in as %s", self._username)
 
     async def _get_tank_data(self):
-        _LOGGER.debug("fetching tank data with username={self._username}")
+        _LOGGER.debug("Fetching tank data with username=%s", self._username)
         async with AsyncSensorClient() as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
@@ -46,7 +46,7 @@ class SENSiTApiClient:
             self.data.capacity = await tank.capacity
             self.data.last_read = await tank.last_read
             _LOGGER.debug(
-                "tank data: level=%d, capacity=%d, serial_number=%s, last_read=%s",
+                "Tank data: level=%d, capacity=%d, serial_number=%s, last_read=%s",
                 self.data.level,
                 self.data.capacity,
                 self.data.serial_number,

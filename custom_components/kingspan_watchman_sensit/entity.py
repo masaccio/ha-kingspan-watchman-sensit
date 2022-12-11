@@ -11,13 +11,15 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 class SENSiTEntity(CoordinatorEntity):
     def __init__(self, coordinator, config_entry):
-        _LOGGER.debug("init entity %s", self._attr_name)
+        _LOGGER.debug("Init entity %s", self._attr_name)
         super().__init__(coordinator)
         self.config_entry = config_entry
 
     @property
     def unique_id(self):
-        return f"sensit-{self._tank_data.serial_number}-{self._sensor_name}"
+        _LOGGER.debug(f"unique_id: self={self.__dict__}")
+        return None
+        # return f"sensit-{self._tank_data.serial_number}-{self._sensor_name}"
 
     @property
     def device_info(self):

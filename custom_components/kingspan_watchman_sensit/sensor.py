@@ -22,7 +22,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup sensor platform."""
-    _LOGGER.debug("adding sensor entities")
+    _LOGGER.debug("Adding sensor entities")
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
     async_add_entities(
         [
@@ -42,7 +42,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level in litres"""
-        _LOGGER.debug("read oil level: %d litres", self._tank_data.level)
+        _LOGGER.debug("Read oil level: %d litres", self._tank_data.level)
         return self._tank_data.level
 
     @property
@@ -60,7 +60,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     def native_value(self):
         """Return the oil level as a percentage"""
         percent_full = self._tank_data.level / self._tank_data.capacity
-        _LOGGER.debug("read oil level: %.1f percent", percent_full)
+        _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return percent_full
 
     @property
@@ -78,7 +78,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return thetank capacity in litres"""
-        _LOGGER.debug("read tank capcity: %d litres", self._tank_data.capacity)
+        _LOGGER.debug("Read tank capcity: %d litres", self._tank_data.capacity)
         return self._tank_data.capacity
 
 
