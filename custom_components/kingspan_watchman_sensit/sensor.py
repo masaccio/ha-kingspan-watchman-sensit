@@ -42,13 +42,13 @@ class OilLevel(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level in litres"""
-        _LOGGER.debug("Read oil level: %d litres", self._tank_data.level)
-        return self._tank_data.level
+        _LOGGER.debug("Read oil level: %d litres", self.coordinator.data.level)
+        return self.coordinator.data.level
 
     @property
     def icon(self):
         """Icon to use in the frontend"""
-        return tank_icon(self._tank_data.level, self._tank_data.capacity)
+        return tank_icon(self.coordinator.data.level, self.coordinator.data.capacity)
 
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
@@ -59,14 +59,14 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level as a percentage"""
-        percent_full = self._tank_data.level / self._tank_data.capacity
+        percent_full = self.coordinator.data.level / self.coordinator.data.capacity
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return percent_full
 
     @property
     def icon(self):
         """Icon to use in the frontend"""
-        return tank_icon(self._tank_data.level, self._tank_data.capacity)
+        return tank_icon(self.coordinator.data.level, self.coordinator.data.capacity)
 
 
 class TankCapacity(SENSiTEntity, SensorEntity):
@@ -78,8 +78,8 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return thetank capacity in litres"""
-        _LOGGER.debug("Read tank capcity: %d litres", self._tank_data.capacity)
-        return self._tank_data.capacity
+        _LOGGER.debug("Read tank capcity: %d litres", self.coordinator.data.capacity)
+        return self.coordinator.data.capacity
 
 
 def tank_icon(level: int, capacity: int) -> str:
