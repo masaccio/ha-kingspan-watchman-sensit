@@ -7,9 +7,10 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.const import PERCENTAGE, UnitOfVolume
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, PERCENTAGE, UnitOfVolume
+from .const import DOMAIN
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
