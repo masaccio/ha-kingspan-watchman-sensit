@@ -17,9 +17,10 @@ class SENSiTEntity(CoordinatorEntity):
 
     @property
     def unique_id(self):
-        _LOGGER.debug(f"unique_id: self={self.__dict__}")
-        return None
-        # return f"sensit-{self._tank_data.serial_number}-{self._sensor_name}"
+        """Return a unique ID to use for this entity."""
+        serial_no = self.coordinator.data.serial_number
+        name = self._attr_name.lower().replace(" ", "_")
+        return f"sensit-{serial_no}-{name}"
 
     @property
     def device_info(self):
