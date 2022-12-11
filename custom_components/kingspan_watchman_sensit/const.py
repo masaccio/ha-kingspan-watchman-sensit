@@ -1,15 +1,12 @@
-"""Constants for Watchman SENSiT."""
+"""Constants for Kingspan Watchman SENSiT."""
 # Base component constants
-NAME = "Watchman SENSiT"
+NAME = "Kingspan Watchman SENSiT"
 DOMAIN = "kingspan_watchman_sensit"
 DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.1.0"
 
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
-
-# Icons
-ICON = "mdi:gauge"
 
 # Platforms
 SENSOR = "sensor"

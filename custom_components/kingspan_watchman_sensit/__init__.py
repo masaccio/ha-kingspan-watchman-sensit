@@ -1,5 +1,5 @@
 """
-Custom integration to integrate Watchman SENSiT with Home Assistant.
+Custom integration to integrate Kingspan Watchman SENSiT with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/masaccio/ha-kingspan-watchman-sensit

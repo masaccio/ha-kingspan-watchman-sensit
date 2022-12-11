@@ -1,4 +1,4 @@
-"""Test Watchman SENSiT config flow."""
+"""Test Kingspan Watchman SENSiT config flow."""
 from unittest.mock import patch
 
 import pytest

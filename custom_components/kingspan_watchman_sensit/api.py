@@ -1,9 +1,9 @@
 """Sample API Client."""
 import logging
-
-from connectsensor import AsyncSensorClient, APIError
 from asyncio import TimeoutError
+
 from async_timeout import timeout
+from connectsensor import APIError, AsyncSensorClient
 
 from .const import API_TIMEOUT
 
@@ -18,6 +18,7 @@ class TankData:
 class SENSiTApiClient:
     def __init__(self, username: str, password: str) -> None:
         """Simple API Client for ."""
+        _LOGGER.debug("API init as username=%s, password=%s", username, password)
         self._username = username
         self._password = password
 
@@ -27,13 +28,13 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
         except APIError as e:
-            _LOGGER.error(f"API error logging in as {self._username}: {e}")
+            _LOGGER.error("API error logging in as %s: %s", self._username, str(e))
         except TimeoutError:
-            _LOGGER.error(f"Timeout error logging in as {self._username}")
+            _LOGGER.error("timeout error logging in as %s", self._username)
 
     async def _get_tank_data(self):
+        _LOGGER.debug("fetching tank data with username={self._username}")
         async with AsyncSensorClient() as client:
-            _LOGGER.debug(f"login: username={self._username}")
             await client.login(self._username, self._password)
             tanks = await client.tanks
             tank = tanks[0]
@@ -44,5 +45,11 @@ class SENSiTApiClient:
             self.data.name = await tank.name
             self.data.capacity = await tank.capacity
             self.data.last_read = await tank.last_read
-            _LOGGER.debug(f"_get_tank_data: level={self.data.level}")
+            _LOGGER.debug(
+                "tank data: level=%d, capacity=%d, serial_number=%s, last_read=%s",
+                self.data.level,
+                self.data.capacity,
+                self.data.serial_number,
+                str(self.data.last_read),
+            )
             return self.data

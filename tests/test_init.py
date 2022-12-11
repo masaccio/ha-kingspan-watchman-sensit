@@ -1,4 +1,4 @@
-"""Test Watchman SENSiT setup process."""
+"""Test Kingspan Watchman SENSiT setup process."""
 import pytest
 
 from homeassistant.exceptions import ConfigEntryNotReady
