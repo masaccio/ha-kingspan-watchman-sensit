@@ -1,0 +1,64 @@
+name: Update manifest.json
+on: [push]
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+        pyproject:
+          - 'pyproject.toml'
+
+    # Run only if pyproject.toml was updated
+    - if: steps.changes.outputs.pyproject == 'true'
+      run: ...
+    - uses: actions/checkout@master
+    - uses: stefanzweifel/git-auto-commit-action@v4
+
+name: Update manifest.json
+on: [push, workflow_dispatch]
+
+jobs:
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.filter.outputs.pyproject }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          pyproject:
+            - 'pyproject.toml'
+    # run only if 'pyproject.toml' files were changed
+    - name: pyproject test
+      if: steps.filter.outputs.pyproject == 'true'
+      run: echo "pyproject.toml was updated"
+
+    # run only if not 'workflows' files were changed
+    - name: not workflow tests
+      if: steps.filter.outputs.pyproject != 'true'
+      run: echo "pyproject.toml NOT updated"
+
+  next-job:
+    runs-on: ubuntu-latest
+    # Wait from the paths-filter to be completed before starting next-job
+    needs: paths-filter
+    if: needs.paths-filter.outputs.output1 == 'true'
+    steps:
+    - uses: actions/checkout@v3
+      uses: actions/setup-python@v3
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry install
+    - name: Test with pytest
+      run: |
+        poetry run pytest
+
+
+
