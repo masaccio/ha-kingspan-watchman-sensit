@@ -1,18 +1,19 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
+
 import pytest
+from connectsensor import APIError
 
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
-from connectsensor import APIError
 
 from .const import (
     MOCK_GET_DATA_METHOD,
-    MOCK_TANK_LEVEL,
-    MOCK_TANK_SERIAL_NUMBER,
-    MOCK_TANK_MODEL,
-    MOCK_TANK_NAME,
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LAST_READ,
+    MOCK_TANK_LEVEL,
+    MOCK_TANK_MODEL,
+    MOCK_TANK_NAME,
+    MOCK_TANK_SERIAL_NUMBER,
 )
 
 
