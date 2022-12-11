@@ -52,13 +52,17 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       uses: actions/setup-python@v3
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Update versions
+        file_pattern: custom_components/kingspan_watchman_sensit/manifest.json
     - name: Install dependencies
       run: |
         pip install poetry
         poetry install
-    - name: Test with pytest
+    - name: Create manifest.json
       run: |
-        poetry run pytest
+        poetry run python3 generate_manifest.py 
 
 
 
