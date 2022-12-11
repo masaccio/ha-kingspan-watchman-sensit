@@ -9,7 +9,7 @@ description = "Kingspan Connect Sensor integration for Home Assistant"
 documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/main/Info.md"
 license = "MIT"
 name = "ha-kingspan-connect-sensor"
-packages = [{include = "custom_components/kingspan_connect"}]
+packages = [{include = "custom_components/kingspan_watchman_sensit"}]
 readme = "Info.md"
 repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
 version = "0.1.0"
@@ -40,8 +40,7 @@ branch = true
 directory = "coverage_html_report"
 
 [tool.pytest.ini_options]
-# addopts = "-ra -s -W ignore::DeprecationWarning"
-addopts = "-W ignore::DeprecationWarning"
+addopts = "-W ignore::DeprecationWarning --cov=custom_components/kingspan_watchman_sensit"
 minversion = 6.0
 testpaths = ["tests"]
 

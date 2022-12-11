@@ -1,8 +1,7 @@
 """Test Watchman SENSiT config flow."""
-from unittest.mock import patch
-
 import pytest
 
+from unittest.mock import patch
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant import data_entry_flow
