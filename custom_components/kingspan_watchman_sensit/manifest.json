@@ -1,6 +1,6 @@
 {
   "domain": "kingspan_watchman_sensit",
-  "name": "Watchman SENSiT integration for Home Assistant",
+  "name": "Kingspan Watchman SENSiT",
   "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
@@ -9,5 +9,5 @@
   "codeowners": [
     "@masaccio"
   ],
-  "requirements": ["kingspan-connect-sensor"]
+  "requirements": ["kingspan-connect-sensor>=2.0.4"]
 }
