@@ -1,9 +1,11 @@
 """Constants for Kingspan Watchman SENSiT."""
+import importlib.metadata
+
 # Base component constants
 NAME = "Kingspan Watchman SENSiT"
 DOMAIN = "kingspan_watchman_sensit"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.1.0"
+VERSION = importlib.metadata.version("ha-kingspan-connect-sensor")
 
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
