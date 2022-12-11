@@ -1,1 +1,1 @@
-"""Tests for Watchman SENSiT integration."""
+"""Tests for Kingspan Watchman SENSiT integration."""

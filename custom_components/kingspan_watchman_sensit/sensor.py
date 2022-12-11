@@ -1,4 +1,4 @@
-"""Sensor platform for Watchman SENSiT."""
+"""Sensor platform for Kingspan Watchman SENSiT."""
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -18,6 +18,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Setup sensor platform."""
+    _LOGGER.debug("adding sensor entities")
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
     async_add_entities(
         [OilLevel(coordinator, config_entry), TankCapacity(coordinator, config_entry)]
@@ -28,11 +29,12 @@ class OilLevel(SENSiTEntity):
     _attr_icon = "mdi:gauge"
     _attr_name = "Oil Level"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _sensor_name = "oil_level"
 
     @property
     def native_value(self):
         """Return the oil level in litres"""
-        _LOGGER.debug("OilLevel.native_value()")
+        _LOGGER.debug("read oil level: %d litres", self._tank_data.level)
         return self._tank_data.level
 
     @property
@@ -43,11 +45,12 @@ class OilLevel(SENSiTEntity):
 
 class TankCapacity(SENSiTEntity):
     _attr_icon = "mdi:gauge"
-    _attr_name = "Oil Level"
+    _attr_name = "Tank Capacity"
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _sensor_name = "tank_capcacity"
 
     @property
     def native_value(self):
         """Return thetank capacity in litres"""
-        _LOGGER.debug("TankCapacity.native_value()")
+        _LOGGER.debug("read tank capcity: %d litres", self._tank_data.capacity)
         return self._tank_data.capacity

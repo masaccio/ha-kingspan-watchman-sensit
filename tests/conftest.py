@@ -1,4 +1,4 @@
-"""Global fixtures for Watchman SENSiT integration."""
+"""Global fixtures for Kingspan Watchman SENSiT integration."""
 import pytest
 
 from async_property import async_property

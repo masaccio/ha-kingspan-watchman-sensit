@@ -1,26 +1,23 @@
 """SENSiTEntity class"""
 import logging
 
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import callback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION
-from .const import DOMAIN
-from .const import NAME
-from .const import VERSION
+from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTEntity(CoordinatorEntity):
     def __init__(self, coordinator, config_entry):
+        _LOGGER.debug("init entity %s", self._attr_name)
         super().__init__(coordinator)
         self.config_entry = config_entry
 
     @property
     def unique_id(self):
-        """Return a unique ID to use for this entity."""
-        return self.config_entry.entry_id
+        return f"sensit-{self._tank_data.serial_number}-{self._sensor_name}"
 
     @property
     def device_info(self):

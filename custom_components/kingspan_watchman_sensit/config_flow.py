@@ -1,11 +1,13 @@
-"""Adds config flow for Watchman SENSiT."""
+"""Adds config flow for Kingspan Watchman SENSiT."""
+import logging
+
 import voluptuous as vol
 from homeassistant import config_entries
 
 from .api import SENSiTApiClient
-from .const import CONF_PASSWORD
-from .const import CONF_USERNAME
-from .const import DOMAIN
+from .const import CONF_PASSWORD, CONF_USERNAME, DOMAIN
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -27,10 +29,20 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
             )
             if valid:
+                _LOGGER.debug(
+                    "login step success: username=%s, password=%s",
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD],
+                )
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME], data=user_input
                 )
             else:
+                _LOGGER.debug(
+                    "login step failure: username=%s, password=%s",
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD],
+                )
                 self._errors["base"] = "auth"
 
             return await self._show_config_form(user_input)
