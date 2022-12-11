@@ -489,7 +489,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "2.0.5"
+version = "2.0.6"
 description = "API to get oil tank from Kingspan SENSiT sensors"
 category = "main"
 optional = false
@@ -1345,7 +1345,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "cf1ab722b9c490bcf586526ad99a7a89b2f8d4233c6cd63014d3219c13fbb4a7"
+content-hash = "4b5e25f17a9eec8b7111d90a4691185a1c5a635dc4c76f7e823eb95f3708bd47"
 
 [metadata.files]
 aiohttp = [
@@ -1920,8 +1920,8 @@ jinja2 = [
     {file = "Jinja2-3.1.2.tar.gz", hash = "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852"},
 ]
 kingspan-connect-sensor = [
-    {file = "kingspan_connect_sensor-2.0.5-py3-none-any.whl", hash = "sha256:c7911908faec4cfd9780ff9559bdda338a94aba60d15cf789155fb4404e93ef0"},
-    {file = "kingspan_connect_sensor-2.0.5.tar.gz", hash = "sha256:36b5c93b41b8f0902602612e4b6dca88c36ef8e0c05336f6a073986567264eaa"},
+    {file = "kingspan_connect_sensor-2.0.6-py3-none-any.whl", hash = "sha256:fd38187d662e6884a7a8f7ec53c15851702ecb285f5f5bad7264c857dfa2ab81"},
+    {file = "kingspan_connect_sensor-2.0.6.tar.gz", hash = "sha256:e2d7a286e52c73599c8179e3f4269279ceb18e4228e5c5d09689680e7c3f0d19"},
 ]
 lru-dict = [
     {file = "lru-dict-1.1.8.tar.gz", hash = "sha256:878bc8ef4073e5cfb953dfc1cf4585db41e8b814c0106abde34d00ee0d0b3115"},
