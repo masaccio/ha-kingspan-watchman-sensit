@@ -48,5 +48,4 @@ class SENSiTEntity(CoordinatorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        _LOGGER.debug("SENSiTEntity._handle_coordinator_update")
         self.async_write_ha_state()
