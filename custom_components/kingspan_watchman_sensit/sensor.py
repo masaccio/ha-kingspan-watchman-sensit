@@ -1,6 +1,7 @@
 """Sensor platform for Kingspan Watchman SENSiT."""
 import logging
 
+from decimal import Decimal
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -64,7 +65,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
             self.coordinator.data.level / self.coordinator.data.capacity
         )
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
-        return percent_full
+        return Decimal(f"{percent_full:.1f}")
 
     @property
     def icon(self):
