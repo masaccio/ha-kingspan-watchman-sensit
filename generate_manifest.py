@@ -1,3 +1,4 @@
+#! /usr/bin/env poetry run python3
 from connectsensor import __version__ as API_VERSON
 import json
 import toml
