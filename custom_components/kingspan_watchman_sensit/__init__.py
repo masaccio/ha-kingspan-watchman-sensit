@@ -14,9 +14,15 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import SENSiTApiClient
-from .const import CONF_PASSWORD, CONF_USERNAME, DOMAIN, PLATFORMS, STARTUP_MESSAGE
+from .const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    DOMAIN,
+    PLATFORMS,
+    UPDATE_INTERVAL_HOURS,
+)
 
-SCAN_INTERVAL = timedelta(hours=12)
+SCAN_INTERVAL = timedelta(hours=UPDATE_INTERVAL_HOURS)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -30,7 +36,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
-        _LOGGER.info(STARTUP_MESSAGE)
 
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
