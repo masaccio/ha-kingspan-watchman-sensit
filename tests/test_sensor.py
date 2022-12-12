@@ -33,7 +33,7 @@ async def test_sensor(hass, mock_sensor_client):
 
     state = hass.states.get("sensor.tank_percentage_full")
     assert state
-    assert state.state == str(MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY)
+    assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
     # state = hass.states.get("sensor.last_reading_date")
