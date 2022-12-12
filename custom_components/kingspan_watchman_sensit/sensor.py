@@ -30,7 +30,7 @@ async def async_setup_entry(
             OilLevel(coordinator, config_entry),
             TankPercentageFull(coordinator, config_entry),
             TankCapacity(coordinator, config_entry),
-            # LastReadDate(coordinator, config_entry),
+            LastReadDate(coordinator, config_entry),
         ]
     )
 

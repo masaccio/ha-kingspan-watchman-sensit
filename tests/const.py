@@ -1,5 +1,5 @@
 """Constants for Kingspan Watchman SENSiT tests."""
-from datetime import datetime
+from datetime import datetime, timezone
 
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
@@ -18,4 +18,4 @@ MOCK_TANK_SERIAL_NUMBER = "20001234"
 MOCK_TANK_MODEL = "Acme Tank"
 MOCK_TANK_NAME = "Tanky McTankFace"
 MOCK_TANK_CAPACITY = 2000
-MOCK_TANK_LAST_READ = datetime(2020, 6, 30, 0, 10, 0)
+MOCK_TANK_LAST_READ = datetime(2020, 6, 30, 0, 10, 0).replace(tzinfo=timezone.utc)

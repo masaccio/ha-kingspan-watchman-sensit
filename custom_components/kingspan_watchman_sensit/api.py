@@ -1,7 +1,7 @@
 """Sample API Client."""
 import logging
 from asyncio import TimeoutError
-
+from datetime import timezone
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
@@ -45,6 +45,8 @@ class SENSiTApiClient:
             self.data.name = await tank.name
             self.data.capacity = await tank.capacity
             self.data.last_read = await tank.last_read
+            # Timestamp sensor needs timezone included
+            self.data.last_read = self.data.last_read.replace(tzinfo=timezone.utc)
             _LOGGER.debug(
                 "Tank data: level=%d, capacity=%d, serial_number=%s, last_read=%s",
                 self.data.level,
