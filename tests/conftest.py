@@ -74,12 +74,13 @@ def error_sensor_client_fixture():
 
 
 class MockAsyncTank:
-    def __init__(self, *args):
-        pass
+    def __init__(self, *args, level=MOCK_TANK_LEVEL):
+        super().__init__(*args)
+        self._level = level
 
     @async_property
     async def level(self) -> int:
-        return MOCK_TANK_LEVEL
+        return self._level
 
     @async_property
     async def serial_number(self) -> str:
@@ -103,18 +104,32 @@ class MockAsyncTank:
 
 
 class MockAsyncClient(AsyncMock):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "level" in kwargs:
+            self._level = kwargs["level"]
+        else:
+            self._level = MOCK_TANK_LEVEL
+
     @async_property
     async def tanks(self):
-        return [MockAsyncTank()]
+        return [MockAsyncTank(level=self._level)]
 
 
-@pytest.fixture(name="mock_sensor_client")
-def mock_sensor_client_fixture():
+@pytest.fixture(params=["tank_level"])
+def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
+    if type(request.param) == list:
+        tank_level = request.param[0]
+    else:
+        tank_level = MOCK_TANK_LEVEL
     with patch("connectsensor.AsyncSensorClient") as mock_client, patch(
         "custom_components.kingspan_watchman_sensit.api.AsyncSensorClient"
-        # "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data.AsyncSensorClient"
     ) as ha_mock_client:
-        mock_client.return_value.__aenter__.return_value = MockAsyncClient()
-        ha_mock_client.return_value.__aenter__.return_value = MockAsyncClient()
+        mock_client.return_value.__aenter__.return_value = MockAsyncClient(
+            level=tank_level
+        )
+        ha_mock_client.return_value.__aenter__.return_value = MockAsyncClient(
+            level=tank_level
+        )
         yield
