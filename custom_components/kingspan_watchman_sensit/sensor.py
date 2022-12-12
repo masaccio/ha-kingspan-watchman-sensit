@@ -60,7 +60,9 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level as a percentage"""
-        percent_full = self.coordinator.data.level / self.coordinator.data.capacity
+        percent_full = 100 * (
+            self.coordinator.data.level / self.coordinator.data.capacity
+        )
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return percent_full
 
