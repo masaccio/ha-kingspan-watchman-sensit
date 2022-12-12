@@ -1,7 +1,6 @@
 """SENSiTEntity class"""
 import logging
 
-from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
@@ -32,11 +31,11 @@ class SENSiTEntity(CoordinatorEntity):
         }
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return {
             "attribution": ATTRIBUTION,
-            "id": str(self.coordinator.data.get("id")),
+            "id": self.coordinator.data.serial_number,
             "integration": DOMAIN,
         }
 
@@ -44,8 +43,3 @@ class SENSiTEntity(CoordinatorEntity):
     def last_reset(self):
         """Time sensor was initialised (returns None)"""
         return None
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()

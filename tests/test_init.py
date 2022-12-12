@@ -15,6 +15,30 @@ from .const import MOCK_CONFIG
 
 
 @pytest.mark.asyncio
+async def test_refresh_data(hass, mock_sensor_client, caplog):
+    """Test state refresh through the API"""
+    config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert type(hass.data[DOMAIN][config_entry.entry_id]) == SENSiTDataUpdateCoordinator
+
+    # Check that the API is called to update data twice for two calls
+    # to HASS's data update method
+    caplog.clear()
+    await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
+    await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
+    update_logs = [
+        log[2] for log in caplog.record_tuples if "Fetching tank data" in log[2]
+    ]
+    assert len(update_logs) == 2
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+@pytest.mark.asyncio
 async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     """Test entry setup and unload."""
     # Create a mock entry so we don't have to go through config flow
