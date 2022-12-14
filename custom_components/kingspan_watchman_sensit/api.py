@@ -30,7 +30,9 @@ class SENSiTApiClient:
         except APIError as e:
             _LOGGER.error("API error logging in as %s: %s", self._username, str(e))
         except TimeoutError:
-            _LOGGER.error("timeout error logging in as %s", self._username)
+            _LOGGER.error("Timeout error logging in as %s", self._username)
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.error("Unhandled error logging in as %s: %s", self._username, e)
 
     async def _get_tank_data(self):
         _LOGGER.debug("Fetching tank data with username=%s", self._username)

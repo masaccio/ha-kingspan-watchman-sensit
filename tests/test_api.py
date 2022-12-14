@@ -38,7 +38,7 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
     _ = await api.async_get_data()
     assert len(caplog.record_tuples) == 1
-    assert "timeout error logging in" in caplog.record_tuples[0][2]
+    assert "Timeout error logging in" in caplog.record_tuples[0][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
