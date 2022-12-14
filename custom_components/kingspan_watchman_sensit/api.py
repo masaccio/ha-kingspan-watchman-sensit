@@ -69,12 +69,16 @@ def usage_rate(history, threshold):
     if len(history) == 0:  # pragma: no cover
         return 0
     current_level = history.level_litres.iloc[0]
+    if current_level == 0:  # pragma: no cover
+        return 0
     delta_levels = []
     for index, row in history.iloc[1:].iterrows():
         # Ignore refill days where oil goes up by 'threshold'
         if (row.level_litres / current_level) < threshold:
             delta_levels.append(current_level - row.level_litres)
         current_level = row.level_litres
+    if len(delta_levels) == 0:
+        return 0
     return sum(delta_levels) / len(delta_levels)
 
 
@@ -85,7 +89,7 @@ def forecast_empty(history, window):
     threshold = REFILL_THRESHOLD
     rate = usage_rate(history, threshold)
     if rate == 0:  # pragma: no cover
-        return 9999.0
+        return 0
     else:
         current_level = int(history.level_litres.tail(1))
         return int(current_level / abs(rate))
