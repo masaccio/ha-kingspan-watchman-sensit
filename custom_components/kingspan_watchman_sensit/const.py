@@ -20,5 +20,7 @@ CONF_PASSWORD = "password"
 
 # Defaults
 DEFAULT_NAME = DOMAIN
-API_TIMEOUT = 30
-UPDATE_INTERVAL_HOURS = 8
+API_TIMEOUT = 30  # seconds
+REFILL_THRESHOLD = 1.25  # factor considerd a tank refill
+USAGE_WINDOW = 14  # days
+UPDATE_INTERVAL = 8  # hours

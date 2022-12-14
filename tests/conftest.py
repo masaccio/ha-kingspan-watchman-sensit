@@ -1,7 +1,9 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
 import pytest
+import pandas as pd
 
 from async_property import async_property
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch, AsyncMock
 from connectsensor import APIError
 
@@ -11,7 +13,6 @@ from .const import (
     MOCK_TANK_MODEL,
     MOCK_TANK_NAME,
     MOCK_TANK_CAPACITY,
-    MOCK_TANK_LAST_READ,
 )
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -100,7 +101,31 @@ class MockAsyncTank:
 
     @async_property
     async def last_read(self) -> str:
-        return MOCK_TANK_LAST_READ
+        history = await self.history
+        return history.iloc[-1].reading_date.replace(tzinfo=timezone.utc)
+
+    @async_property
+    async def history(self) -> str:
+        # Build a month of history with a refill halfway through
+        history = []
+        start_date = (
+            datetime.now().replace(hour=0, minute=30, second=0, microsecond=0)
+        ) - timedelta(days=30)
+
+        for day in range(1, 16):
+            percent = 100 - (day * 4)
+            level = int(MOCK_TANK_CAPACITY * (percent / 100))
+            reading_date = start_date + timedelta(days=day)
+            history.append([reading_date, percent, level])
+        for day in range(16, 31):
+            percent = 100 - ((day - 15) * 4)
+            level = int(MOCK_TANK_CAPACITY * (percent / 100))
+            reading_date = start_date + timedelta(days=day)
+            history.append([reading_date, percent, level])
+        df = pd.DataFrame(
+            history, columns=["reading_date", "level_percent", "level_litres"]
+        )
+        return df
 
 
 class MockAsyncClient(AsyncMock):
