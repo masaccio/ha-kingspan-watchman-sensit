@@ -4,6 +4,7 @@ import logging
 from decimal import Decimal
 from homeassistant.components.sensor import (
     SensorDeviceClass,
+    SensorStateClass,
     SensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -31,6 +32,8 @@ async def async_setup_entry(
             TankPercentageFull(coordinator, config_entry),
             TankCapacity(coordinator, config_entry),
             LastReadDate(coordinator, config_entry),
+            CurrentUsage(coordinator, config_entry),
+            ForcastEmptyDays(coordinator, config_entry),
         ]
     )
 
@@ -56,6 +59,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Percentage Full"
     _attr_device_class = SensorDeviceClass.VOLUME
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = PERCENTAGE
 
     @property
@@ -96,6 +100,33 @@ class LastReadDate(SENSiTEntity, SensorEntity):
         """Return date of the last reading"""
         _LOGGER.debug("Tank last read %s", str(self.coordinator.data.last_read))
         return self.coordinator.data.last_read
+
+
+class CurrentUsage(SENSiTEntity, SensorEntity):
+    _attr_icon = "mdi:gauge-full"
+    _attr_name = "Current Usage"
+    _attr_device_class = SensorDeviceClass.VOLUME
+    _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+
+    @property
+    def native_value(self):
+        """Return the usage in the last day in litres"""
+        _LOGGER.debug("Current oil usage %d days", self.coordinator.data.usage_rate)
+        return self.coordinator.data.usage_rate
+
+
+class ForcastEmptyDays(SENSiTEntity, SensorEntity):
+    _attr_icon = "mdi:clock-outline"
+    _attr_name = "Forecast Empty Days"
+    _attr_device_class = SensorDeviceClass.DURATION
+
+    @property
+    def native_value(self):
+        """Return the number of days to empty"""
+        _LOGGER.debug(
+            "Tank forecast empty %d days", self.coordinator.data.forecast_empty
+        )
+        return self.coordinator.data.forecast_empty
 
 
 def tank_icon(level: int, capacity: int) -> str:

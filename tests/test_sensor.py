@@ -1,11 +1,14 @@
 """Test Kingspan Watchman SENSiT sensor states."""
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
-from custom_components.kingspan_watchman_sensit import async_unload_entry
+from datetime import datetime, timezone
 
-from .const import MOCK_TANK_LEVEL, MOCK_TANK_CAPACITY, MOCK_TANK_LAST_READ
+import pytest
 from homeassistant.const import ATTR_ICON
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.kingspan_watchman_sensit import async_unload_entry
+from custom_components.kingspan_watchman_sensit.const import DOMAIN
+
+from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL
 
 
 @pytest.mark.asyncio
@@ -34,7 +37,20 @@ async def test_sensor(hass, mock_sensor_client):
 
     state = hass.states.get("sensor.last_reading_date")
     assert state
-    assert state.state == MOCK_TANK_LAST_READ.isoformat()
+    test_date = (
+        datetime.now()
+        .replace(hour=0, minute=30, second=0, microsecond=0)
+        .replace(tzinfo=timezone.utc)
+    )
+    assert state.state == test_date.isoformat()
+    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
+
+    state = hass.states.get("sensor.current_usage")
+    assert state.state == "80.0"
+    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
+
+    state = hass.states.get("sensor.forecast_empty_days")
+    assert state.state == "10"
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
 
     assert await async_unload_entry(hass, config_entry)

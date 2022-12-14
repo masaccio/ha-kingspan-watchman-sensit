@@ -19,10 +19,10 @@ from .const import (
     CONF_USERNAME,
     DOMAIN,
     PLATFORMS,
-    UPDATE_INTERVAL_HOURS,
+    UPDATE_INTERVAL,
 )
 
-SCAN_INTERVAL = timedelta(hours=UPDATE_INTERVAL_HOURS)
+SCAN_INTERVAL = timedelta(hours=UPDATE_INTERVAL)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 

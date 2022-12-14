@@ -1,5 +1,6 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
+from datetime import timezone
 
 import pytest
 from connectsensor import APIError
@@ -9,7 +10,6 @@ from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
 from .const import (
     MOCK_GET_DATA_METHOD,
     MOCK_TANK_CAPACITY,
-    MOCK_TANK_LAST_READ,
     MOCK_TANK_LEVEL,
     MOCK_TANK_MODEL,
     MOCK_TANK_NAME,
@@ -27,7 +27,12 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     assert tank_data.model == MOCK_TANK_MODEL
     assert tank_data.name == MOCK_TANK_NAME
     assert tank_data.capacity == MOCK_TANK_CAPACITY
-    assert tank_data.last_read == MOCK_TANK_LAST_READ
+    history = tank_data.history
+    assert tank_data.last_read == history.iloc[-1].reading_date.replace(
+        tzinfo=timezone.utc
+    )
+    assert tank_data.usage_rate == 80.0
+    assert tank_data.forecast_empty == 10
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)

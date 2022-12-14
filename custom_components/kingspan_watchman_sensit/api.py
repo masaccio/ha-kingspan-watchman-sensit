@@ -1,11 +1,11 @@
 """Sample API Client."""
 import logging
 from asyncio import TimeoutError
-from datetime import timezone
+from datetime import timezone, datetime, timedelta
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
-from .const import API_TIMEOUT
+from .const import API_TIMEOUT, REFILL_THRESHOLD, USAGE_WINDOW
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -45,13 +45,45 @@ class SENSiTApiClient:
             self.data.name = await tank.name
             self.data.capacity = await tank.capacity
             self.data.last_read = await tank.last_read
+            self.data.history = await tank.history
             # Timestamp sensor needs timezone included
             self.data.last_read = self.data.last_read.replace(tzinfo=timezone.utc)
+            self.data.usage_rate = usage_rate(self.data.history, REFILL_THRESHOLD)
+            self.data.forecast_empty = forecast_empty(self.data.history, USAGE_WINDOW)
             _LOGGER.debug(
-                "Tank data: level=%d, capacity=%d, serial_number=%s, last_read=%s",
+                "Tank data: level=%d, capacity=%d, serial_number=%s,"
+                + "last_read=%s, usage_rate=%.1f, forecast_empty=%s",
                 self.data.level,
                 self.data.capacity,
                 self.data.serial_number,
                 str(self.data.last_read),
+                self.data.usage_rate,
+                str(self.data.forecast_empty),
             )
             return self.data
+
+
+def usage_rate(history, threshold):
+    if len(history) == 0:  # pragma: no cover
+        return 0
+    current_level = history.level_litres.iloc[0]
+    delta_levels = []
+    for index, row in history.iloc[1:].iterrows():
+        # Ignore refill days where oil goes up by 'threshold'
+        if (row.level_litres / current_level) < threshold:
+            delta_levels.append(current_level - row.level_litres)
+        current_level = row.level_litres
+    return sum(delta_levels) / len(delta_levels)
+
+
+def forecast_empty(history, window):
+    time_delta = datetime.today() - timedelta(days=window)
+    history = history[history.reading_date >= time_delta]
+
+    threshold = REFILL_THRESHOLD
+    rate = usage_rate(history, threshold)
+    if rate == 0:  # pragma: no cover
+        return 9999.0
+    else:
+        current_level = int(history.level_litres.tail(1))
+        return int(current_level / abs(rate))
