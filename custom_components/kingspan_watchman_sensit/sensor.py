@@ -32,8 +32,8 @@ async def async_setup_entry(
             TankPercentageFull(coordinator, config_entry),
             TankCapacity(coordinator, config_entry),
             LastReadDate(coordinator, config_entry),
-            # CurrentUsage(coordinator, config_entry),
-            # ForcastEmptyDays(coordinator, config_entry),
+            CurrentUsage(coordinator, config_entry),
+            ForcastEmptyDays(coordinator, config_entry),
         ]
     )
 
