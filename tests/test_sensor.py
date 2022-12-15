@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 
-from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL
+from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL, HistoryType
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
     state = hass.states.get("sensor.forecast_empty_days")
-    assert state.state == "10"
+    assert state.state == "15"
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
 
     assert await async_unload_entry(hass, config_entry)
@@ -108,5 +108,56 @@ async def test_sensor_icon_low(hass, mock_sensor_client):
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY * 0.3)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-low"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.NONE]], indirect=True
+)
+async def test_sensor_no_history(hass, mock_sensor_client, caplog):
+    """Test sensor."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
+
+    caplog.clear()
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
+    assert len(history_log) == 1
+
+    state = hass.states.get("sensor.current_usage")
+    assert state
+    assert state.state == "0.0"
+
+    state = hass.states.get("sensor.forecast_empty_days")
+    assert state
+    assert state.state == "0"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.EXPIRED]], indirect=True
+)
+async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
+    """Test sensor."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
+
+    caplog.clear()
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.current_usage")
+    assert state
+    assert state.state == "0.0"
+
+    state = hass.states.get("sensor.forecast_empty_days")
+    assert state
+    assert state.state == "0"
 
     assert await async_unload_entry(hass, config_entry)

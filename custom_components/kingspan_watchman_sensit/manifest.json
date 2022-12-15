@@ -4,7 +4,7 @@
   "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
-  "version": "1.2.0",
+  "version": "1.2.5",
   "config_flow": true,
   "codeowners": [
     "@masaccio"
