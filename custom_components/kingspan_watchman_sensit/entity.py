@@ -3,7 +3,7 @@ import logging
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
+from .const import ATTRIBUTION, DOMAIN, NAME
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -24,9 +24,9 @@ class SENSiTEntity(CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "identifiers": {(DOMAIN, self.coordinator.data.serial_number)},
             "name": NAME,
-            "model": VERSION,
+            "model": self.coordinator.data.name,
             "manufacturer": NAME,
         }
 
