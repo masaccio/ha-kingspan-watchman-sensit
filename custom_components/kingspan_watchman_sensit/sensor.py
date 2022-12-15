@@ -111,8 +111,9 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the usage in the last day in litres"""
-        _LOGGER.debug("Current oil usage %d days", self.coordinator.data.usage_rate)
-        return self.coordinator.data.usage_rate
+        current_usage = self.coordinator.data.usage_rate
+        _LOGGER.debug("Current oil usage %d days", current_usage)
+        return Decimal(f"{current_usage:.1f}")
 
 
 class ForcastEmptyDays(SENSiTEntity, SensorEntity):
@@ -123,10 +124,9 @@ class ForcastEmptyDays(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the number of days to empty"""
-        _LOGGER.debug(
-            "Tank forecast empty %d days", self.coordinator.data.forecast_empty
-        )
-        return self.coordinator.data.forecast_empty
+        empty_days = self.coordinator.data.forecast_empty
+        _LOGGER.debug("Tank forecast empty %d days", empty_days)
+        return empty_days
 
 
 def tank_icon(level: int, capacity: int) -> str:

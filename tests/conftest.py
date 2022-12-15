@@ -13,6 +13,7 @@ from .const import (
     MOCK_TANK_MODEL,
     MOCK_TANK_NAME,
     MOCK_TANK_CAPACITY,
+    HistoryType,
 )
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -59,13 +60,11 @@ def error_get_data_fixture():
         yield
 
 
-# AsyncSensorClient is instantiated in different import contexts
-# See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
-
-
 @pytest.fixture(name="error_sensor_client")
 def error_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
+    # AsyncSensorClient is instantiated in different import contexts
+    # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
     with patch("connectsensor.AsyncSensorClient",) as mock_client, patch(
         "custom_components.kingspan_connect.AsyncSensorClient"
     ) as ha_mock_client:
@@ -74,10 +73,38 @@ def error_sensor_client_fixture():
         yield
 
 
+def decreasing_history(start_date: datetime) -> pd.DataFrame:
+    history = []
+    start_date = start_date.replace(
+        hour=0, minute=30, second=0, microsecond=0
+    ) - timedelta(days=30)
+
+    for day in range(1, 20):
+        percent = 100 - (day * 4)
+        level = int(MOCK_TANK_CAPACITY * (percent / 100))
+        reading_date = start_date + timedelta(days=day)
+        history.append([reading_date, percent, level])
+    # Refill happens
+    for day in range(20, 31):
+        percent = 100 - ((day - 20) * 4)
+        level = int(MOCK_TANK_CAPACITY * (percent / 100))
+        reading_date = start_date + timedelta(days=day)
+        history.append([reading_date, percent, level])
+    df = pd.DataFrame(
+        history, columns=["reading_date", "level_percent", "level_litres"]
+    )
+    return df
+
+
 class MockAsyncTank:
-    def __init__(self, *args, level=MOCK_TANK_LEVEL):
+    """Mock SENSiT tank with options for different tank level/history data"""
+
+    def __init__(
+        self, *args, tank_level=MOCK_TANK_LEVEL, history_type=HistoryType.DECREASING
+    ):
         super().__init__(*args)
-        self._level = level
+        self._level = tank_level
+        self._history_type = history_type
 
     @async_property
     async def level(self) -> int:
@@ -102,59 +129,66 @@ class MockAsyncTank:
     @async_property
     async def last_read(self) -> str:
         history = await self.history
-        return history.iloc[-1].reading_date.replace(tzinfo=timezone.utc)
+        if len(history) > 0:
+            return history.iloc[-1].reading_date.replace(tzinfo=timezone.utc)
+        else:
+            return datetime.now().replace(tzinfo=timezone.utc)
 
     @async_property
     async def history(self) -> str:
         # Build a month of history with a refill halfway through
-        history = []
-        start_date = (
-            datetime.now().replace(hour=0, minute=30, second=0, microsecond=0)
-        ) - timedelta(days=30)
-
-        for day in range(1, 16):
-            percent = 100 - (day * 4)
-            level = int(MOCK_TANK_CAPACITY * (percent / 100))
-            reading_date = start_date + timedelta(days=day)
-            history.append([reading_date, percent, level])
-        for day in range(16, 31):
-            percent = 100 - ((day - 15) * 4)
-            level = int(MOCK_TANK_CAPACITY * (percent / 100))
-            reading_date = start_date + timedelta(days=day)
-            history.append([reading_date, percent, level])
-        df = pd.DataFrame(
-            history, columns=["reading_date", "level_percent", "level_litres"]
-        )
-        return df
+        if self._history_type == HistoryType.DECREASING:
+            return decreasing_history(datetime.now())
+        elif self._history_type == HistoryType.EXPIRED:
+            return decreasing_history(datetime.now() - timedelta(days=365))
+        else:
+            df = pd.DataFrame(
+                [], columns=["reading_date", "level_percent", "level_litres"]
+            )
+            return df
 
 
 class MockAsyncClient(AsyncMock):
+    """Mock SENSiT client with options for different tank level/history data"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if "level" in kwargs:
-            self._level = kwargs["level"]
+        if "tank_level" in kwargs:
+            self._level = kwargs["tank_level"]
         else:
             self._level = MOCK_TANK_LEVEL
+        if "history_type" in kwargs:
+            self._history_type = kwargs["history_type"]
+        else:
+            self._history_type = HistoryType.DECREASING
 
     @async_property
     async def tanks(self):
-        return [MockAsyncTank(level=self._level)]
+        return [MockAsyncTank(tank_level=self._level, history_type=self._history_type)]
 
 
-@pytest.fixture(params=["tank_level"])
+@pytest.fixture(params=["tank_level", "history_type"])
 def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
-    if type(request.param) == list:
+    if type(request.param) == list and len(request.param) == 1:
         tank_level = request.param[0]
+        history_type = HistoryType.DECREASING
+    elif type(request.param) == list and len(request.param) == 2:
+        tank_level = request.param[0]
+        history_type = request.param[1]
     else:
         tank_level = MOCK_TANK_LEVEL
+        history_type = HistoryType.DECREASING
+
+    # AsyncSensorClient is instantiated in different import contexts
+    # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
     with patch("connectsensor.AsyncSensorClient") as mock_client, patch(
         "custom_components.kingspan_watchman_sensit.api.AsyncSensorClient"
     ) as ha_mock_client:
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            level=tank_level
+            tank_level=tank_level, history_type=history_type
         )
         ha_mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            level=tank_level
+            tank_level=tank_level, history_type=history_type
         )
         yield

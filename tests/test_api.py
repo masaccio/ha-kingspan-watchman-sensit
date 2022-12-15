@@ -32,7 +32,7 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
         tzinfo=timezone.utc
     )
     assert tank_data.usage_rate == 80.0
-    assert tank_data.forecast_empty == 10
+    assert tank_data.forecast_empty == 15
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
@@ -45,3 +45,9 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     _ = await api.async_get_data()
     assert len(caplog.record_tuples) == 1
     assert "API error logging in as test: api-test" in caplog.record_tuples[0][2]
+
+    caplog.clear()
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
+    _ = await api.async_get_data()
+    assert len(caplog.record_tuples) == 1
+    assert "Unhandled error" in caplog.record_tuples[0][2]
