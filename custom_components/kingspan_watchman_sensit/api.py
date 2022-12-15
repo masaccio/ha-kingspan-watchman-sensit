@@ -84,7 +84,6 @@ class SENSiTApiClient:
                 current_level != 0
                 and (row.level_litres / current_level) < REFILL_THRESHOLD
             ):
-                _LOGGER.debug("delta: %d", current_level - row.level_litres)
                 delta_levels.append(current_level - row.level_litres)
 
             current_level = row.level_litres
