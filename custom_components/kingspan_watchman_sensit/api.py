@@ -18,7 +18,7 @@ class TankData:
 class SENSiTApiClient:
     def __init__(self, username: str, password: str) -> None:
         """Simple API Client for ."""
-        _LOGGER.debug("API init as username=%s, password=%s", username, password)
+        _LOGGER.debug("API init as username=%s", username)
         self._username = username
         self._password = password
 
@@ -84,6 +84,7 @@ class SENSiTApiClient:
                 current_level != 0
                 and (row.level_litres / current_level) < REFILL_THRESHOLD
             ):
+                _LOGGER.debug("delta: %d", current_level - row.level_litres)
                 delta_levels.append(current_level - row.level_litres)
 
             current_level = row.level_litres
