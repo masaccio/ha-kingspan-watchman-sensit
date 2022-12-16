@@ -49,9 +49,9 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == "80.0"
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
-    state = hass.states.get("sensor.forecast_empty_days")
+    state = hass.states.get("sensor.forecast_empty")
     assert state.state == "15"
-    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
+    assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -132,7 +132,7 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     assert state
     assert state.state == "0.0"
 
-    state = hass.states.get("sensor.forecast_empty_days")
+    state = hass.states.get("sensor.forecast_empty")
     assert state
     assert state.state == "0"
 
@@ -156,7 +156,7 @@ async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
     assert state
     assert state.state == "0.0"
 
-    state = hass.states.get("sensor.forecast_empty_days")
+    state = hass.states.get("sensor.forecast_empty")
     assert state
     assert state.state == "0"
 

@@ -2,6 +2,7 @@
 import logging
 
 from decimal import Decimal
+from datetime import timedelta
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
@@ -9,7 +10,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import PERCENTAGE, UnitOfVolume
+from homeassistant.const import PERCENTAGE, UnitOfVolume, TIME_DAYS
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
@@ -33,7 +34,7 @@ async def async_setup_entry(
             TankCapacity(coordinator, config_entry),
             LastReadDate(coordinator, config_entry),
             CurrentUsage(coordinator, config_entry),
-            ForcastEmptyDays(coordinator, config_entry),
+            ForcastEmpty(coordinator, config_entry),
         ]
     )
 
@@ -43,6 +44,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
     _attr_name = "Oil Level"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -59,8 +61,8 @@ class OilLevel(SENSiTEntity, SensorEntity):
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Percentage Full"
     _attr_device_class = SensorDeviceClass.VOLUME
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -82,6 +84,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Capacity"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
@@ -107,6 +110,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_name = "Current Usage"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
@@ -116,10 +120,11 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
         return Decimal(f"{current_usage:.1f}")
 
 
-class ForcastEmptyDays(SENSiTEntity, SensorEntity):
-    _attr_icon = "mdi:clock-outline"
-    _attr_name = "Forecast Empty Days"
-    _attr_device_class = SensorDeviceClass.DURATION
+class ForcastEmpty(SENSiTEntity, SensorEntity):
+    _attr_icon = "mdi:calendar"
+    _attr_name = "Forecast Empty"
+    _attr_native_unit_of_measurement = TIME_DAYS
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
@@ -127,6 +132,7 @@ class ForcastEmptyDays(SENSiTEntity, SensorEntity):
         empty_days = self.coordinator.data.forecast_empty
         _LOGGER.debug("Tank forecast empty %d days", empty_days)
         return empty_days
+        return timedelta(days=empty_days)
 
 
 def tank_icon(level: int, capacity: int) -> str:
