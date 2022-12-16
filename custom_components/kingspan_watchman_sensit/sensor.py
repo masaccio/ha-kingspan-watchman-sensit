@@ -42,6 +42,7 @@ async def async_setup_entry(
 class OilLevel(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:gauge"
     _attr_name = "Oil Level"
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_state_class = SensorStateClass.TOTAL
@@ -60,6 +61,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Percentage Full"
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = SensorStateClass.TOTAL
@@ -82,6 +84,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
 class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:gauge-full"
     _attr_name = "Tank Capacity"
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -96,6 +99,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 class LastReadDate(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:clock-outline"
     _attr_name = "Last Reading Date"
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
@@ -108,6 +112,7 @@ class LastReadDate(SENSiTEntity, SensorEntity):
 class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:gauge-full"
     _attr_name = "Current Usage"
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -123,6 +128,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
 class ForcastEmpty(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:calendar"
     _attr_name = "Forecast Empty"
+    _attr_has_entity_name = True
     _attr_native_unit_of_measurement = TIME_DAYS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
