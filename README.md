@@ -8,9 +8,7 @@ This repository contains a Home Assistant integration for the [Kingspan Watchman
 
 ##  Installation
 
-Right now, the integration must be installed as a custom repository from HACS. Follow the instructions for adding custom repositories [in the HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) then download the repository to your Home Assistant instance and add the integration to your instance. The repository to use is:
-
-<https://github.com/masaccio/ha-kingspan-watchman-sensit>
+You will need [HACS](https://hacs.xyz) installed in your Home Assistant server. Install the Kingspan Watchman SENSiT integration and you will then be asked to enter your username and password for logging into the Kingspan server. This is then cached by Home Assistant.
 
 You will be asked for your Kingspan username and password which will then be cached by Home Assistant for all future updates.
 
