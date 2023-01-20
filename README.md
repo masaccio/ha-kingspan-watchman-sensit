@@ -12,6 +12,9 @@ You will need [HACS](https://hacs.xyz) installed in your Home Assistant server. 
 
 You will be asked for your Kingspan username and password which will then be cached by Home Assistant for all future updates.
 
+[![Open your Home Assistant instance and add this integration](https://my.home-assistant.io/badges/config_flow_start.svg)]([https://my.home-assistant.io/redirect/integrations/](https://my.home-assistant.io/redirect/config_flow_start/?domain=ha-kingspan-watchman-sensit))
+
+
 ## Entities
 
 The integration reads data from the SENSiT sensor every 8 hours. The tank data is updated every 24 hours but 8 hours is chosen as the update point. Usage data and forcasts of empty are different from the Kingspan app. Rather than using just the previous day's reading, this integration uses the pasy 14 days as the basis for a prediction of empty, and the current usage is also the average of the past 14 days.
