@@ -12,7 +12,7 @@ You will need [HACS](https://hacs.xyz) installed in your Home Assistant server. 
 
 You will be asked for your Kingspan username and password which will then be cached by Home Assistant for all future updates.
 
-[![Open your Home Assistant instance and add this integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ha-kingspan-watchman-sensit)
+[![Open your Home Assistant instance and add this integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=kingspan_watchman_sensit)
 
 
 ## Entities
