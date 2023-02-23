@@ -6,7 +6,7 @@
 
 This repository contains a Home Assistant integration for the [Kingspan Watchman SENSiT sensors](https://www.kingspan.com/gb/en-gb/products/tank-monitoring-systems/remote-tank-monitoring/sensit-smart-wifi-tank-level-monitoring-kit) to read levels from an oil tank. The integration relies upon a connection to Kingspan's cloud service.
 
-##  Installation
+##  Installation
 
 You will need [HACS](https://hacs.xyz) installed in your Home Assistant server. Install the Kingspan Watchman SENSiT integration and you will then be asked to enter your username and password for logging into the Kingspan server. This is then cached by Home Assistant.
 

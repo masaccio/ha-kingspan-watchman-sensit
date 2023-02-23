@@ -1,5 +1,6 @@
 {
     "name": "Watchman SENSiT integration for Home Assistant",
     "hacs": "1.6.0",
+    "render_readme": true,
     "homeassistant": "0.118.0"
 }
