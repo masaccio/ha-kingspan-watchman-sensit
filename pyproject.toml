@@ -6,11 +6,11 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
 ]
 description = "Kingspan Connect Sensor integration for Home Assistant"
-documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/main/Readme.md"
+documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/main/README.md"
 license = "MIT"
 name = "ha-kingspan-connect-sensor"
 packages = [{include = "custom_components/kingspan_watchman_sensit"}]
-readme = "Readme.md"
+readme = "README.md"
 repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
 version = "1.3.0"
 
