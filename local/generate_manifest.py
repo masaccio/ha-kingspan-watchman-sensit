@@ -10,13 +10,13 @@ pyproject = toml.load("pyproject.toml")
 manifest = {
     "domain": "kingspan_watchman_sensit",
     "name": "Kingspan Watchman SENSiT",
+    "codeowners": ["@masaccio"],
+    "config_flow": True,
     "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
-    "version": pyproject["tool"]["poetry"]["version"],
-    "config_flow": True,
-    "codeowners": ["@masaccio"],
     "requirements": [f"kingspan-connect-sensor=={API_VERSON}"],
+    "version": pyproject["tool"]["poetry"]["version"],
 }
 
 with open(MANIFEST, "w") as fh:
