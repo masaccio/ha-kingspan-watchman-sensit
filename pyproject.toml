@@ -20,6 +20,7 @@ homeassistant = "^2022.12.4"
 kingspan-connect-sensor = "^2.0.6"
 python = "^3.9"
 voluptuous = "^0.13.1"
+pysnooper = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 async-property = "^0.2.1"

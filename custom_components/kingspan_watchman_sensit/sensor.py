@@ -27,16 +27,17 @@ async def async_setup_entry(
     """Setup sensor platform."""
     _LOGGER.debug("Adding sensor entities")
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities(
-        [
-            OilLevel(coordinator, config_entry),
-            TankPercentageFull(coordinator, config_entry),
-            TankCapacity(coordinator, config_entry),
-            LastReadDate(coordinator, config_entry),
-            CurrentUsage(coordinator, config_entry),
-            ForcastEmpty(coordinator, config_entry),
+    entities = []
+    for idx in range(len(coordinator.data)):
+        entities += [
+            OilLevel(coordinator, config_entry, idx),
+            TankPercentageFull(coordinator, config_entry, idx),
+            TankCapacity(coordinator, config_entry, idx),
+            LastReadDate(coordinator, config_entry, idx),
+            CurrentUsage(coordinator, config_entry, idx),
+            ForcastEmpty(coordinator, config_entry, idx),
         ]
-    )
+    async_add_entities(entities)
 
 
 class OilLevel(SENSiTEntity, SensorEntity):
@@ -49,13 +50,18 @@ class OilLevel(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level in litres"""
-        _LOGGER.debug("Read oil level: %d litres", self.coordinator.data.level)
-        return self.coordinator.data.level
+        _LOGGER.debug(
+            "Read oil level: %d litres", self.coordinator.data[self.idx].level
+        )
+        return self.coordinator.data[self.idx].level
 
     @property
     def icon(self):
         """Icon to use in the frontend"""
-        return tank_icon(self.coordinator.data.level, self.coordinator.data.capacity)
+        return tank_icon(
+            self.coordinator.data[self.idx].level,
+            self.coordinator.data[self.idx].capacity,
+        )
 
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
@@ -68,7 +74,8 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     def native_value(self):
         """Return the oil level as a percentage"""
         percent_full = 100 * (
-            self.coordinator.data.level / self.coordinator.data.capacity
+            self.coordinator.data[self.idx].level
+            / self.coordinator.data[self.idx].capacity
         )
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return Decimal(f"{percent_full:.1f}")
@@ -76,7 +83,10 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     @property
     def icon(self):
         """Icon to use in the frontend"""
-        return tank_icon(self.coordinator.data.level, self.coordinator.data.capacity)
+        return tank_icon(
+            self.coordinator.data[self.idx].level,
+            self.coordinator.data[self.idx].capacity,
+        )
 
 
 class TankCapacity(SENSiTEntity, SensorEntity):
@@ -89,8 +99,11 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the tank capacity in litres"""
-        _LOGGER.debug("Read tank capcity: %d litres", self.coordinator.data.capacity)
-        return self.coordinator.data.capacity
+        _LOGGER.debug(
+            "Read tank capcity: %d litres",
+            self.coordinator.data[self.idx].capacity,
+        )
+        return self.coordinator.data[self.idx].capacity
 
 
 class LastReadDate(SENSiTEntity, SensorEntity):
@@ -101,8 +114,10 @@ class LastReadDate(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return date of the last reading"""
-        _LOGGER.debug("Tank last read %s", str(self.coordinator.data.last_read))
-        return self.coordinator.data.last_read
+        _LOGGER.debug(
+            "Tank last read %s", str(self.coordinator.data[self.idx].last_read)
+        )
+        return self.coordinator.data[self.idx].last_read
 
 
 class CurrentUsage(SENSiTEntity, SensorEntity):
@@ -115,7 +130,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the usage in the last day in litres"""
-        current_usage = self.coordinator.data.usage_rate
+        current_usage = self.coordinator.data[self.idx].usage_rate
         _LOGGER.debug("Current oil usage %d days", current_usage)
         return Decimal(f"{current_usage:.1f}")
 
@@ -129,7 +144,7 @@ class ForcastEmpty(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the number of days to empty"""
-        empty_days = self.coordinator.data.forecast_empty
+        empty_days = self.coordinator.data[self.idx].forecast_empty
         _LOGGER.debug("Tank forecast empty %d days", empty_days)
         return empty_days
         return timedelta(days=empty_days)

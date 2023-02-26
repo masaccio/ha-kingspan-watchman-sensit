@@ -100,11 +100,16 @@ class MockAsyncTank:
     """Mock SENSiT tank with options for different tank level/history data"""
 
     def __init__(
-        self, *args, tank_level=MOCK_TANK_LEVEL, history_type=HistoryType.DECREASING
+        self,
+        *args,
+        tank_level=MOCK_TANK_LEVEL,
+        history_type=HistoryType.DECREASING,
+        tank_num=None,
     ):
         super().__init__(*args)
         self._level = tank_level
         self._history_type = history_type
+        self._tank_num = tank_num
 
     @async_property
     async def level(self) -> int:
@@ -112,7 +117,10 @@ class MockAsyncTank:
 
     @async_property
     async def serial_number(self) -> str:
-        return MOCK_TANK_SERIAL_NUMBER
+        if self._tank_num is None:
+            return MOCK_TANK_SERIAL_NUMBER
+        else:
+            return MOCK_TANK_SERIAL_NUMBER + f"-{self._tank_num}"
 
     @async_property
     async def model(self) -> str:
@@ -120,7 +128,10 @@ class MockAsyncTank:
 
     @async_property
     async def name(self) -> str:
-        return MOCK_TANK_NAME
+        if self._tank_num is None:
+            return MOCK_TANK_NAME
+        else:
+            return MOCK_TANK_NAME + f" #{self._tank_num}"
 
     @async_property
     async def capacity(self) -> int:
@@ -161,21 +172,42 @@ class MockAsyncClient(AsyncMock):
             self._history_type = kwargs["history_type"]
         else:
             self._history_type = HistoryType.DECREASING
+        if "num_tanks" in kwargs and kwargs["num_tanks"] is not None:
+            self._num_tanks = kwargs["num_tanks"]
+        else:
+            self._num_tanks = 1
 
     @async_property
     async def tanks(self):
-        return [MockAsyncTank(tank_level=self._level, history_type=self._history_type)]
+        if self._num_tanks == 1:
+            return [
+                MockAsyncTank(tank_level=self._level, history_type=self._history_type)
+            ]
+        else:
+            return [
+                MockAsyncTank(
+                    tank_level=self._level,
+                    history_type=self._history_type,
+                    tank_num=tank_num,
+                )
+                for tank_num in range(1, self._num_tanks + 1)
+            ]
 
 
-@pytest.fixture(params=["tank_level", "history_type"])
+@pytest.fixture(params=["tank_level", "history_type", "num_tanks"])
 def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
+    num_tanks = None
     if type(request.param) == list and len(request.param) == 1:
         tank_level = request.param[0]
         history_type = HistoryType.DECREASING
     elif type(request.param) == list and len(request.param) == 2:
         tank_level = request.param[0]
         history_type = request.param[1]
+    elif type(request.param) == list and len(request.param) == 3:
+        tank_level = request.param[0]
+        history_type = request.param[1]
+        num_tanks = request.param[2]
     else:
         tank_level = MOCK_TANK_LEVEL
         history_type = HistoryType.DECREASING
@@ -186,9 +218,9 @@ def mock_sensor_client(request):
         "custom_components.kingspan_watchman_sensit.api.AsyncSensorClient"
     ) as ha_mock_client:
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            tank_level=tank_level, history_type=history_type
+            tank_level=tank_level, history_type=history_type, num_tanks=num_tanks
         )
         ha_mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            tank_level=tank_level, history_type=history_type
+            tank_level=tank_level, history_type=history_type, num_tanks=num_tanks
         )
         yield

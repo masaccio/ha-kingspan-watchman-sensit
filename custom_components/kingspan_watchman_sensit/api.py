@@ -39,39 +39,42 @@ class SENSiTApiClient:
         async with AsyncSensorClient() as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
-            tank = tanks[0]
-            self.data = TankData()
-            self.data.level = await tank.level
-            self.data.serial_number = await tank.serial_number
-            self.data.model = await tank.model
-            self.data.name = await tank.name
-            self.data.capacity = await tank.capacity
-            self.data.last_read = await tank.last_read
-            # Timestamp sensor needs timezone included
-            self.data.last_read = self.data.last_read.replace(tzinfo=timezone.utc)
-            self.data.history = await tank.history
-            if len(self.data.history) == 0:
-                _LOGGER.warning("No history: usage and forecast unavailable")
-                self.data.usage_rate = 0
-                self.data.forecast_empty = 0
-            else:
-                self.data.usage_rate = self.usage_rate()
-                self.data.forecast_empty = self.forecast_empty()
-            _LOGGER.debug(
-                "Tank data: level=%d, capacity=%d, serial_number=%s,"
-                + "last_read=%s, usage_rate=%.1f, forecast_empty=%s",
-                self.data.level,
-                self.data.capacity,
-                self.data.serial_number,
-                self.data.last_read,
-                self.data.usage_rate,
-                self.data.forecast_empty,
-            )
+            self.data = []
+            for tank in tanks:
+                tank_data = TankData()
+                tank_data.level = await tank.level
+                tank_data.serial_number = await tank.serial_number
+                tank_data.model = await tank.model
+                tank_data.name = await tank.name
+                tank_data.capacity = await tank.capacity
+                tank_data.last_read = await tank.last_read
+                # Timestamp sensor needs timezone included
+                tank_data.last_read = tank_data.last_read.replace(tzinfo=timezone.utc)
+                tank_data.history = await tank.history
+                if len(tank_data.history) == 0:
+                    _LOGGER.warning("No history: usage and forecast unavailable")
+                    tank_data.usage_rate = 0
+                    tank_data.forecast_empty = 0
+                else:
+                    tank_data.usage_rate = self.usage_rate(tank_data)
+                    tank_data.forecast_empty = self.forecast_empty(tank_data)
+                _LOGGER.debug(
+                    "Tank data: level=%d, capacity=%d, serial_number=%s,"
+                    + "last_read=%s, usage_rate=%.1f, forecast_empty=%s",
+                    tank_data.level,
+                    tank_data.capacity,
+                    tank_data.serial_number,
+                    tank_data.last_read,
+                    tank_data.usage_rate,
+                    tank_data.forecast_empty,
+                )
+                _LOGGER.debug("Found tank name '%s'", tank_data.name)
+                self.data.append(tank_data)
             return self.data
 
-    def usage_rate(self):
+    def usage_rate(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
-        history = self.data.history
+        history = tank_data.history
         history = history[history.reading_date >= time_delta]
         if len(history) == 0:
             return 0
@@ -93,14 +96,14 @@ class SENSiTApiClient:
         else:  # pragma: no cover
             return 0
 
-    def forecast_empty(self):
+    def forecast_empty(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
-        history = self.data.history
+        history = tank_data.history
         history = history[history.reading_date >= time_delta]
         if len(history) == 0:
             return 0
 
-        rate = self.usage_rate()
+        rate = self.usage_rate(tank_data)
         if rate == 0:  # pragma: no cover
             # Avoid divide by zero in corner case of no usage
             return 0
