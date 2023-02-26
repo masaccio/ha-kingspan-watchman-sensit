@@ -22,17 +22,17 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     """Test API calls."""
     api = SENSiTApiClient("test", "test")
     tank_data = await api.async_get_data()
-    assert tank_data.level == MOCK_TANK_LEVEL
-    assert tank_data.serial_number == MOCK_TANK_SERIAL_NUMBER
-    assert tank_data.model == MOCK_TANK_MODEL
-    assert tank_data.name == MOCK_TANK_NAME
-    assert tank_data.capacity == MOCK_TANK_CAPACITY
-    history = tank_data.history
-    assert tank_data.last_read == history.iloc[-1].reading_date.replace(
+    assert tank_data[0].level == MOCK_TANK_LEVEL
+    assert tank_data[0].serial_number == MOCK_TANK_SERIAL_NUMBER
+    assert tank_data[0].model == MOCK_TANK_MODEL
+    assert tank_data[0].name == MOCK_TANK_NAME
+    assert tank_data[0].capacity == MOCK_TANK_CAPACITY
+    history = tank_data[0].history
+    assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(
         tzinfo=timezone.utc
     )
-    assert tank_data.usage_rate == 80.0
-    assert tank_data.forecast_empty == 15
+    assert tank_data[0].usage_rate == 80.0
+    assert tank_data[0].forecast_empty == 15
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)

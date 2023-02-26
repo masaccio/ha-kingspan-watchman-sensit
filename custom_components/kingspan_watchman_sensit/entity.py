@@ -9,24 +9,25 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTEntity(CoordinatorEntity):
-    def __init__(self, coordinator, config_entry):
+    def __init__(self, coordinator, config_entry, idx):
         _LOGGER.debug("Init entity %s", self._attr_name)
         super().__init__(coordinator)
         self.config_entry = config_entry
+        self.idx = idx
 
     @property
     def unique_id(self):
         """Return a unique ID to use for this entity."""
-        serial_no = self.coordinator.data.serial_number
+        serial_no = self.coordinator.data[self.idx].serial_number
         name = self._attr_name.lower().replace(" ", "_")
         return f"sensit-{serial_no}-{name}"
 
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.coordinator.data.serial_number)},
+            "identifiers": {(DOMAIN, self.coordinator.data[self.idx].serial_number)},
             "name": NAME,
-            "model": self.coordinator.data.name,
+            "model": self.coordinator.data[self.idx].name,
             "manufacturer": NAME,
         }
 
@@ -35,7 +36,7 @@ class SENSiTEntity(CoordinatorEntity):
         """Return the state attributes."""
         return {
             "attribution": ATTRIBUTION,
-            "id": self.coordinator.data.serial_number,
+            "id": self.coordinator.data[self.idx].serial_number,
             "integration": DOMAIN,
         }
 
