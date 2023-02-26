@@ -3,12 +3,13 @@ from datetime import datetime, timezone
 
 import pytest
 from homeassistant.const import ATTR_ICON
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 
-from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL, HistoryType
+from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL, MOCK_TANK_NAME, HistoryType
 
 
 @pytest.mark.asyncio
@@ -52,6 +53,25 @@ async def test_sensor(hass, mock_sensor_client):
     state = hass.states.get("sensor.forecast_empty")
     assert state.state == "15"
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
+)
+async def test_sensor_multiple_tanks(hass, mock_sensor_client):
+    """Test sensor."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    device_entries = dr.async_get(hass).devices.values()
+    assert list(device_entries)[0].name == MOCK_TANK_NAME + " #1"
+    assert list(device_entries)[1].name == MOCK_TANK_NAME + " #2"
 
     assert await async_unload_entry(hass, config_entry)
 
