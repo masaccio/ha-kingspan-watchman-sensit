@@ -5,7 +5,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 
 from .api import SENSiTApiClient
-from .const import CONF_PASSWORD, CONF_USERNAME, DOMAIN
+from .const import CONF_PASSWORD, CONF_USERNAME, CONF_NAME, DEFAULT_NAME, DOMAIN
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -54,7 +54,11 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
-                {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
+                {
+                    vol.Required(CONF_USERNAME): str,
+                    vol.Required(CONF_PASSWORD): str,
+                    vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
+                }
             ),
             errors=self._errors,
         )
