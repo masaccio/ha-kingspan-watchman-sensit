@@ -4,9 +4,14 @@ from enum import Enum
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
+    CONF_NAME,
 )
 
-MOCK_CONFIG = {CONF_USERNAME: "test@example.com", CONF_PASSWORD: "s3cret"}
+MOCK_CONFIG = {
+    CONF_NAME: "Kingspan Watchman SENSiT",
+    CONF_USERNAME: "test@example.com",
+    CONF_PASSWORD: "s3cret",
+}
 
 MOCK_GET_DATA_METHOD = (
     "custom_components.kingspan_watchman_sensit.SENSiTApiClient._get_tank_data"
