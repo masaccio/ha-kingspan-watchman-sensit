@@ -26,7 +26,7 @@ class SENSiTEntity(CoordinatorEntity):
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, self.coordinator.data[self.idx].serial_number)},
-            "interface": NAME,
+            "model": self.coordinator.data[self.idx].model,
             "name": self.coordinator.data[self.idx].name,
             "manufacturer": NAME,
         }

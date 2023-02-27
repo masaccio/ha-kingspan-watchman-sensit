@@ -16,9 +16,10 @@ PLATFORMS = [SENSOR]
 CONF_ENABLED = "enabled"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
+CONF_NAME = "name"
 
 # Defaults
-DEFAULT_NAME = DOMAIN
+DEFAULT_NAME = "Kingspan Watchman SENSiT"
 API_TIMEOUT = 30  # seconds
 REFILL_THRESHOLD = 1.25  # factor considerd a tank refill
 USAGE_WINDOW = 14  # days
