@@ -66,7 +66,6 @@ class OilLevel(SENSiTEntity, SensorEntity):
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Percentage Full"
-    _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = SensorStateClass.TOTAL
 
@@ -94,7 +93,6 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Capacity"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
-    _attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
@@ -125,7 +123,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_name = "Current Usage"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
