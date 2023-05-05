@@ -14,7 +14,6 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from .const import MOCK_CONFIG
 
 
-@pytest.mark.asyncio
 async def test_refresh_data(hass, mock_sensor_client, caplog):
     """Test state refresh through the API"""
     config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
@@ -38,7 +37,6 @@ async def test_refresh_data(hass, mock_sensor_client, caplog):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     """Test entry setup and unload."""
     # Create a mock entry so we don't have to go through config flow
@@ -61,7 +59,6 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     assert config_entry.entry_id not in hass.data[DOMAIN]
 
 
-@pytest.mark.asyncio
 async def test_setup_entry_exception(hass, error_on_get_data):
     """Test ConfigEntryNotReady when API raises an exception during entry setup."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")

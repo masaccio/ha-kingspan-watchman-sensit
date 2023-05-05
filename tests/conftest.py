@@ -1,5 +1,6 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
 import pytest
+import pytest_asyncio
 import pandas as pd
 
 from async_property import async_property
@@ -20,7 +21,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 
 # This fixture enables loading custom integrations in all tests.
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
@@ -28,7 +29,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 # This fixture is used to prevent HomeAssistant from attempting to create and
 # dismiss persistent notifications. These calls would fail without this fixture
 # since the persistent_notification integration is never loaded during a test.
-@pytest.fixture(name="skip_notifications", autouse=True)
+@pytest_asyncio.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
     with patch("homeassistant.components.persistent_notification.async_create"), patch(
@@ -39,7 +40,7 @@ def skip_notifications_fixture():
 
 # This fixture, when used, will result in calls to async_get_data to return None. To have the call
 # return a value, we would add the `return_value=<VALUE_TO_RETURN>` parameter to the patch call.
-@pytest.fixture(name="bypass_get_data")
+@pytest_asyncio.fixture(name="bypass_get_data")
 def bypass_get_data_fixture():
     """Skip calls to get data from API."""
     with patch(
@@ -50,7 +51,7 @@ def bypass_get_data_fixture():
 
 # In this fixture, we are forcing calls to async_get_data to raise an Exception. This is useful
 # for exception handling.
-@pytest.fixture(name="error_on_get_data")
+@pytest_asyncio.fixture(name="error_on_get_data")
 def error_get_data_fixture():
     """Simulate error when retrieving data from API."""
     with patch(
@@ -60,7 +61,7 @@ def error_get_data_fixture():
         yield
 
 
-@pytest.fixture(name="error_sensor_client")
+@pytest_asyncio.fixture(name="error_sensor_client")
 def error_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
     # AsyncSensorClient is instantiated in different import contexts
@@ -194,7 +195,7 @@ class MockAsyncClient(AsyncMock):
             ]
 
 
-@pytest.fixture(params=["tank_level", "history_type", "num_tanks"])
+@pytest_asyncio.fixture(params=["tank_level", "history_type", "num_tanks"])
 def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
     num_tanks = None

@@ -17,7 +17,6 @@ from .const import (
 )
 
 
-@pytest.mark.asyncio
 async def test_api(hass, mock_sensor_client, mocker, caplog):
     """Test API calls."""
     api = SENSiTApiClient("test", "test")
