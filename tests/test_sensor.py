@@ -12,7 +12,6 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from .const import MOCK_TANK_CAPACITY, MOCK_TANK_LEVEL, MOCK_TANK_NAME, HistoryType
 
 
-@pytest.mark.asyncio
 async def test_sensor(hass, mock_sensor_client):
     """Test sensor."""
     config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
@@ -57,7 +56,6 @@ async def test_sensor(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
 )
@@ -76,7 +74,6 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY]], indirect=True)
 async def test_sensor_icon_full(hass, mock_sensor_client):
     """Test sensor."""
@@ -94,7 +91,6 @@ async def test_sensor_icon_full(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("mock_sensor_client", [[100]], indirect=True)
 async def test_sensor_icon_empty(hass, mock_sensor_client):
     """Test sensor."""
@@ -112,7 +108,6 @@ async def test_sensor_icon_empty(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "mock_sensor_client", [[MOCK_TANK_CAPACITY * 0.3]], indirect=True
 )
@@ -132,7 +127,6 @@ async def test_sensor_icon_low(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.NONE]], indirect=True
 )
@@ -159,7 +153,6 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.EXPIRED]], indirect=True
 )
