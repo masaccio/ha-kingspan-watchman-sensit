@@ -12,22 +12,23 @@ name = "ha-kingspan-connect-sensor"
 packages = [{include = "custom_components/kingspan_watchman_sensit"}]
 readme = "README.md"
 repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
-version = "1.4.2"
+version = "1.4.3"
 
 [tool.poetry.dependencies]
 async-timeout = "^4.0.2"
-homeassistant = "^2022.12.4"
-kingspan-connect-sensor = "^2.0.6"
-python = "^3.9"
+homeassistant = "^2023.1"
+kingspan-connect-sensor = "^2.1.1"
+python = "^3.10"
 voluptuous = "^0.13.1"
 pysnooper = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 async-property = "^0.2.1"
+aiohttp = "^3.8.2"
 black = {version = "^22.12.0", allow-prereleases = true}
 datetime = "^4.7"
 pylama = "^8.4.1"
-pytest-homeassistant-custom-component = "0.12.33"
+pytest-homeassistant-custom-component = "0.13.*"
 pytest-mock = "^3.9.0"
 toml = "^0.10.2"
 pygithub = "^1.58.0"
@@ -45,6 +46,7 @@ directory = "coverage_html_report"
 [tool.pytest.ini_options]
 addopts = "-W ignore::DeprecationWarning --cov=custom_components/kingspan_watchman_sensit"
 minversion = 6.0
+asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.tox]
