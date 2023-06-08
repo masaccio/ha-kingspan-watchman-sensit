@@ -108,5 +108,5 @@ class SENSiTApiClient:
             # Avoid divide by zero in corner case of no usage
             return 0
         else:
-            current_level = int(history.level_litres.tail(1))
+            current_level = int(history.level_litres.tail(1).iloc[0])
             return int(current_level / abs(rate))
