@@ -1,7 +1,6 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
 import pytest
 import pytest_asyncio
-import pandas as pd
 
 from async_property import async_property
 from datetime import datetime, timedelta, timezone
@@ -66,7 +65,9 @@ def error_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
     # AsyncSensorClient is instantiated in different import contexts
     # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
-    with patch("connectsensor.AsyncSensorClient",) as mock_client, patch(
+    with patch(
+        "connectsensor.AsyncSensorClient",
+    ) as mock_client, patch(
         "custom_components.kingspan_connect.AsyncSensorClient"
     ) as ha_mock_client:
         mock_client.return_value.__aenter__.side_effect = APIError
@@ -74,7 +75,7 @@ def error_sensor_client_fixture():
         yield
 
 
-def decreasing_history(start_date: datetime) -> pd.DataFrame:
+def decreasing_history(start_date: datetime) -> list:
     history = []
     start_date = start_date.replace(
         hour=0, minute=30, second=0, microsecond=0
@@ -84,17 +85,26 @@ def decreasing_history(start_date: datetime) -> pd.DataFrame:
         percent = 100 - (day * 4)
         level = int(MOCK_TANK_CAPACITY * (percent / 100))
         reading_date = start_date + timedelta(days=day)
-        history.append([reading_date, percent, level])
+        history.append(
+            {
+                "reading_date": reading_date,
+                "level_percent": percent,
+                "level_litres": level,
+            }
+        )
     # Refill happens
     for day in range(20, 31):
         percent = 100 - ((day - 20) * 4)
         level = int(MOCK_TANK_CAPACITY * (percent / 100))
         reading_date = start_date + timedelta(days=day)
-        history.append([reading_date, percent, level])
-    df = pd.DataFrame(
-        history, columns=["reading_date", "level_percent", "level_litres"]
-    )
-    return df
+        history.append(
+            {
+                "reading_date": reading_date,
+                "level_percent": percent,
+                "level_litres": level,
+            }
+        )
+    return history
 
 
 class MockAsyncTank:
@@ -142,7 +152,7 @@ class MockAsyncTank:
     async def last_read(self) -> str:
         history = await self.history
         if len(history) > 0:
-            return history.iloc[-1].reading_date.replace(tzinfo=timezone.utc)
+            return history[-1]["reading_date"].replace(tzinfo=timezone.utc)
         else:
             return datetime.now().replace(tzinfo=timezone.utc)
 
@@ -154,10 +164,7 @@ class MockAsyncTank:
         elif self._history_type == HistoryType.EXPIRED:
             return decreasing_history(datetime.now() - timedelta(days=365))
         else:
-            df = pd.DataFrame(
-                [], columns=["reading_date", "level_percent", "level_litres"]
-            )
-            return df
+            return []
 
 
 class MockAsyncClient(AsyncMock):

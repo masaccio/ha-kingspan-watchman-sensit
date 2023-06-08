@@ -75,21 +75,21 @@ class SENSiTApiClient:
     def usage_rate(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
         history = tank_data.history
-        history = history[history.reading_date >= time_delta]
+        history = [x for x in history if x["reading_date"] >= time_delta]
         if len(history) == 0:
             return 0
 
         delta_levels = []
-        current_level = history.level_litres.iloc[0]
-        for index, row in history.iloc[1:].iterrows():
+        current_level = history[0]["level_litres"]
+        for index, row in enumerate(history[1:]):
             # Ignore refill days where oil goes up significantly
             if (
                 current_level != 0
-                and (row.level_litres / current_level) < REFILL_THRESHOLD
+                and (row["level_litres"] / current_level) < REFILL_THRESHOLD
             ):
-                delta_levels.append(current_level - row.level_litres)
+                delta_levels.append(current_level - row["level_litres"])
 
-            current_level = row.level_litres
+            current_level = row["level_litres"]
 
         if len(delta_levels) > 0:
             return sum(delta_levels) / len(delta_levels)
@@ -99,7 +99,7 @@ class SENSiTApiClient:
     def forecast_empty(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
         history = tank_data.history
-        history = history[history.reading_date >= time_delta]
+        history = [x for x in history if x["reading_date"] >= time_delta]
         if len(history) == 0:
             return 0
 
@@ -108,5 +108,5 @@ class SENSiTApiClient:
             # Avoid divide by zero in corner case of no usage
             return 0
         else:
-            current_level = int(history.level_litres.tail(1).iloc[0])
+            current_level = int(history[-1]["level_litres"])
             return int(current_level / abs(rate))
