@@ -2,6 +2,7 @@
 import asyncio
 from datetime import timezone
 
+import pandas as pd
 import pytest
 from connectsensor import APIError
 
@@ -26,7 +27,7 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     assert tank_data[0].model == MOCK_TANK_MODEL
     assert tank_data[0].name == MOCK_TANK_NAME
     assert tank_data[0].capacity == MOCK_TANK_CAPACITY
-    history = tank_data[0].history
+    history = pd.DataFrame(tank_data[0].history)
     assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(
         tzinfo=timezone.utc
     )

@@ -17,10 +17,9 @@ version = "1.4.3"
 [tool.poetry.dependencies]
 async-timeout = "^4.0.2"
 homeassistant = "^2023.1"
-kingspan-connect-sensor = "^2.1.1"
+kingspan-connect-sensor = "^3.0"
 python = "^3.10"
 voluptuous = "^0.13.1"
-pysnooper = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 async-property = "^0.2.1"
@@ -32,6 +31,7 @@ pytest-homeassistant-custom-component = "0.13.*"
 pytest-mock = "^3.9.0"
 toml = "^0.10.2"
 pygithub = "^1.58.0"
+pandas = "^2.0.2"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
