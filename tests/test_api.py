@@ -1,6 +1,6 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
-from datetime import timezone
+from datetime import timezone, datetime
 
 import pandas as pd
 import pytest
@@ -28,8 +28,9 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     assert tank_data[0].name == MOCK_TANK_NAME
     assert tank_data[0].capacity == MOCK_TANK_CAPACITY
     history = pd.DataFrame(tank_data[0].history)
+    local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
     assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(
-        tzinfo=timezone.utc
+        tzinfo=local_tzinfo
     )
     assert tank_data[0].usage_rate == 80.0
     assert tank_data[0].forecast_empty == 15
