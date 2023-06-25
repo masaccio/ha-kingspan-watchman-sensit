@@ -75,10 +75,7 @@ class SENSiTApiClient:
             return self.data
 
     def usage_rate(self, tank_data: TankData):
-        time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
-        time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
-        history = tank_data.history
-        history = [x for x in history if x["reading_date"] >= time_delta]
+        history = filter_history(tank_data.history)
         if len(history) == 0:
             return 0
 
@@ -100,10 +97,7 @@ class SENSiTApiClient:
             return 0
 
     def forecast_empty(self, tank_data: TankData):
-        time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
-        time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
-        history = tank_data.history
-        history = [x for x in history if x["reading_date"] >= time_delta]
+        history = filter_history(tank_data.history)
         if len(history) == 0:
             return 0
 
@@ -114,3 +108,16 @@ class SENSiTApiClient:
         else:
             current_level = int(history[-1]["level_litres"])
             return int(current_level / abs(rate))
+
+
+def filter_history(history: list[dict]) -> list[dict]:
+    """Filter tank history to a smaller recent window of days"""
+    time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
+    time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
+    # API returns naive datetime rather than with timezones
+    history = [
+        dict(x, reading_date=x["reading_date"].replace(tzinfo=LOCAL_TZINFO))
+        for x in history
+    ]
+    history = [x for x in history if x["reading_date"] >= time_delta]
+    return history
