@@ -49,7 +49,8 @@ class SENSiTApiClient:
                 tank_data.capacity = await tank.capacity
                 tank_data.last_read = await tank.last_read
                 # Timestamp sensor needs timezone included
-                tank_data.last_read = tank_data.last_read.replace(tzinfo=timezone.utc)
+                local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
+                tank_data.last_read = tank_data.last_read.replace(tzinfo=local_tzinfo)
                 tank_data.history = await tank.history
                 if len(tank_data.history) == 0:
                     _LOGGER.warning("No history: usage and forecast unavailable")
