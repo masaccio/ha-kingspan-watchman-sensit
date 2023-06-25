@@ -37,11 +37,9 @@ async def test_sensor(hass, mock_sensor_client):
 
     state = hass.states.get("sensor.last_reading_date")
     assert state
-    test_date = (
-        datetime.now()
-        .replace(hour=0, minute=30, second=0, microsecond=0)
-        .replace(tzinfo=timezone.utc)
-    )
+    test_date = datetime.now().replace(hour=0, minute=30, second=0, microsecond=0)
+    # Timestamps from HA are in UTC
+    test_date = test_date.astimezone(timezone.utc)
     assert state.state == test_date.isoformat()
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
 

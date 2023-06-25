@@ -16,6 +16,8 @@ from .const import (
     HistoryType,
 )
 
+LOCAL_TZINFO = datetime.now(timezone.utc).astimezone().tzinfo
+
 pytest_plugins = "pytest_homeassistant_custom_component"
 
 
@@ -78,7 +80,7 @@ def error_sensor_client_fixture():
 def decreasing_history(start_date: datetime) -> list:
     history = []
     start_date = start_date.replace(
-        hour=0, minute=30, second=0, microsecond=0
+        hour=0, minute=30, second=0, microsecond=0, tzinfo=LOCAL_TZINFO
     ) - timedelta(days=30)
 
     for day in range(1, 20):
@@ -152,9 +154,9 @@ class MockAsyncTank:
     async def last_read(self) -> str:
         history = await self.history
         if len(history) > 0:
-            return history[-1]["reading_date"].replace(tzinfo=timezone.utc)
+            return history[-1]["reading_date"]
         else:
-            return datetime.now().replace(tzinfo=timezone.utc)
+            return datetime.now().replace(tzinfo=LOCAL_TZINFO)
 
     @async_property
     async def history(self) -> str:
