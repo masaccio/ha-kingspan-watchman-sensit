@@ -9,6 +9,8 @@ from .const import API_TIMEOUT, REFILL_THRESHOLD, USAGE_WINDOW
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
+LOCAL_TZINFO = datetime.now(timezone.utc).astimezone().tzinfo
+
 
 class TankData:
     def __init__(self):
@@ -49,8 +51,7 @@ class SENSiTApiClient:
                 tank_data.capacity = await tank.capacity
                 tank_data.last_read = await tank.last_read
                 # Timestamp sensor needs timezone included
-                local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
-                tank_data.last_read = tank_data.last_read.replace(tzinfo=local_tzinfo)
+                tank_data.last_read = tank_data.last_read.replace(tzinfo=LOCAL_TZINFO)
                 tank_data.history = await tank.history
                 if len(tank_data.history) == 0:
                     _LOGGER.warning("No history: usage and forecast unavailable")
@@ -75,6 +76,7 @@ class SENSiTApiClient:
 
     def usage_rate(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
+        time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
         history = tank_data.history
         history = [x for x in history if x["reading_date"] >= time_delta]
         if len(history) == 0:
@@ -99,6 +101,7 @@ class SENSiTApiClient:
 
     def forecast_empty(self, tank_data: TankData):
         time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
+        time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
         history = tank_data.history
         history = [x for x in history if x["reading_date"] >= time_delta]
         if len(history) == 0:
