@@ -11,7 +11,6 @@ ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
 SENSOR = "sensor"
 PLATFORMS = [SENSOR]
 
-
 # Configuration and options
 CONF_ENABLED = "enabled"
 CONF_USERNAME = "username"
