@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.4.5
+
+🪲 Fixes timezone mismatch [issue-7](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/7). Previously the integration assumed that times were reported in UTC, which could result in **Last Reading Date** errors.
+
 ## v1.4.4
 
 🪲 Fixes load failure [issue-6](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/6) on newer versions of Home Assistant Core.
