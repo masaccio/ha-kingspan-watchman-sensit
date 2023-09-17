@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 
-from .const import MOCK_CONFIG
+from .const import MOCK_CONFIG, CONF_PASSWORD
 
 
 # This fixture bypasses the actual setup of the integration
@@ -27,9 +27,6 @@ def bypass_setup_fixture():
         yield
 
 
-# Here we simiulate a successful config flow from the backend.
-# Note that we use the `bypass_get_data` fixture here because
-# we want the config flow validation to succeed during the test.
 async def test_successful_config_flow(hass, bypass_get_data):
     """Test a successful config flow."""
     # Initialize a config flow
@@ -55,10 +52,6 @@ async def test_successful_config_flow(hass, bypass_get_data):
     assert result["result"]
 
 
-# In this case, we want to simulate a failure during the config flow.
-# We use the `error_on_get_data` mock instead of `bypass_get_data`
-# (note the function parameters) to raise an Exception during
-# validation of the input config.
 async def test_failed_config_flow(hass, error_on_get_data):
     """Test a failed config flow due to credential validation failure."""
 
@@ -97,3 +90,43 @@ async def test_options_flow(hass):
     assert result["title"] == "Mock Title"
 
     assert entry.options == {"update_interval": 2, "usage_window": 10}
+
+
+# Re-auth test Copyright (c) 2020 Joakim Sørensen @ludeeus
+async def test_reauth_config_flow(hass, bypass_get_data):
+    """Test a successful config flow."""
+    entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    entry.add_to_hass(hass)
+
+    # Initialize a config flow
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_REAUTH}
+    )
+
+    # Check that the config flow shows the reauth form as the first step
+    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["step_id"] == "reauth_confirm"
+
+    # If a user were to confirm the re-auth start, this function call
+    result_2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={}
+    )
+
+    # It should load the user form
+    assert result_2["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result_2["step_id"] == "user"
+
+    updated_config = MOCK_CONFIG
+    updated_config[CONF_PASSWORD] = "NewH8x0rP455!"
+
+    # If a user entered a new password, this would happen
+    result_3 = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input=updated_config
+    )
+
+    # Check that the config flow is complete and a new entry is created with
+    # the input data
+    assert result_3["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result_3["title"] == "test@example.com"
+    assert result_3["data"] == MOCK_CONFIG
+    assert result_3["result"]

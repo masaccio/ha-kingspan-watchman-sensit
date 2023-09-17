@@ -1,7 +1,7 @@
 """Test Kingspan Watchman SENSiT setup process."""
 import pytest
 
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.kingspan_watchman_sensit import (
@@ -68,3 +68,34 @@ async def test_setup_entry_exception(hass, error_on_get_data):
     # an error.
     with pytest.raises(ConfigEntryNotReady):
         assert await async_setup_entry(hass, config_entry)
+
+
+async def test_auth_errors(hass, bypass_get_data):
+    """Test entry setup and unload."""
+    # Create a mock entry so we don't have to go through config flow
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, data={"username": None}, entry_id="test"
+    )
+
+    with pytest.raises(ConfigEntryAuthFailed):
+        assert await async_setup_entry(hass, config_entry)
+
+    assert DOMAIN in hass.data and config_entry.entry_id not in hass.data[DOMAIN]
+
+
+async def test_auth_exception(hass, error_sensor_client):
+    """Test entry setup and unload."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+
+    with pytest.raises(ConfigEntryAuthFailed) as e:
+        assert await async_setup_entry(hass, config_entry)
+    assert "Credentials invalid" in str(e)
+
+
+async def test_auth_timeout(hass, timeout_sensor_client):
+    """Test entry setup and unload."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+
+    with pytest.raises(ConfigEntryNotReady) as e:
+        assert await async_setup_entry(hass, config_entry)
+    assert "Timed out while connecting to Kingspan service" in str(e)
