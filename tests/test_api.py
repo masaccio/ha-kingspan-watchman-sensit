@@ -62,10 +62,10 @@ async def test_api_filtering(hass, mock_sensor_client, mocker):
     """Test API calls."""
     random.seed(999)
 
-    api = SENSiTApiClient("test", "test", 10)
+    api = SENSiTApiClient("test", "test")
     tank_data = await api.async_get_data()
     history = pd.DataFrame(tank_data[0].history)
-    assert int(tank_data[0].usage_rate) == 102
+    assert int(tank_data[0].usage_rate) == 100
 
     api = SENSiTApiClient("test", "test", 5)
     tank_data = await api.async_get_data()
