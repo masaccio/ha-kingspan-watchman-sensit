@@ -12,14 +12,15 @@ SENSOR = "sensor"
 PLATFORMS = [SENSOR]
 
 # Configuration and options
-CONF_ENABLED = "enabled"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"
 CONF_NAME = "name"
+CONF_USAGE_WINDOW = "usage_window"
+CONF_UPDATE_INTERVAL = "update_interval"
 
 # Defaults
-DEFAULT_NAME = "Kingspan Watchman SENSiT"
+DEFAULT_TANK_NAME = "My Tank"
 API_TIMEOUT = 30  # seconds
 REFILL_THRESHOLD = 1.25  # factor considerd a tank refill
-USAGE_WINDOW = 14  # days
-UPDATE_INTERVAL = 8  # hours
+DEFAULT_USAGE_WINDOW = 14  # days
+DEFAULT_UPDATE_INTERVAL = 8  # hours

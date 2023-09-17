@@ -1,11 +1,12 @@
 """Sample API Client."""
 import logging
 from asyncio import TimeoutError
-from datetime import timezone, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
-from .const import API_TIMEOUT, REFILL_THRESHOLD, DEFAULT_USAGE_WINDOW
+from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -35,6 +36,13 @@ class SENSiTApiClient:
             _LOGGER.error("Timeout error logging in as %s", self._username)
         except Exception as e:  # pylint: disable=broad-except
             _LOGGER.error("Unhandled error logging in as %s: %s", self._username, e)
+
+    async def check_credentials(self) -> bool:
+        """Login to check credentials"""
+        async with timeout(API_TIMEOUT):
+            async with AsyncSensorClient() as client:
+                await client.login(self._username, self._password)
+        return True
 
     async def _get_tank_data(self):
         _LOGGER.debug("Fetching tank data with username=%s", self._username)

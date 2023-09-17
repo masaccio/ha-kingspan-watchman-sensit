@@ -8,6 +8,14 @@
           "username": "Username",
           "password": "Password"
         }
+      },
+      "reauth_confirm": {
+        "title": "Watchman SENSiT",
+        "description": "Re-enter credentials for Kingspan service",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -19,9 +27,12 @@
   },
   "options": {
     "step": {
-      "user": {
+      "init": {
+        "title": "Watchman SENSiT Options",
+        "description": "Configure options for Kingspan Watchman SENSiT",
         "data": {
-          "sensor": "Sensor enabled"
+          "update_interval": "How often to refresh the tank data (hours)",
+          "usage_window": "Period to consider for average usage (days)"
         }
       }
     }
