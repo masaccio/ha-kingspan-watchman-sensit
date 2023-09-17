@@ -19,11 +19,12 @@ class TankData:
 
 
 class SENSiTApiClient:
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str, usage_window: int) -> None:
         """Simple API Client for ."""
         _LOGGER.debug("API init as username=%s", username)
         self._username = username
         self._password = password
+        self._usage_window = usage_window
 
     async def async_get_data(self) -> dict:
         """Get tank data from the API"""
@@ -83,7 +84,7 @@ class SENSiTApiClient:
             return self.data
 
     def usage_rate(self, tank_data: TankData):
-        history = filter_history(tank_data.history)
+        history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
             return 0
 
@@ -105,7 +106,7 @@ class SENSiTApiClient:
             return 0
 
     def forecast_empty(self, tank_data: TankData):
-        history = filter_history(tank_data.history)
+        history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
             return 0
 
@@ -118,9 +119,9 @@ class SENSiTApiClient:
             return int(current_level / abs(rate))
 
 
-def filter_history(history: list[dict]) -> list[dict]:
+def filter_history(history: list[dict], usage_window) -> list[dict]:
     """Filter tank history to a smaller recent window of days"""
-    time_delta = datetime.today() - timedelta(days=DEFAULT_USAGE_WINDOW)
+    time_delta = datetime.today() - timedelta(days=usage_window)
     time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
     # API returns naive datetime rather than with timezones
     history = [
