@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
-from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
+from .const import API_TIMEOUT, REFILL_THRESHOLD, DEFAULT_USAGE_WINDOW
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -19,7 +19,9 @@ class TankData:
 
 
 class SENSiTApiClient:
-    def __init__(self, username: str, password: str, usage_window: int) -> None:
+    def __init__(
+        self, username: str, password: str, usage_window: int = DEFAULT_USAGE_WINDOW
+    ) -> None:
         """Simple API Client for ."""
         _LOGGER.debug("API init as username=%s", username)
         self._username = username
