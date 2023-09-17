@@ -17,10 +17,12 @@ from .api import SENSiTApiClient, APIError
 from .const import (
     CONF_PASSWORD,
     CONF_USERNAME,
+    CONF_USAGE_WINDOW,
     CONF_UPDATE_INTERVAL,
     DOMAIN,
     PLATFORMS,
     DEFAULT_UPDATE_INTERVAL,
+    DEFAULT_USAGE_WINDOW,
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -38,12 +40,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
+    usage_window = entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
 
-    _LOGGER.debug("username='%s', password='%s'", username, password)
     if username is None or not username:
         raise ConfigEntryAuthFailed(f"Credentials not set")
 
-    client = SENSiTApiClient(username, password)
+    client = SENSiTApiClient(username, password, usage_window)
     try:
         _ = await client.check_credentials()
     except APIError as e:
