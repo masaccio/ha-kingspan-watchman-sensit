@@ -10,10 +10,10 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SENSiTApiClient
+from .api import SENSiTApiClient, APIError
 from .const import (
     CONF_PASSWORD,
     CONF_USERNAME,
@@ -40,7 +40,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
 
+    _LOGGER.debug("username='%s', password='%s'", username, password)
+    if username is None or not username:
+        raise ConfigEntryAuthFailed(f"Credentials not set")
+
     client = SENSiTApiClient(username, password)
+    try:
+        _ = await client.check_credentials()
+    except APIError as e:
+        _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
+        raise ConfigEntryAuthFailed(f"Credentials invalid") from e
+    except TimeoutError as e:
+        _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
+        raise ConfigEntryNotReady(
+            f"Timed out while connecting to Kingspan service"
+        ) from e
 
     coordinator = SENSiTDataUpdateCoordinator(hass, client=client)
     await coordinator.async_refresh()
