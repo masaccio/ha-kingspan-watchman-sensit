@@ -5,7 +5,7 @@ from datetime import timezone, datetime, timedelta
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
-from .const import API_TIMEOUT, REFILL_THRESHOLD, USAGE_WINDOW
+from .const import API_TIMEOUT, REFILL_THRESHOLD, DEFAULT_USAGE_WINDOW
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -112,7 +112,7 @@ class SENSiTApiClient:
 
 def filter_history(history: list[dict]) -> list[dict]:
     """Filter tank history to a smaller recent window of days"""
-    time_delta = datetime.today() - timedelta(days=USAGE_WINDOW)
+    time_delta = datetime.today() - timedelta(days=DEFAULT_USAGE_WINDOW)
     time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
     # API returns naive datetime rather than with timezones
     history = [
