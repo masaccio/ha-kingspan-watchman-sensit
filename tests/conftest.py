@@ -69,15 +69,20 @@ def error_get_data_fixture():
 @pytest_asyncio.fixture(name="error_sensor_client")
 def error_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
-    # AsyncSensorClient is instantiated in different import contexts
-    # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
     with patch(
-        "connectsensor.AsyncSensorClient",
-    ) as mock_client, patch(
-        "custom_components.kingspan_connect.AsyncSensorClient"
-    ) as ha_mock_client:
-        mock_client.return_value.__aenter__.side_effect = APIError
-        ha_mock_client.return_value.__aenter__.side_effect = APIError
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
+        side_effect=APIError,
+    ) as mock_client:
+        yield
+
+
+@pytest_asyncio.fixture(name="timeout_sensor_client")
+def timeout_sensor_client_fixture():
+    """Throw an exception from a mock AsyncSensorClient"""
+    with patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
+        side_effect=TimeoutError,
+    ) as mock_client:
         yield
 
 

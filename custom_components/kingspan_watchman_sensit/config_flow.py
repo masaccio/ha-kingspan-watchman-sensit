@@ -64,11 +64,15 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    async def async_step_reauth(self, user_input: dict | None = None) -> FlowResult:
+    async def async_step_reauth(self, user_input: Dict[str, str] = None) -> FlowResult:
         """Perform reauth upon an API authentication error."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: Dict[str, str] = None
+    ) -> FlowResult:
         if user_input is None:
             return self.async_show_form(step_id="reauth_confirm")
-
         return await self.async_step_user()
 
     @callback
@@ -90,16 +94,6 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=self._errors,
         )
-        # vol.Required(
-        #     CONF_USERNAME, default=self.config_entry.data.get(CONF_USERNAME, "")
-        # ): cv.string,
-        # vol.Required(
-        #     CONF_PASSWORD, default=self.config_entry.data.get(CONF_PASSWORD, "")
-        # ): cv.string,
-        # vol.Optional(
-        #     CONF_NAME,
-        #     default=self.config_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
-        # ): cv.string,
 
     async def _test_credentials(self, username, password):
         """Return true if credentials is valid."""
