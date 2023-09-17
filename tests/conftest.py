@@ -46,6 +46,8 @@ def bypass_get_data_fixture():
     """Skip calls to get data from API."""
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"
+    ), patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"
     ):
         yield
 
@@ -58,6 +60,8 @@ def error_get_data_fixture():
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data",
         side_effect=Exception,
+    ), patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"
     ):
         yield
 
