@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 import pytest_asyncio
 from homeassistant import config_entries, data_entry_flow
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 
@@ -74,3 +75,25 @@ async def test_failed_config_flow(hass, error_on_get_data):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["errors"] == {"base": "auth"}
+
+
+async def test_options_flow(hass):
+    """Test an options flow."""
+    entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    # Verify that the first options step is a user form
+    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"update_interval": 2, "usage_window": 10}
+    )
+
+    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["title"] == "Mock Title"
+
+    assert entry.options == {"update_interval": 2, "usage_window": 10}
