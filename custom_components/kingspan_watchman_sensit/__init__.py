@@ -17,12 +17,11 @@ from .api import SENSiTApiClient, APIError
 from .const import (
     CONF_PASSWORD,
     CONF_USERNAME,
+    CONF_UPDATE_INTERVAL,
     DOMAIN,
     PLATFORMS,
     DEFAULT_UPDATE_INTERVAL,
 )
-
-SCAN_INTERVAL = timedelta(hours=DEFAULT_UPDATE_INTERVAL)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -56,7 +55,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             f"Timed out while connecting to Kingspan service"
         ) from e
 
-    coordinator = SENSiTDataUpdateCoordinator(hass, client=client)
+    coordinator = SENSiTDataUpdateCoordinator(
+        hass,
+        client=client,
+        update_interval=timedelta(
+            hours=entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+        ),
+    )
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -82,12 +87,13 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         client: SENSiTApiClient,
+        update_interval=DEFAULT_UPDATE_INTERVAL,
     ) -> None:
         """Initialize."""
         self.api = client
         self.platforms = []
 
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
     async def _async_update_data(self):
         """Update data via library."""
