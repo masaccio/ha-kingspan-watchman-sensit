@@ -16,7 +16,7 @@ from .const import MOCK_CONFIG
 
 async def test_refresh_data(hass, mock_sensor_client, caplog):
     """Test state refresh through the API"""
-    config_entry = MockConfigEntry(domain=DOMAIN, data={"name": "simple config"})
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
