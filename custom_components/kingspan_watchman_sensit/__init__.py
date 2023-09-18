@@ -89,20 +89,28 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         client: SENSiTApiClient,
-        update_interval=DEFAULT_UPDATE_INTERVAL,
+        update_interval: timedelta = DEFAULT_UPDATE_INTERVAL,
     ) -> None:
         """Initialize."""
         self.api = client
         self.platforms = []
 
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
+        _LOGGER.debug("Update interval set to %s", update_interval)
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_method=self.update,
+            update_interval=update_interval,
+        )
 
-    async def _async_update_data(self):
-        """Update data via library."""
+    async def update(self):
+        """Update data via API."""
         try:
             return await self.api.async_get_data()
-        except Exception as exception:
-            raise UpdateFailed() from exception
+        except Exception as e:
+            _LOGGER.debug("API update failed: %s", e)
+            raise UpdateFailed() from e
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
