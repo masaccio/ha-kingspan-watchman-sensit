@@ -1,6 +1,4 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
-import random
-import pytest
 import pytest_asyncio
 
 from async_property import async_property
@@ -93,7 +91,7 @@ def decreasing_history(start_date: datetime) -> list:
     ) - timedelta(days=30)
 
     for day in range(1, 20):
-        percent = 100 - (day * 5) + random.randint(0, 3)
+        percent = 100 - (day * 4)
         level = int(MOCK_TANK_CAPACITY * (percent / 100))
         reading_date = start_date + timedelta(days=day)
         history.append(
@@ -105,7 +103,7 @@ def decreasing_history(start_date: datetime) -> list:
         )
     # Refill happens
     for day in range(20, 31):
-        percent = 100 - ((day - 20) * 5) + random.randint(0, 3)
+        percent = 100 - ((day - 20) * 5)
         level = int(MOCK_TANK_CAPACITY * (percent / 100))
         reading_date = start_date + timedelta(days=day)
         history.append(

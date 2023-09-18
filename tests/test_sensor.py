@@ -1,5 +1,4 @@
 """Test Kingspan Watchman SENSiT sensor states."""
-import random
 from datetime import datetime, timezone
 
 import pytest
@@ -21,9 +20,6 @@ from .const import (
 
 async def test_sensor(hass, mock_sensor_client):
     """Test sensor."""
-    # Seed for random tank levels
-    random.seed(888)
-
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
     config_entry.add_to_hass(hass)
@@ -54,7 +50,7 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
 
     state = hass.states.get("sensor.current_usage")
-    assert state.state == "98.3"
+    assert state.state == "96.7"
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
     state = hass.states.get("sensor.forecast_empty")
