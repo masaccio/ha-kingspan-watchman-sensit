@@ -86,10 +86,7 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
     def __init__(
-        self,
-        hass: HomeAssistant,
-        client: SENSiTApiClient,
-        update_interval: timedelta = DEFAULT_UPDATE_INTERVAL,
+        self, hass: HomeAssistant, client: SENSiTApiClient, update_interval: timedelta
     ) -> None:
         """Initialize."""
         self.api = client
