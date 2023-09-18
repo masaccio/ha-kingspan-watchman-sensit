@@ -1,6 +1,5 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
-import random
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -21,8 +20,6 @@ from .const import (
 
 async def test_api(hass, mock_sensor_client, mocker, caplog):
     """Test API calls."""
-    random.seed(999)
-
     api = SENSiTApiClient("test", "test", 14)
     tank_data = await api.async_get_data()
     assert tank_data[0].level == MOCK_TANK_LEVEL
@@ -31,12 +28,11 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     assert tank_data[0].name == MOCK_TANK_NAME
     assert tank_data[0].capacity == MOCK_TANK_CAPACITY
     history = pd.DataFrame(tank_data[0].history)
-    print(history)
     local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
     assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(
         tzinfo=local_tzinfo
     )
-    assert int(tank_data[0].usage_rate) == 100
+    assert round(tank_data[0].usage_rate, 2) == 96.67
     assert tank_data[0].forecast_empty == 10
 
     caplog.clear()
@@ -60,14 +56,10 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
 
 async def test_api_filtering(hass, mock_sensor_client, mocker):
     """Test API calls."""
-    random.seed(999)
-
     api = SENSiTApiClient("test", "test")
     tank_data = await api.async_get_data()
-    history = pd.DataFrame(tank_data[0].history)
-    assert int(tank_data[0].usage_rate) == 100
+    assert round(tank_data[0].usage_rate, 2) == 96.67
 
     api = SENSiTApiClient("test", "test", 5)
     tank_data = await api.async_get_data()
-    history = pd.DataFrame(tank_data[0].history)
-    assert int(tank_data[0].usage_rate) == 115
+    assert int(tank_data[0].usage_rate) == 100.0
