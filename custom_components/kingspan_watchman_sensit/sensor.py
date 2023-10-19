@@ -1,16 +1,16 @@
 """Sensor platform for Kingspan Watchman SENSiT."""
 import logging
-
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
-    SensorStateClass,
     SensorEntity,
+    SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import PERCENTAGE, TIME_DAYS, UnitOfVolume
 from homeassistant.core import HomeAssistant
-from homeassistant.const import PERCENTAGE, UnitOfVolume, TIME_DAYS
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN

@@ -12,7 +12,7 @@ name = "ha-kingspan-connect-sensor"
 packages = [{include = "custom_components/kingspan_watchman_sensit"}]
 readme = "README.md"
 repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
-version = "1.4.5"
+version = "1.5.0"
 
 [tool.poetry.dependencies]
 async-timeout = "^4.0.2"
@@ -32,6 +32,7 @@ pytest-mock = "^3.9.0"
 toml = "^0.10.2"
 pygithub = "^1.58.0"
 pandas = "^2.0.2"
+ruff = "^0.1.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -44,7 +45,7 @@ branch = true
 directory = "coverage_html_report"
 
 [tool.pytest.ini_options]
-addopts = "-W ignore::DeprecationWarning --cov=custom_components/kingspan_watchman_sensit"
+addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov-context=test --cov=custom_components/kingspan_watchman_sensit"
 minversion = 6.0
 asyncio_mode = "auto"
 testpaths = ["tests"]
@@ -60,18 +61,43 @@ commands_pre = poetry install --no-root --sync
 commands = poetry run -vvv pytest --import-mode importlib
 """
 
-# linter settings
-[tool.pylama]
-linters = "pylint,mccabe,pyflakes"
-max_line_length = 100
-skip = ".tox/*"
+[tool.isort]
+profile = "black"
 
-[tool.pylama.linter.pycodestyle]
-format = "pylint"
-ignore = "E203,E231,W503"
+[tool.ruff]
+exclude = [
+  # Machine-generated files
+  ".bootstrap/*",
+  "src/numbers_parser/generated/*",
+  # Third-party files not to lint
+  "src/debug/lldbutil.py", # Tox
+  ".tox/*",
+]
+fix = true
+ignore = [
+  "PLR2004", # Allow constant values
+]
+line-length = 100
+select = [
+  # Pyflakes including bugbears
+  "F",
+  "B", # Pycodestyle
+  "E",
+  "W", # isort
+  "I", # PEP naming
+  "N", # pyupgrade
+  "UP", # Pylama
+  "PL",
+]
+src = ["src", "tests"]
+target-version = "py38"
+unfixable = [
+  "ERA", # do not autoremove commented out code
+]
 
-[tool.pylama.linter.mccabe]
-max-complexity = 15
+[tool.ruff.pylint]
+max-statements = 100
+max-branches = 20
 
-[tool.pylama.linter.pyflakes]
-builtins = "_"
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
