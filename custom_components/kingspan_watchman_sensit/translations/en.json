@@ -32,7 +32,8 @@
         "description": "Configure options for Kingspan Watchman SENSiT",
         "data": {
           "update_interval": "How often to refresh the tank data (hours)",
-          "usage_window": "Period to consider for average usage (days)"
+          "usage_window": "Period to consider for average usage (days)",
+          "debug_kingspan": "Enable verbose debug of Kingspan service connection (warning: exposes password in logfile)"
         }
       }
     }

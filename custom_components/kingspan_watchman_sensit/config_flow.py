@@ -1,20 +1,16 @@
 """Adds config flow for Kingspan Watchman SENSiT."""
 import logging
-from typing import Any, Dict, Optional, Mapping
+from typing import Dict
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant import config_entries, core
+from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity_registry import (
-    async_entries_for_config_entry,
-    async_get,
-)
 
 from .api import SENSiTApiClient
 from .const import (
+    CONF_KINGSPAN_DEBUG,
     CONF_NAME,
     CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
@@ -114,6 +110,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self.options = dict(config_entry.options)
         self.options.setdefault(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         self.options.setdefault(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
+        self.options.setdefault(CONF_KINGSPAN_DEBUG, False)
 
     async def async_step_init(self, user_input: dict | None = None) -> FlowResult:
         """Initialise the options flow"""
@@ -139,6 +136,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW
                 ),
             ): cv.positive_int,
+            vol.Optional(
+                CONF_KINGSPAN_DEBUG,
+                default=self.config_entry.options.get(CONF_KINGSPAN_DEBUG, False),
+            ): cv.boolean,
         }
 
         return self.async_show_form(step_id="init", data_schema=vol.Schema(options))

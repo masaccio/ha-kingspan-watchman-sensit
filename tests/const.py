@@ -1,10 +1,11 @@
 """Constants for Kingspan Watchman SENSiT tests."""
 
 from enum import Enum
+
 from custom_components.kingspan_watchman_sensit.const import (
+    CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
-    CONF_NAME,
 )
 
 MOCK_CONFIG = {

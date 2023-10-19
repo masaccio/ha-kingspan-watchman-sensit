@@ -1,20 +1,19 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
-import pytest_asyncio
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, patch
 
+import pytest_asyncio
 from async_property import async_property
-from datetime import datetime, timedelta, timezone
-from unittest.mock import patch, AsyncMock
 from connectsensor import APIError
 
 from .const import (
+    MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
-    MOCK_TANK_SERIAL_NUMBER,
     MOCK_TANK_MODEL,
     MOCK_TANK_NAME,
-    MOCK_TANK_CAPACITY,
+    MOCK_TANK_SERIAL_NUMBER,
     HistoryType,
 )
-
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -42,9 +41,7 @@ def skip_notifications_fixture():
 @pytest_asyncio.fixture(name="bypass_get_data")
 def bypass_get_data_fixture():
     """Skip calls to get data from API."""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"
-    ), patch(
+    with patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"), patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"
     ):
         yield
@@ -58,9 +55,7 @@ def error_get_data_fixture():
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data",
         side_effect=Exception,
-    ), patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"
-    ):
+    ), patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"):
         yield
 
 
@@ -70,7 +65,7 @@ def error_sensor_client_fixture():
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
         side_effect=APIError,
-    ) as mock_client:
+    ):
         yield
 
 
@@ -80,15 +75,13 @@ def timeout_sensor_client_fixture():
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
         side_effect=TimeoutError,
-    ) as mock_client:
+    ):
         yield
 
 
 def decreasing_history(start_date: datetime) -> list:
     history = []
-    start_date = start_date.replace(
-        hour=0, minute=30, second=0, microsecond=0
-    ) - timedelta(days=30)
+    start_date = start_date.replace(hour=0, minute=30, second=0, microsecond=0) - timedelta(days=30)
 
     for day in range(1, 20):
         percent = 100 - (day * 4)
@@ -197,9 +190,7 @@ class MockAsyncClient(AsyncMock):
     @async_property
     async def tanks(self):
         if self._num_tanks == 1:
-            return [
-                MockAsyncTank(tank_level=self._level, history_type=self._history_type)
-            ]
+            return [MockAsyncTank(tank_level=self._level, history_type=self._history_type)]
         else:
             return [
                 MockAsyncTank(
@@ -215,13 +206,13 @@ class MockAsyncClient(AsyncMock):
 def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
     num_tanks = None
-    if type(request.param) == list and len(request.param) == 1:
+    if isinstance(request.param, list) and len(request.param) == 1:
         tank_level = request.param[0]
         history_type = HistoryType.DECREASING
-    elif type(request.param) == list and len(request.param) == 2:
+    elif isinstance(request.param, list) and len(request.param) == 2:
         tank_level = request.param[0]
         history_type = request.param[1]
-    elif type(request.param) == list and len(request.param) == 3:
+    elif isinstance(request.param, list) and len(request.param) == 3:
         tank_level = request.param[0]
         history_type = request.param[1]
         num_tanks = request.param[2]

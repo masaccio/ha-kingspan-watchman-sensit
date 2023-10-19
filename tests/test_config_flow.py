@@ -1,14 +1,16 @@
 """Test Kingspan Watchman SENSiT config flow."""
 from unittest.mock import patch
 
-import pytest
 import pytest_asyncio
+from custom_components.kingspan_watchman_sensit import (
+    async_setup_entry,
+    async_unload_entry,
+)
+from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant import config_entries, data_entry_flow
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
-
-from .const import MOCK_CONFIG, CONF_PASSWORD
+from .const import CONF_PASSWORD, MOCK_CONFIG
 
 
 # This fixture bypasses the actual setup of the integration
@@ -70,26 +72,55 @@ async def test_failed_config_flow(hass, error_on_get_data):
     assert result["errors"] == {"base": "auth"}
 
 
-async def test_options_flow(hass):
+async def test_options_default_flow(hass):
     """Test an options flow."""
-    entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    entry.add_to_hass(hass)
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
 
-    await hass.config_entries.async_setup(entry.entry_id)
-    result = await hass.config_entries.options.async_init(entry.entry_id)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
 
-    # Verify that the first options step is a user form
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "init"
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"update_interval": 2, "usage_window": 10}
+        result["flow_id"],
+        user_input={},
     )
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
     assert result["title"] == "Mock Title"
 
-    assert entry.options == {"update_interval": 2, "usage_window": 10}
+    assert config_entry.options == {
+        "debug_kingspan": False,
+        "update_interval": 8,
+        "usage_window": 14,
+    }
+
+
+async def test_options_flow(hass, bypass_get_data):
+    """Test an options flow."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"debug_kingspan": True, "update_interval": 4, "usage_window": 28},
+    )
+
+    assert await async_setup_entry(hass, config_entry)
+
+    assert config_entry.options == {
+        "debug_kingspan": True,
+        "update_interval": 4,
+        "usage_window": 28,
+    }
+
+    assert await async_unload_entry(hass, config_entry)
 
 
 # Re-auth test Copyright (c) 2020 Joakim Sørensen @ludeeus
@@ -108,9 +139,7 @@ async def test_reauth_config_flow(hass, bypass_get_data):
     assert result["step_id"] == "reauth_confirm"
 
     # If a user were to confirm the re-auth start, this function call
-    result_2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={}
-    )
+    result_2 = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
 
     # It should load the user form
     assert result_2["type"] == data_entry_flow.RESULT_TYPE_FORM
