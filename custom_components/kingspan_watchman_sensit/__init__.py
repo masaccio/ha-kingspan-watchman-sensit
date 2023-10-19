@@ -13,16 +13,17 @@ from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SENSiTApiClient, APIError
+from .api import APIError, SENSiTApiClient
 from .const import (
+    CONF_KINGSPAN_DEBUG,
     CONF_PASSWORD,
-    CONF_USERNAME,
-    CONF_USAGE_WINDOW,
     CONF_UPDATE_INTERVAL,
-    DOMAIN,
-    PLATFORMS,
+    CONF_USAGE_WINDOW,
+    CONF_USERNAME,
     DEFAULT_UPDATE_INTERVAL,
     DEFAULT_USAGE_WINDOW,
+    DOMAIN,
+    PLATFORMS,
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -41,20 +42,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
     usage_window = entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
+    kingspan_debug = entry.options.get(CONF_KINGSPAN_DEBUG, False)
 
     if username is None or not username:
-        raise ConfigEntryAuthFailed(f"Credentials not set")
+        raise ConfigEntryAuthFailed("Credentials not set")
 
-    client = SENSiTApiClient(username, password, usage_window)
+    client = SENSiTApiClient(username, password, usage_window, kingspan_debug)
     try:
         _ = await client.check_credentials()
     except APIError as e:
         _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
-        raise ConfigEntryAuthFailed(f"Credentials invalid") from e
+        raise ConfigEntryAuthFailed("Credentials invalid") from e
     except TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
         raise ConfigEntryNotReady(
-            f"Timed out while connecting to Kingspan service"
+            "Timed out while connecting to Kingspan service"
         ) from e
 
     coordinator = SENSiTDataUpdateCoordinator(

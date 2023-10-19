@@ -1,16 +1,15 @@
 """Test Kingspan Watchman SENSiT setup process."""
 import pytest
-
-from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from custom_components.kingspan_watchman_sensit import (
+    SENSiTDataUpdateCoordinator,
     async_reload_entry,
     async_setup_entry,
     async_unload_entry,
-    SENSiTDataUpdateCoordinator,
 )
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from .const import MOCK_CONFIG
 
 

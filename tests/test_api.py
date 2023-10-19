@@ -3,9 +3,7 @@ import asyncio
 from datetime import datetime, timezone
 
 import pandas as pd
-import pytest
 from connectsensor import APIError
-
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
 
 from .const import (

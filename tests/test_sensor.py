@@ -2,12 +2,11 @@
 from datetime import datetime, timezone
 
 import pytest
+from custom_components.kingspan_watchman_sensit import async_unload_entry
+from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.kingspan_watchman_sensit import async_unload_entry
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
 
 from .const import (
     MOCK_CONFIG,
