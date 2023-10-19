@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from async_timeout import timeout
 from connectsensor import APIError, AsyncSensorClient
 
-from .const import API_TIMEOUT, REFILL_THRESHOLD, DEFAULT_USAGE_WINDOW
+from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -20,13 +20,20 @@ class TankData:
 
 class SENSiTApiClient:
     def __init__(
-        self, username: str, password: str, usage_window: int = DEFAULT_USAGE_WINDOW
+        self,
+        username: str,
+        password: str,
+        usage_window: int = DEFAULT_USAGE_WINDOW,
+        debug=False,
     ) -> None:
         """Simple API Client for ."""
         _LOGGER.debug("API init as username=%s", username)
         self._username = username
         self._password = password
         self._usage_window = usage_window
+        if debug:
+            _LOGGER.debug("Enabling Zeep service debug")
+            _LOGGER.debug("Logger = %s", logging.getLogger("zeep.transports"))
 
     async def async_get_data(self) -> dict:
         """Get tank data from the API"""
@@ -92,12 +99,9 @@ class SENSiTApiClient:
 
         delta_levels = []
         current_level = history[0]["level_litres"]
-        for index, row in enumerate(history[1:]):
+        for _, row in enumerate(history[1:]):
             # Ignore refill days where oil goes up significantly
-            if (
-                current_level != 0
-                and (row["level_litres"] / current_level) < REFILL_THRESHOLD
-            ):
+            if current_level != 0 and (row["level_litres"] / current_level) < REFILL_THRESHOLD:
                 delta_levels.append(current_level - row["level_litres"])
 
             current_level = row["level_litres"]
@@ -127,8 +131,7 @@ def filter_history(history: list[dict], usage_window) -> list[dict]:
     time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
     # API returns naive datetime rather than with timezones
     history = [
-        dict(x, reading_date=x["reading_date"].replace(tzinfo=LOCAL_TZINFO))
-        for x in history
+        dict(x, reading_date=x["reading_date"].replace(tzinfo=LOCAL_TZINFO)) for x in history
     ]
     history = [x for x in history if x["reading_date"] >= time_delta]
     return history

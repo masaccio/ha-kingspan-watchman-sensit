@@ -17,6 +17,7 @@ CONF_PASSWORD = "password"
 CONF_NAME = "name"
 CONF_USAGE_WINDOW = "usage_window"
 CONF_UPDATE_INTERVAL = "update_interval"
+CONF_KINGSPAN_DEBUG = "debug_kingspan"
 
 # Defaults
 DEFAULT_TANK_NAME = "My Tank"
