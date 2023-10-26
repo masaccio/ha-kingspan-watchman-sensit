@@ -2,17 +2,22 @@
 from datetime import datetime, timezone
 
 import pytest
+import asyncio
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.helpers.update_coordinator import UpdateFailed
+from unittest.mock import patch, AsyncMock
+from connectsensor import APIError
 
 from .const import (
     MOCK_CONFIG,
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_NAME,
+    MOCK_GET_DATA_METHOD,
     HistoryType,
 )
 
@@ -57,6 +62,35 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
     assert await async_unload_entry(hass, config_entry)
+
+
+async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    caplog.clear()
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
+    with pytest.raises(UpdateFailed) as e:
+        await hass.data[DOMAIN][config_entry.entry_id].update()
+    assert len(caplog.record_tuples) == 1
+    assert "Timeout error logging in" in caplog.record_tuples[0][2]
+
+    caplog.clear()
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
+    with pytest.raises(UpdateFailed) as e:
+        await hass.data[DOMAIN][config_entry.entry_id].update()
+    assert len(caplog.record_tuples) == 1
+    assert "API error logging in as test@example.com" in caplog.record_tuples[0][2]
+
+    caplog.clear()
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
+    with pytest.raises(UpdateFailed) as e:
+        await hass.data[DOMAIN][config_entry.entry_id].update()
+    assert len(caplog.record_tuples) == 1
+    assert "Unhandled error" in caplog.record_tuples[0][2]
 
 
 @pytest.mark.parametrize(
@@ -111,9 +145,7 @@ async def test_sensor_icon_empty(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_CAPACITY * 0.3]], indirect=True
-)
+@pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY * 0.3]], indirect=True)
 async def test_sensor_icon_low(hass, mock_sensor_client):
     """Test sensor."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)

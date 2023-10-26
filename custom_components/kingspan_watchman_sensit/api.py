@@ -1,6 +1,5 @@
 """Sample API Client."""
 import logging
-from asyncio import TimeoutError
 from datetime import datetime, timedelta, timezone
 
 from async_timeout import timeout
@@ -41,11 +40,17 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
         except APIError as e:
-            _LOGGER.error("API error logging in as %s: %s", self._username, str(e))
-        except TimeoutError:
-            _LOGGER.error("Timeout error logging in as %s", self._username)
+            msg = f"API error logging in as {self._username}: {e}"
+            _LOGGER.error(msg)
+            raise APIError(msg) from e
+        except TimeoutError as e:
+            msg = f"Timeout error logging in as {self._username}: {e}"
+            _LOGGER.error(msg)
+            raise APIError(msg) from e
         except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error("Unhandled error logging in as %s: %s", self._username, e)
+            msg = f"Unhandled error logging in as {self._username}: {e}"
+            _LOGGER.error(msg)
+            raise APIError(msg) from e
 
     async def check_credentials(self) -> bool:
         """Login to check credentials"""

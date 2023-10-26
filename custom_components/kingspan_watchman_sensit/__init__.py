@@ -6,6 +6,7 @@ https://github.com/masaccio/ha-kingspan-watchman-sensit
 """
 import asyncio
 import logging
+from asyncio import TimeoutError
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -55,9 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         raise ConfigEntryAuthFailed("Credentials invalid") from e
     except TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
-        raise ConfigEntryNotReady(
-            "Timed out while connecting to Kingspan service"
-        ) from e
+        raise ConfigEntryNotReady("Timed out while connecting to Kingspan service") from e
 
     coordinator = SENSiTDataUpdateCoordinator(
         hass,
@@ -76,9 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     for platform in PLATFORMS:
         if entry.options.get(platform, True):  # pragma: no branch
             coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
-            )
+            hass.async_add_job(hass.config_entries.async_forward_entry_setup(entry, platform))
 
     entry.add_update_listener(async_reload_entry)
     return True
@@ -107,8 +104,7 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via API."""
         try:
             return await self.api.async_get_data()
-        except Exception as e:
-            _LOGGER.debug("API update failed: %s", e)
+        except APIError as e:
             raise UpdateFailed() from e
 
 
