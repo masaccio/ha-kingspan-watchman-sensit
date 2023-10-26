@@ -50,17 +50,6 @@ minversion = 6.0
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-isolated_build = true
-envlist = py39, py310, py311
-[testenv]
-allowlist_externals = poetry
-commands_pre = poetry install --no-root --sync
-commands = poetry run -vvv pytest --import-mode importlib
-"""
-
 [tool.isort]
 profile = "black"
 
