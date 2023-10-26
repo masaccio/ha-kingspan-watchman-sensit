@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.1
+
+🪲 Fixes error handling for Kingspan API problems [issue-9](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/9).
+
 ## v1.6.0
 
 🚀 Configuration option added for debugging Kingspan connections. When enabled, very verbose logs are generated for the connection to the Kingspan internet service. The logs include username and password.

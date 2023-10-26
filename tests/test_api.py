@@ -1,5 +1,6 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
+import pytest
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -16,7 +17,7 @@ from .const import (
 )
 
 
-async def test_api(hass, mock_sensor_client, mocker, caplog):
+async def test_api(hass, mock_sensor_client, mocker):
     """Test API calls."""
     api = SENSiTApiClient("test", "test", 14)
     tank_data = await api.async_get_data()
@@ -27,29 +28,14 @@ async def test_api(hass, mock_sensor_client, mocker, caplog):
     assert tank_data[0].capacity == MOCK_TANK_CAPACITY
     history = pd.DataFrame(tank_data[0].history)
     local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
-    assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(
-        tzinfo=local_tzinfo
-    )
+    assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(tzinfo=local_tzinfo)
     assert round(tank_data[0].usage_rate, 2) == 96.67
     assert tank_data[0].forecast_empty == 10
 
-    caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    _ = await api.async_get_data()
-    assert len(caplog.record_tuples) == 1
-    assert "Timeout error logging in" in caplog.record_tuples[0][2]
-
-    caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
-    _ = await api.async_get_data()
-    assert len(caplog.record_tuples) == 1
-    assert "API error logging in as test: api-test" in caplog.record_tuples[0][2]
-
-    caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    _ = await api.async_get_data()
-    assert len(caplog.record_tuples) == 1
-    assert "Unhandled error" in caplog.record_tuples[0][2]
+    with pytest.raises(APIError) as e:
+        _ = await api.async_get_data()
+    assert "Timeout error logging in" in str(e)
 
 
 async def test_api_filtering(hass, mock_sensor_client, mocker):

@@ -44,16 +44,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
             )
             if valid:
-                _LOGGER.debug(
-                    "login succeeded for username '%s'", user_input[CONF_USERNAME]
-                )
-                return self.async_create_entry(
-                    title=user_input[CONF_USERNAME], data=user_input
-                )
+                _LOGGER.debug("login succeeded for username '%s'", user_input[CONF_USERNAME])
+                return self.async_create_entry(title=user_input[CONF_USERNAME], data=user_input)
             else:
-                _LOGGER.debug(
-                    "login failed for username '%s'", user_input[CONF_USERNAME]
-                )
+                _LOGGER.debug("login failed for username '%s'", user_input[CONF_USERNAME])
                 self._errors["base"] = "auth"
 
             return await self._show_config_form(user_input)
@@ -64,9 +58,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Perform reauth upon an API authentication error."""
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: Dict[str, str] = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input: Dict[str, str] = None) -> FlowResult:
         if user_input is None:
             return self.async_show_form(step_id="reauth_confirm")
         return await self.async_step_user()
@@ -95,7 +87,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Return true if credentials is valid."""
         try:
             client = SENSiTApiClient(username, password)
-            await client.async_get_data()
+            _ = await client.async_get_data()
             return True
         except Exception:  # pylint: disable=broad-except
             pass
@@ -119,9 +111,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 "Config options: %s",
                 ", ".join([f"{k}='{v}'" for k, v in user_input.items()]),
             )
-            return self.async_create_entry(
-                title=self.config_entry.title, data=user_input
-            )
+            return self.async_create_entry(title=self.config_entry.title, data=user_input)
 
         options = {
             vol.Optional(
@@ -132,9 +122,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ): cv.positive_int,
             vol.Optional(
                 CONF_USAGE_WINDOW,
-                default=self.config_entry.options.get(
-                    CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW
-                ),
+                default=self.config_entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW),
             ): cv.positive_int,
             vol.Optional(
                 CONF_KINGSPAN_DEBUG,
