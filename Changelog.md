@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.2
+
+🪲 Fixes load failure [issue-10](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/10) on newer versions of Home Assistant Core. The minimum version is now 2023.10.0.
+
 ## v1.6.1
 
 🪲 Fixes error handling for Kingspan API problems [issue-9](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/9).
