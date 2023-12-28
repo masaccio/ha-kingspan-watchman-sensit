@@ -50,9 +50,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the oil level in litres"""
-        _LOGGER.debug(
-            "Read oil level: %d litres", self.coordinator.data[self.idx].level
-        )
+        _LOGGER.debug("Read oil level: %d litres", self.coordinator.data[self.idx].level)
         return self.coordinator.data[self.idx].level
 
     @property
@@ -73,8 +71,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     def native_value(self):
         """Return the oil level as a percentage"""
         percent_full = 100 * (
-            self.coordinator.data[self.idx].level
-            / self.coordinator.data[self.idx].capacity
+            self.coordinator.data[self.idx].level / self.coordinator.data[self.idx].capacity
         )
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return Decimal(f"{percent_full:.1f}")
@@ -93,6 +90,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_name = "Tank Capacity"
     _attr_device_class = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -112,9 +110,7 @@ class LastReadDate(SENSiTEntity, SensorEntity):
     @property
     def native_value(self):
         """Return date of the last reading"""
-        _LOGGER.debug(
-            "Tank last read %s", str(self.coordinator.data[self.idx].last_read)
-        )
+        _LOGGER.debug("Tank last read %s", str(self.coordinator.data[self.idx].last_read))
         return self.coordinator.data[self.idx].last_read
 
 
