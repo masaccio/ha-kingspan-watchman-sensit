@@ -3,6 +3,14 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.3
+
+Minor bug fixes:
+
+🪲 Remove 'Unsupported state class' for tank capacity ([issue-17](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/17))
+🪲 Threshold for a refill changed to +10% for calculating daily usage ([issue-15](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/15))
+🪲 Allow setup of the integration before any readings have been sent to Kingspan's servers ([issue-14](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/14))
+
 ## v1.6.2
 
 🪲 Fixes load failure [issue-10](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/10) on newer versions of Home Assistant Core. The minimum version is now 2023.10.0.
