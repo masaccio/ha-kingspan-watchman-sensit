@@ -52,8 +52,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     try:
         _ = await client.check_credentials()
     except APIError as e:
-        _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
-        raise ConfigEntryAuthFailed("Credentials invalid") from e
+        if "no level data" in str(e).lower():
+            _LOGGER.warning("No data available for username '%s'", username)
+        else:
+            _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
+            raise ConfigEntryAuthFailed("Credentials invalid") from e
     except TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
         raise ConfigEntryNotReady("Timed out while connecting to Kingspan service") from e
