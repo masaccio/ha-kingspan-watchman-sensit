@@ -69,6 +69,16 @@ def error_sensor_client_fixture():
         yield
 
 
+@pytest_asyncio.fixture(name="error_no_tank_data")
+def error_no_tank_data_fixture():
+    """Throw an exception from a mock AsyncSensorClient"""
+    with patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
+        side_effect=APIError("No Level Data Available"),
+    ):
+        yield
+
+
 @pytest_asyncio.fixture(name="timeout_sensor_client")
 def timeout_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""

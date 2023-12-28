@@ -28,9 +28,7 @@ async def test_refresh_data(hass, mock_sensor_client, caplog):
     caplog.clear()
     await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
     await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
-    update_logs = [
-        log[2] for log in caplog.record_tuples if "Fetching tank data" in log[2]
-    ]
+    update_logs = [log[2] for log in caplog.record_tuples if "Fetching tank data" in log[2]]
     assert len(update_logs) == 2
 
     assert await async_unload_entry(hass, config_entry)
@@ -72,9 +70,7 @@ async def test_setup_entry_exception(hass, error_on_get_data):
 async def test_auth_errors(hass, bypass_get_data):
     """Test entry setup and unload."""
     # Create a mock entry so we don't have to go through config flow
-    config_entry = MockConfigEntry(
-        domain=DOMAIN, data={"username": None}, entry_id="test"
-    )
+    config_entry = MockConfigEntry(domain=DOMAIN, data={"username": None}, entry_id="test")
 
     with pytest.raises(ConfigEntryAuthFailed):
         assert await async_setup_entry(hass, config_entry)
@@ -98,3 +94,20 @@ async def test_auth_timeout(hass, timeout_sensor_client):
     with pytest.raises(ConfigEntryNotReady) as e:
         assert await async_setup_entry(hass, config_entry)
     assert "Timed out while connecting to Kingspan service" in str(e)
+
+
+async def test_auth_no_tank_data(hass, error_no_tank_data, caplog):
+    """Test entry setup and unload."""
+
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+
+    caplog.clear()
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+
+    level_warnings = [
+        log[2]
+        for log in caplog.record_tuples
+        if "No data available for username 'test@example.com'" in log[2]
+    ]
+    assert len(level_warnings) == 1

@@ -1,9 +1,9 @@
 """Tests for Kingspan Watchman SENSiT api."""
 import asyncio
-import pytest
 from datetime import datetime, timezone
 
 import pandas as pd
+import pytest
 from connectsensor import APIError
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
 
@@ -17,7 +17,7 @@ from .const import (
 )
 
 
-async def test_api(hass, mock_sensor_client, mocker):
+async def test_api(mock_sensor_client, mocker):
     """Test API calls."""
     api = SENSiTApiClient("test", "test", 14)
     tank_data = await api.async_get_data()
@@ -38,7 +38,7 @@ async def test_api(hass, mock_sensor_client, mocker):
     assert "Timeout error logging in" in str(e)
 
 
-async def test_api_filtering(hass, mock_sensor_client, mocker):
+async def test_api_filtering(mock_sensor_client):
     """Test API calls."""
     api = SENSiTApiClient("test", "test")
     tank_data = await api.async_get_data()
