@@ -1,23 +1,22 @@
 """Test Kingspan Watchman SENSiT sensor states."""
+import asyncio
 from datetime import datetime, timezone
 
 import pytest
-import asyncio
+from connectsensor import APIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from unittest.mock import patch, AsyncMock
-from connectsensor import APIError
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import (
     MOCK_CONFIG,
+    MOCK_GET_DATA_METHOD,
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_NAME,
-    MOCK_GET_DATA_METHOD,
     HistoryType,
 )
 
@@ -73,21 +72,21 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(UpdateFailed) as e:
+    with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 1
     assert "Timeout error logging in" in caplog.record_tuples[0][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
-    with pytest.raises(UpdateFailed) as e:
+    with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 1
     assert "API error logging in as test@example.com" in caplog.record_tuples[0][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    with pytest.raises(UpdateFailed) as e:
+    with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 1
     assert "Unhandled error" in caplog.record_tuples[0][2]
