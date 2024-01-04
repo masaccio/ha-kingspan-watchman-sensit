@@ -9,7 +9,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, TIME_DAYS, UnitOfVolume
+from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -132,7 +132,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
 class ForcastEmpty(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:calendar"
     _attr_name = "Forecast Empty"
-    _attr_native_unit_of_measurement = TIME_DAYS
+    _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
