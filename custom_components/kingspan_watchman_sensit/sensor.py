@@ -125,7 +125,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     def native_value(self):
         """Return the usage in the last day in litres"""
         current_usage = self.coordinator.data[self.idx].usage_rate
-        _LOGGER.debug("Current oil usage %d days", current_usage)
+        _LOGGER.debug("Current oil usage %d litres/day", current_usage)
         return Decimal(f"{current_usage:.1f}")
 
 
