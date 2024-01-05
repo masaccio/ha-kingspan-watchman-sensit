@@ -3,7 +3,7 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
-## v1.6.4
+## v1.6.5
 
 🪲 Fixes load failure [issue-18](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/18) on newer versions of Home Assistant Core.
 
