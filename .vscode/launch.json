@@ -11,7 +11,7 @@
             "program": "${file}",
             "purpose": ["debug-test"],
             "console": "integratedTerminal",
-            "env": {"PYTEST_ADDOPTS": "--no-cov"}, 
+            "env": {"PYTEST_ADDOPTS": "--no-cov", "DISABLE_SOCKET": "1"}, 
             "justMyCode": true
           }
     ]
