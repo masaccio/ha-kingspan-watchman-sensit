@@ -1,4 +1,5 @@
 """Test Kingspan Watchman SENSiT setup process."""
+
 import pytest
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
@@ -36,13 +37,12 @@ async def test_refresh_data(hass, mock_sensor_client, caplog):
 
 async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     """Test entry setup and unload."""
-    # Create a mock entry so we don't have to go through config flow
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
 
-    # Set up the entry and assert that the values set during setup are where we expect
-    # them to be. Because we have patched the SENSiTDataUpdateCoordinator.async_get_data
-    # call, no code from custom_components/kingspan_watchman_sensit/api.py actually runs.
-    assert await async_setup_entry(hass, config_entry)
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
     assert type(hass.data[DOMAIN][config_entry.entry_id]) == SENSiTDataUpdateCoordinator
 
