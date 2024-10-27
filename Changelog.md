@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.6
+
+🚀 Removes some warnings raised by Home Assistant for deprecated API calls and blocking I/O.
+
 ## v1.6.5
 
 🪲 Fixes load failure [issue-18](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/18) on newer versions of Home Assistant Core.
