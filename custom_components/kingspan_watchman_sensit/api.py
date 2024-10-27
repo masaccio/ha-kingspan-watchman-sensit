@@ -1,9 +1,11 @@
 """Sample API Client."""
+
 import logging
 from datetime import datetime, timedelta, timezone
 
 from async_timeout import timeout
-from connectsensor import APIError, AsyncSensorClient
+from connectsensor.client import AsyncSensorClient
+from connectsensor.exceptions import APIError
 
 from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
 

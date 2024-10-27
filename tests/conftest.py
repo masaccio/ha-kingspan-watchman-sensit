@@ -1,10 +1,11 @@
 """Global fixtures for Kingspan Watchman SENSiT integration."""
+
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest_asyncio
 from async_property import async_property
-from connectsensor import APIError
+from connectsensor.exceptions import APIError
 
 from .const import (
     MOCK_TANK_CAPACITY,
@@ -232,7 +233,7 @@ def mock_sensor_client(request):
 
     # AsyncSensorClient is instantiated in different import contexts
     # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
-    with patch("connectsensor.AsyncSensorClient") as mock_client, patch(
+    with patch("connectsensor.client.AsyncSensorClient") as mock_client, patch(
         "custom_components.kingspan_watchman_sensit.api.AsyncSensorClient"
     ) as ha_mock_client:
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
