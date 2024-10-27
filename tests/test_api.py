@@ -1,10 +1,11 @@
 """Tests for Kingspan Watchman SENSiT api."""
+
 import asyncio
 from datetime import datetime, timezone
 
 import pandas as pd
 import pytest
-from connectsensor import APIError
+from connectsensor.exceptions import APIError
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
 
 from .const import (
