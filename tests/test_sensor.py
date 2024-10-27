@@ -1,9 +1,10 @@
 """Test Kingspan Watchman SENSiT sensor states."""
+
 import asyncio
 from datetime import datetime, timezone
 
 import pytest
-from connectsensor import APIError
+from connectsensor.exceptions import APIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.const import ATTR_ICON
@@ -47,8 +48,8 @@ async def test_sensor(hass, mock_sensor_client):
     state = hass.states.get("sensor.last_reading_date")
     assert state
     test_date = datetime.now().replace(hour=0, minute=30, second=0, microsecond=0)
-    # Timestamps from HA are in UTC``
-    test_date = test_date.astimezone(timezone.utc)
+    local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
+    test_date = test_date.replace(tzinfo=local_tzinfo)
     assert state.state == test_date.isoformat()
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
 
