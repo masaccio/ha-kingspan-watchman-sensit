@@ -4,6 +4,7 @@ Custom integration to integrate Kingspan Watchman SENSiT with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/masaccio/ha-kingspan-watchman-sensit
 """
+
 import asyncio
 import logging
 from asyncio import TimeoutError
@@ -78,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     for platform in PLATFORMS:
         if entry.options.get(platform, True):  # pragma: no branch
             coordinator.platforms.append(platform)
-            hass.async_add_job(hass.config_entries.async_forward_entry_setup(entry, platform))
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.add_update_listener(async_reload_entry)
     return True
