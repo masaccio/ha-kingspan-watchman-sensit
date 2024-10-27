@@ -1,4 +1,6 @@
 """Test Kingspan Watchman SENSiT config flow."""
+
+from logging import WARNING
 from unittest.mock import patch
 
 import pytest_asyncio
@@ -10,7 +12,7 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant import config_entries, data_entry_flow
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import CONF_PASSWORD, MOCK_CONFIG
+from .const import CONF_PASSWORD, HA_LOAD_WARNING, MOCK_CONFIG
 
 
 # This fixture bypasses the actual setup of the integration
@@ -72,8 +74,11 @@ async def test_failed_config_flow(hass, error_on_get_data):
     assert result["errors"] == {"base": "auth"}
 
 
-async def test_options_default_flow(hass):
+async def test_options_default_flow(hass, caplog):
     """Test an options flow."""
+    caplog.clear()
+    caplog.set_level(WARNING)
+
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
 
@@ -97,6 +102,9 @@ async def test_options_default_flow(hass):
         "update_interval": 8,
         "usage_window": 14,
     }
+
+    warnings = [log[2] for log in caplog.record_tuples if HA_LOAD_WARNING not in log[2]]
+    assert len(warnings) == 0
 
 
 async def test_options_flow(hass, bypass_get_data):

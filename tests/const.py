@@ -14,9 +14,9 @@ MOCK_CONFIG = {
     CONF_PASSWORD: "s3cret",
 }
 
-MOCK_GET_DATA_METHOD = (
-    "custom_components.kingspan_watchman_sensit.SENSiTApiClient._get_tank_data"
-)
+MOCK_GET_DATA_METHOD = "custom_components.kingspan_watchman_sensit.SENSiTApiClient._get_tank_data"
+
+HA_LOAD_WARNING = "custom integration kingspan_watchman_sensit which has not been tested"
 
 # Mock tank data to readings
 MOCK_TANK_LEVEL = 1000
