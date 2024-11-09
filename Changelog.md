@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.7
+
+🚀 *BETA* test of new oil consumption data suitable for integration into the Home Assistant Energy Monitor. The data assumes a fixed energy density of fuel oil of 10.35 kWh per litre which cannot be configured. There is currently no variable pricing for oil, so this must be entered as a fixed cost per unit.
+
 ## v1.6.6
 
 🚀 Removes some warnings raised by Home Assistant for deprecated API calls and blocking I/O.

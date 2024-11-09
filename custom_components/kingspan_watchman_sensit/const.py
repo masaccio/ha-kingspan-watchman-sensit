@@ -1,4 +1,5 @@
 """Constants for Kingspan Watchman SENSiT."""
+
 # Base component constants
 NAME = "Kingspan Watchman SENSiT"
 DOMAIN = "kingspan_watchman_sensit"
@@ -6,6 +7,8 @@ DOMAIN_DATA = f"{DOMAIN}_data"
 
 ATTRIBUTION = "Data provided by https://www.connectsensor.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
+
+ENERGY_DENSITY_KWH_PER_LITER = 10.35
 
 # Platforms
 SENSOR = "sensor"
