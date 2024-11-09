@@ -1,4 +1,5 @@
 """Sensor platform for Kingspan Watchman SENSiT."""
+
 import logging
 from datetime import timedelta
 from decimal import Decimal
@@ -9,11 +10,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfVolume
+from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -36,6 +37,7 @@ async def async_setup_entry(
             LastReadDate(coordinator, config_entry, idx),
             CurrentUsage(coordinator, config_entry, idx),
             ForcastEmpty(coordinator, config_entry, idx),
+            OilConsumption(coordinator, config_entry, idx),
         ]
     async_add_entities(entities)
 
@@ -43,9 +45,9 @@ async def async_setup_entry(
 class OilLevel(SENSiTEntity, SensorEntity):
     _attr_icon = "mdi:gauge"
     _attr_name = "Oil Level"
-    _attr_device_class = SensorDeviceClass.VOLUME
+    _attr_device_class = SensorDeviceClass.VOLUME_STORAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
-    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -142,6 +144,22 @@ class ForcastEmpty(SENSiTEntity, SensorEntity):
         _LOGGER.debug("Tank forecast empty %d days", empty_days)
         return empty_days
         return timedelta(days=empty_days)
+
+
+class OilConsumption(SENSiTEntity, SensorEntity):
+    _attr_icon = "mdi:fire"
+    _attr_name = "Oil Consumption"
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_device_class = SensorDeviceClass.ENERGY
+
+    @property
+    def native_value(self):
+        """Return the current oil consumption in Kwh"""
+        current_usage = self.coordinator.data[self.idx].usage_rate
+        consumption = current_usage * ENERGY_DENSITY_KWH_PER_LITER
+        _LOGGER.debug("Oil consumption %.1f kWh", consumption)
+        return Decimal(f"{consumption:.1f}")
 
 
 def tank_icon(level: int, capacity: int) -> str:

@@ -61,6 +61,10 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == "10"
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
+    state = hass.states.get("sensor.oil_consumption")
+    assert state.state == "1000.5"
+    assert state.attributes.get(ATTR_ICON) == "mdi:fire"
+
     assert await async_unload_entry(hass, config_entry)
 
 
