@@ -1,4 +1,5 @@
 """SENSiTEntity class"""
+
 import logging
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity

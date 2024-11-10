@@ -13,8 +13,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
+from .const import DOMAIN
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -146,20 +147,36 @@ class ForcastEmpty(SENSiTEntity, SensorEntity):
         return timedelta(days=empty_days)
 
 
-class OilConsumption(SENSiTEntity, SensorEntity):
+class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon = "mdi:fire"
     _attr_name = "Oil Consumption"
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_device_class = SensorDeviceClass.ENERGY
 
+    def __init__(self, coordinator, config_entry, idx):
+        super().__init__(coordinator, config_entry, idx)
+        self._state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        if not state:
+            return
+        self._state = state.state
+
     @property
-    def native_value(self):
-        """Return the current oil consumption in Kwh"""
-        current_usage = self.coordinator.data[self.idx].usage_rate
-        consumption = current_usage * ENERGY_DENSITY_KWH_PER_LITER
-        _LOGGER.debug("Oil consumption %.1f kWh", consumption)
-        return Decimal(f"{consumption:.1f}")
+    def state(self):
+        """Return the state of the sensor."""
+        update_interval = int((self.coordinator.update_interval.seconds) / 3600)
+        consumption = self.coordinator.data[self.idx].usage_rate / update_interval
+        if self._state is None:
+            self._state = consumption
+        else:
+            self._state = float(self._state) + consumption
+        _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", self._state, update_interval)
+        return Decimal(f"{self._state:.1f}")
 
 
 def tank_icon(level: int, capacity: int) -> str:

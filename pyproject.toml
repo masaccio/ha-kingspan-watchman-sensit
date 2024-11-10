@@ -16,7 +16,7 @@ version = "1.6.7"
 
 [tool.poetry.dependencies]
 async-timeout = ">=4.0.2"
-homeassistant = "*"
+homeassistant = ">=2024.11"
 kingspan-connect-sensor = ">=3.0.4"
 python = ">=3.12,<3.14"
 voluptuous = ">=0.13.1"
