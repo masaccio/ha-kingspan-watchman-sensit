@@ -3,6 +3,7 @@
 import logging
 from datetime import timedelta
 from decimal import Decimal
+from functools import cached_property
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -29,7 +30,7 @@ async def async_setup_entry(
     """Setup sensor platform."""
     _LOGGER.debug("Adding sensor entities")
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    entities = []
+    entities: list[SensorEntity] = []
     for idx in range(len(coordinator.data)):
         entities += [
             OilLevel(coordinator, config_entry, idx),
@@ -56,7 +57,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
         _LOGGER.debug("Read oil level: %d litres", self.coordinator.data[self.idx].level)
         return self.coordinator.data[self.idx].level
 
-    @property
+    @cached_property
     def icon(self):
         """Icon to use in the frontend"""
         return tank_icon(

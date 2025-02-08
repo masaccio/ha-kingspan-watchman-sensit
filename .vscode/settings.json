@@ -14,10 +14,12 @@
         "100"
     ],
     "python.testing.pytestArgs": [
-        "tests"
+        "tests",
+        "--no-cov"
     ],
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
+    "python.analysis.typeCheckingMode": "standard",
     "ruff.lint.args": [
         "--config=pyproject.toml"
     ],
