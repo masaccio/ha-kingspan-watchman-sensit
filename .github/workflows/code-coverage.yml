@@ -5,13 +5,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OS: ubuntu-latest
-      PYTHON: '3.12'
+      PYTHON: '3.13'
     steps:
     - uses: actions/checkout@master
     - name: Setup Python
       uses: actions/setup-python@master
       with:
-        python-version: '3.12'
+        python-version: '3.13'
     - name: Generate coverage report
       run: |
         pip install poetry
