@@ -8,6 +8,9 @@ from async_property import async_property
 from connectsensor.exceptions import APIError
 
 from .const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    MOCK_CONFIG,
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_MODEL,
@@ -70,6 +73,25 @@ def error_sensor_client_fixture():
         yield
 
 
+@pytest_asyncio.fixture(name="mock_password_check")
+def mock_password_check_fixture():
+    """Check password and return True or raise a APIError if invalid"""
+
+    def mock_check_credentials(self):
+        if (
+            self._username != MOCK_CONFIG[CONF_USERNAME]
+            or self._password != MOCK_CONFIG[CONF_PASSWORD]
+        ):
+            raise APIError()
+        return True
+
+    with patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
+        side_effect=mock_check_credentials,
+    ):
+        yield
+
+
 @pytest_asyncio.fixture(name="error_no_tank_data")
 def error_no_tank_data_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
@@ -90,7 +112,7 @@ def timeout_sensor_client_fixture():
         yield
 
 
-def decreasing_history(start_date: datetime) -> list:
+def decreasing_history(start_date: datetime) -> list[dict]:
     history = []
     start_date = start_date.replace(hour=0, minute=30, second=0, microsecond=0) - timedelta(days=30)
 
@@ -162,7 +184,7 @@ class MockAsyncTank:
         return MOCK_TANK_CAPACITY
 
     @async_property
-    async def last_read(self) -> str:
+    async def last_read(self) -> datetime:
         history = await self.history
         if len(history) > 0:
             return history[-1]["reading_date"]
@@ -170,7 +192,7 @@ class MockAsyncTank:
             return datetime.now()
 
     @async_property
-    async def history(self) -> str:
+    async def history(self) -> list[dict]:
         # Build a month of history with a refill halfway through
         if self._history_type == HistoryType.DECREASING:
             return decreasing_history(datetime.now())

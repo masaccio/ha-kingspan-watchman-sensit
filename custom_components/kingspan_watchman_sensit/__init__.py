@@ -6,8 +6,8 @@ https://github.com/masaccio/ha-kingspan-watchman-sensit
 """
 
 import asyncio
+import builtins
 import logging
-from asyncio import TimeoutError
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -37,15 +37,15 @@ async def async_setup(hass: HomeAssistant, config: Config):
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
 
-    username = entry.data.get(CONF_USERNAME)
-    password = entry.data.get(CONF_PASSWORD)
-    usage_window = entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
-    kingspan_debug = entry.options.get(CONF_KINGSPAN_DEBUG, False)
+    username = config_entry.data.get(CONF_USERNAME)
+    password = config_entry.data.get(CONF_PASSWORD)
+    usage_window = config_entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
+    kingspan_debug = config_entry.options.get(CONF_KINGSPAN_DEBUG, False)
 
     if username is None or not username:
         raise ConfigEntryAuthFailed("Credentials not set")
@@ -59,7 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         else:
             _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
             raise ConfigEntryAuthFailed("Credentials invalid") from e
-    except TimeoutError as e:
+    except builtins.TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
         raise ConfigEntryNotReady("Timed out while connecting to Kingspan service") from e
 
@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass,
         client=client,
         update_interval=timedelta(
-            hours=entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+            hours=config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         ),
     )
     await coordinator.async_refresh()
@@ -75,14 +75,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
-    hass.data[DOMAIN][entry.entry_id] = coordinator
+    hass.data[DOMAIN][config_entry.entry_id] = coordinator
 
     for platform in PLATFORMS:
-        if entry.options.get(platform, True):  # pragma: no branch
+        if config_entry.options.get(platform, True):  # pragma: no branch
             coordinator.platforms.append(platform)
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    entry.add_update_listener(async_reload_entry)
+    config_entry.add_update_listener(async_reload_entry)
     return True
 
 
@@ -113,25 +113,29 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed() from e
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    if DOMAIN not in hass.data:
+        return False
+
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
     unloaded = all(
         await asyncio.gather(
             *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
+                hass.config_entries.async_forward_entry_unload(config_entry, platform)
                 for platform in PLATFORMS
                 if platform in coordinator.platforms
             ]
         )
     )
     if unloaded:  # pragma: no branch
-        hass.data[DOMAIN].pop(entry.entry_id)
+        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unloaded
 
 
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    await async_unload_entry(hass, config_entry)
+    await async_setup_entry(hass, config_entry)

@@ -16,9 +16,9 @@ version = "1.6.7"
 
 [tool.poetry.dependencies]
 async-timeout = ">=4.0.2"
-homeassistant = ">=2024.11"
-kingspan-connect-sensor = ">=3.0.4"
-python = ">=3.12,<3.14"
+homeassistant = ">=2025.2"
+kingspan-connect-sensor = ">=3.1.0"
+python = ">=3.13,<3.14"
 voluptuous = ">=0.13.1"
 async-property = ">=0.2.1"
 asyncio = ">=3.4.3"
@@ -29,7 +29,7 @@ aiohttp = {version=">=3.8.2", allow-prereleases = true}
 black = {version = ">=22.12.0", allow-prereleases = true}
 datetime = ">=4.7"
 pylama = ">=8.4.1"
-pytest-homeassistant-custom-component = ">=0.13.175"
+pytest-homeassistant-custom-component = "*"
 pytest-mock = ">=3.9.0"
 toml = ">=0.10.2"
 pygithub = ">=1.58.0"
@@ -50,6 +50,7 @@ directory = "coverage_html_report"
 addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov-context=test --cov=custom_components/kingspan_watchman_sensit --disable-socket --allow-unix-socket"
 minversion = 6.0
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.isort]
@@ -77,7 +78,7 @@ select = [
   "PL",
 ]
 src = ["src", "tests"]
-target-version = "py38"
+target-version = "py312"
 unfixable = [
   "ERA", # do not autoremove commented out code
 ]

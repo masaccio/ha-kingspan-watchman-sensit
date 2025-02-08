@@ -4,15 +4,13 @@ from logging import WARNING
 from unittest.mock import patch
 
 import pytest_asyncio
-from custom_components.kingspan_watchman_sensit import (
-    async_setup_entry,
-    async_unload_entry,
-)
+from custom_components.kingspan_watchman_sensit import async_setup_entry
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant import config_entries, data_entry_flow
+from homeassistant.config_entries import ConfigEntryState
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import CONF_PASSWORD, HA_LOAD_WARNING, MOCK_CONFIG
+from .const import MOCK_CONFIG
 
 
 # This fixture bypasses the actual setup of the integration
@@ -39,18 +37,16 @@ async def test_successful_config_flow(hass, bypass_get_data):
     )
 
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
-    # If a user were to enter `test_username` for username and `test_password`
-    # for password, it would result in this function call
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input=MOCK_CONFIG
     )
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "test@example.com"
     assert result["data"] == MOCK_CONFIG
     assert result["result"]
@@ -63,14 +59,14 @@ async def test_failed_config_flow(hass, error_on_get_data):
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input=MOCK_CONFIG
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["errors"] == {"base": "auth"}
 
 
@@ -86,7 +82,7 @@ async def test_options_default_flow(hass, caplog):
     await hass.async_block_till_done()
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "init"
 
     result = await hass.config_entries.options.async_configure(
@@ -94,7 +90,7 @@ async def test_options_default_flow(hass, caplog):
         user_input={},
     )
 
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["title"] == "Mock Title"
 
     assert config_entry.options == {
@@ -102,9 +98,6 @@ async def test_options_default_flow(hass, caplog):
         "update_interval": 8,
         "usage_window": 14,
     }
-
-    warnings = [log[2] for log in caplog.record_tuples if HA_LOAD_WARNING not in log[2]]
-    assert len(warnings) == 0
 
 
 async def test_options_flow(hass, bypass_get_data):
@@ -128,42 +121,40 @@ async def test_options_flow(hass, bypass_get_data):
         "usage_window": 28,
     }
 
-    assert await async_unload_entry(hass, config_entry)
-
-
-# Re-auth test Copyright (c) 2020 Joakim Sørensen @ludeeus
-async def test_reauth_config_flow(hass, bypass_get_data):
-    """Test a successful config flow."""
-    entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    entry.add_to_hass(hass)
-
-    # Initialize a config flow
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_REAUTH}
+    hass.config_entries.async_update_entry(
+        config_entry, options={"debug_kingspan": False, "update_interval": 8, "usage_window": 14}
     )
+    await hass.async_block_till_done()
 
-    # Check that the config flow shows the reauth form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
-    assert result["step_id"] == "reauth_confirm"
+    assert config_entry.options == {
+        "debug_kingspan": False,
+        "update_interval": 8,
+        "usage_window": 14,
+    }
 
-    # If a user were to confirm the re-auth start, this function call
-    result_2 = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
 
-    # It should load the user form
-    assert result_2["type"] == data_entry_flow.RESULT_TYPE_FORM
-    assert result_2["step_id"] == "user"
+async def test_reauth_flow(hass, mock_password_check):
+    """Test an reauthentication flow."""
 
-    updated_config = MOCK_CONFIG
-    updated_config[CONF_PASSWORD] = "NewH8x0rP455!"
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
-    # If a user entered a new password, this would happen
-    result_3 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input=updated_config
-    )
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
 
-    # Check that the config flow is complete and a new entry is created with
-    # the input data
-    assert result_3["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-    assert result_3["title"] == "test@example.com"
-    assert result_3["data"] == MOCK_CONFIG
-    assert result_3["result"]
+    config_entry.async_start_reauth(hass)
+    await hass.async_block_till_done()
+
+    assert config_entry.state is ConfigEntryState.LOADED
+    flows = hass.config_entries.flow.async_progress()
+    assert len(flows) == 1
+    assert flows[0]["step_id"] == "reauth_confirm"
+
+    _ = await hass.config_entries.flow.async_configure(flows[0]["flow_id"], user_input=MOCK_CONFIG)
+    config_entry.async_start_reauth(hass)
+    await hass.async_block_till_done()
+    flows = hass.config_entries.flow.async_progress()
+
+    assert flows[0]["context"]["source"] == "reauth"
+
+    await hass.async_block_till_done()

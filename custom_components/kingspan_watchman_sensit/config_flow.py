@@ -1,6 +1,7 @@
 """Adds config flow for Kingspan Watchman SENSiT."""
+
 import logging
-from typing import Dict
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -54,11 +55,16 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    async def async_step_reauth(self, user_input: Dict[str, str] = None) -> FlowResult:
+    async def async_step_reauth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
         """Perform reauth upon an API authentication error."""
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input: Dict[str, str] = None) -> FlowResult:
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        _LOGGER.debug("reauth flow started")
         if user_input is None:
             return self.async_show_form(step_id="reauth_confirm")
         return await self.async_step_user()
@@ -99,7 +105,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self.config_entry = config_entry
-        self.options = dict(config_entry.options)
+        self.options = {**config_entry.options}
         self.options.setdefault(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         self.options.setdefault(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
         self.options.setdefault(CONF_KINGSPAN_DEBUG, False)
@@ -131,3 +137,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         }
 
         return self.async_show_form(step_id="init", data_schema=vol.Schema(options))
+
+    @callback
+    def async_update_options(self, new_options: dict) -> None:
+        """Update options correctly."""
+        self.hass.config_entries.async_update_entry(
+            self.config_entry, options={**self.config_entry.options, **new_options}
+        )

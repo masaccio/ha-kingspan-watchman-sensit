@@ -1,7 +1,9 @@
 """SENSiTEntity class"""
 
 import logging
+from functools import cached_property
 
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, DOMAIN, NAME
@@ -16,23 +18,23 @@ class SENSiTEntity(CoordinatorEntity):
         self.config_entry = config_entry
         self.idx = idx
 
-    @property
+    @cached_property
     def unique_id(self):
         """Return a unique ID to use for this entity."""
         serial_no = self.coordinator.data[self.idx].serial_number
-        name = self._attr_name.lower().replace(" ", "_")
+        name = self._attr_name.lower().replace(" ", "_")  # type: ignore
         return f"sensit-{serial_no}-{name}"
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.data[self.idx].serial_number)},
-            "model": self.coordinator.data[self.idx].model,
-            "name": self.coordinator.data[self.idx].name,
-            "manufacturer": NAME,
-        }
+    @cached_property
+    def device_info(self) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.data[self.idx].serial_number)},
+            model=self.coordinator.data[self.idx].model,
+            name=self.coordinator.data[self.idx].name,
+            manufacturer=NAME,
+        )
 
-    @property
+    @cached_property
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {
