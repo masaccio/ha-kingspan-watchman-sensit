@@ -51,7 +51,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
 
-    @property
+    @cached_property
     def native_value(self):
         """Return the oil level in litres"""
         _LOGGER.debug("Read oil level: %d litres", self.coordinator.data[self.idx].level)
@@ -71,7 +71,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = SensorStateClass.TOTAL
 
-    @property
+    @cached_property
     def native_value(self):
         """Return the oil level as a percentage"""
         percent_full = 100 * (
@@ -80,7 +80,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return Decimal(f"{percent_full:.1f}")
 
-    @property
+    @cached_property
     def icon(self):
         """Icon to use in the frontend"""
         return tank_icon(
@@ -96,7 +96,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_state_class = SensorStateClass.TOTAL
 
-    @property
+    @cached_property
     def native_value(self):
         """Return the tank capacity in litres"""
         _LOGGER.debug(
@@ -111,7 +111,7 @@ class LastReadDate(SENSiTEntity, SensorEntity):
     _attr_name = "Last Reading Date"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    @property
+    @cached_property
     def native_value(self):
         """Return date of the last reading"""
         _LOGGER.debug("Tank last read %s", str(self.coordinator.data[self.idx].last_read))
@@ -125,7 +125,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_native_unit_of_measurement = UnitOfVolume.LITERS
     _attr_state_class = SensorStateClass.TOTAL
 
-    @property
+    @cached_property
     def native_value(self):
         """Return the usage in the last day in litres"""
         current_usage = self.coordinator.data[self.idx].usage_rate
@@ -139,7 +139,7 @@ class ForcastEmpty(SENSiTEntity, SensorEntity):
     _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
-    @property
+    @cached_property
     def native_value(self):
         """Return the number of days to empty"""
         empty_days = self.coordinator.data[self.idx].forecast_empty
@@ -167,12 +167,12 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             return
         self._state = state.state
 
-    @property
+    @cached_property
     def state(self):
         """Return the state of the sensor."""
         update_interval = int((self.coordinator.update_interval.seconds) / 3600)
         consumption = self.coordinator.data[self.idx].usage_rate / update_interval
-        if self._state is None:
+        if self._state is None or str(self._state) == "unavailable":
             self._state = consumption
         else:
             self._state = float(self._state) + consumption
