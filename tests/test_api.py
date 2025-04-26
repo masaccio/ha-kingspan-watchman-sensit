@@ -1,12 +1,13 @@
 """Tests for Kingspan Watchman SENSiT api."""
 
 import asyncio
-from datetime import datetime, timezone
 
 import pandas as pd
 import pytest
 from connectsensor.exceptions import APIError
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
+from homeassistant.util.dt import as_local, set_default_time_zone
+from tzlocal import get_localzone
 
 from .const import (
     MOCK_GET_DATA_METHOD,
@@ -20,6 +21,8 @@ from .const import (
 
 async def test_api(mock_sensor_client, mocker):
     """Test API calls."""
+    set_default_time_zone(get_localzone())
+
     api = SENSiTApiClient("test", "test", 14)
     tank_data = await api.async_get_data()
     assert tank_data[0].level == MOCK_TANK_LEVEL
@@ -28,8 +31,7 @@ async def test_api(mock_sensor_client, mocker):
     assert tank_data[0].name == MOCK_TANK_NAME
     assert tank_data[0].capacity == MOCK_TANK_CAPACITY
     history = pd.DataFrame(tank_data[0].history)
-    local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
-    assert tank_data[0].last_read == history.iloc[-1].reading_date.replace(tzinfo=local_tzinfo)
+    assert tank_data[0].last_read == as_local(history.iloc[-1].reading_date)
     assert round(tank_data[0].usage_rate, 2) == 96.67
     assert tank_data[0].forecast_empty == 10
 

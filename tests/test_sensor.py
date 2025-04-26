@@ -1,7 +1,8 @@
 """Test Kingspan Watchman SENSiT sensor states."""
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 from connectsensor.exceptions import APIError
@@ -10,6 +11,7 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.util.dt import get_time_zone, set_default_time_zone
 from pytest_homeassistant_custom_component.common import MockConfigEntry, State, mock_restore_cache
 
 from .const import (
@@ -45,14 +47,6 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
-    state = hass.states.get("sensor.last_reading_date")
-    assert state
-    test_date = datetime.now().replace(hour=0, minute=30, second=0, microsecond=0)
-    local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
-    test_date = test_date.replace(tzinfo=local_tzinfo)
-    assert state.state == test_date.isoformat()
-    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
-
     state = hass.states.get("sensor.current_usage")
     assert state.state == "96.7"
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
@@ -64,6 +58,49 @@ async def test_sensor(hass, mock_sensor_client):
     state = hass.states.get("sensor.oil_consumption")
     assert state.state == "12.1"
     assert state.attributes.get(ATTR_ICON) == "mdi:fire"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+async def test_sensor_with_timezone(hass, mock_sensor_client):
+    """Test sensor timezone compliance."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+
+    # Picking a timezone that is not UTC and has no DST
+    set_default_time_zone(get_time_zone("Asia/Kolkata"))  # type: ignore
+    test_date = (
+        datetime.now(ZoneInfo("Asia/Kolkata"))
+        .replace(hour=0, minute=30, second=0, microsecond=0)
+        .astimezone(UTC)
+        .isoformat()
+    )
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.last_reading_date")
+    assert state
+    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
+    assert state.state == test_date
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+async def test_sensor_with_utc(hass, mock_sensor_client):
+    """Test sensor timezone compliance."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+
+    set_default_time_zone(get_time_zone("UTC"))  # type: ignore
+    test_date = datetime.now(UTC).replace(hour=0, minute=30, second=0, microsecond=0)
+    test_date = test_date.isoformat()
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.last_reading_date")
+    assert state.state == "2025-04-26T00:30:00+00:00"
 
     assert await async_unload_entry(hass, config_entry)
 

@@ -1,17 +1,16 @@
 """Sample API Client."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from async_timeout import timeout
 from connectsensor.client import AsyncSensorClient
 from connectsensor.exceptions import APIError
+from homeassistant.util.dt import as_local
 
 from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
-
-LOCAL_TZINFO = datetime.now(timezone.utc).astimezone().tzinfo
 
 
 class TankData:
@@ -74,9 +73,7 @@ class SENSiTApiClient:
                 tank_data.model = await tank.model
                 tank_data.name = await tank.name
                 tank_data.capacity = await tank.capacity
-                tank_data.last_read = await tank.last_read
-                # Timestamp sensor needs timezone included
-                tank_data.last_read = tank_data.last_read.replace(tzinfo=LOCAL_TZINFO)
+                tank_data.last_read = as_local(await tank.last_read)
                 tank_data.history = await tank.history
                 if len(tank_data.history) == 0:
                     _LOGGER.warning("No history: usage and forecast unavailable")
@@ -134,11 +131,8 @@ class SENSiTApiClient:
 
 def filter_history(history: list[dict], usage_window) -> list[dict]:
     """Filter tank history to a smaller recent window of days"""
-    time_delta = datetime.today() - timedelta(days=usage_window)
-    time_delta = time_delta.replace(tzinfo=LOCAL_TZINFO)
+    time_delta = as_local(datetime.today() - timedelta(days=usage_window))
     # API returns naive datetime rather than with timezones
-    history = [
-        dict(x, reading_date=x["reading_date"].replace(tzinfo=LOCAL_TZINFO)) for x in history
-    ]
+    history = [dict(x, reading_date=as_local(x["reading_date"])) for x in history]
     history = [x for x in history if x["reading_date"] >= time_delta]
     return history
