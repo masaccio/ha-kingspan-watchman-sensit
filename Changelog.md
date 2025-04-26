@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.9
+
+🪲 Fixes problem with `sensor.oil_consumption` reported in [issue-42](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/42) on version 2025.4 of Home Assistant Core.
+
 ## v1.6.8
 
 🪲 Fixes load failure [issue-38](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/18) on version 2025.02 of Home Assistant Core.
