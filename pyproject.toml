@@ -12,7 +12,7 @@ name = "ha-kingspan-connect-sensor"
 packages = [{include = "custom_components/kingspan_watchman_sensit"}]
 readme = "README.md"
 repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
-version = "1.6.8"
+version = "1.6.9"
 
 [tool.poetry.dependencies]
 async-timeout = ">=4.0.2"
@@ -35,6 +35,7 @@ toml = ">=0.10.2"
 pygithub = ">=1.58.0"
 pandas = ">=2.0.2"
 ruff = ">=0.1.0"
+tzlocal = "^5.3.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
