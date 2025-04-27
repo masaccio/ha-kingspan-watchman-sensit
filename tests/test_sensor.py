@@ -62,14 +62,14 @@ async def test_sensor(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_sensor_with_timezone(hass, mock_sensor_client):
+async def run_sensor_test_with_timezone(hass, tz: str):
     """Test sensor timezone compliance."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
-    # Picking a timezone that is not UTC and has no DST
-    set_default_time_zone(get_time_zone("Asia/Kolkata"))  # type: ignore
-    test_date = (
-        datetime.now(ZoneInfo("Asia/Kolkata"))
+    set_default_time_zone(get_time_zone(tz))  # type: ignore
+
+    reference_date = (
+        datetime.now(ZoneInfo(tz))
         .replace(hour=0, minute=30, second=0, microsecond=0)
         .astimezone(UTC)
         .isoformat()
@@ -82,38 +82,26 @@ async def test_sensor_with_timezone(hass, mock_sensor_client):
     state = hass.states.get("sensor.last_reading_date")
     assert state
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
-    assert state.state == test_date
+    assert state.state == reference_date
 
     assert await async_unload_entry(hass, config_entry)
+
+
+async def test_sensor_with_timezone(hass, mock_sensor_client):
+    await run_sensor_test_with_timezone(hass, "Asia/Kolkata")
 
 
 async def test_sensor_with_utc(hass, mock_sensor_client):
-    """Test sensor timezone compliance."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    set_default_time_zone(get_time_zone("UTC"))  # type: ignore
-    test_date = datetime.now(UTC).replace(hour=0, minute=30, second=0, microsecond=0)
-    test_date = test_date.isoformat()
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.last_reading_date")
-    assert state.state == "2025-04-26T00:30:00+00:00"
-
-    assert await async_unload_entry(hass, config_entry)
+    await run_sensor_test_with_timezone(hass, "UTC")
 
 
 async def test_restore_sensor_state(hass, mock_sensor_client):
     """Test sensor saved state."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
-    # State(f"{DOMAIN}.{config_entry.entry_id.lower()}", "2090"),
-
     mock_restore_cache(
         hass,
-        [State("sensor.oil_consumption", 1234.5)],
+        [State("sensor.oil_consumption", "1234.5")],
     )
 
     config_entry.add_to_hass(hass)
