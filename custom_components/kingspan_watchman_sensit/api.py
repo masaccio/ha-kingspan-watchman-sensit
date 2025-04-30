@@ -33,7 +33,8 @@ class SENSiTApiClient:
         self._usage_window = usage_window
         if debug:
             _LOGGER.debug("Enabling Zeep service debug")
-            _LOGGER.debug("Logger = %s", logging.getLogger("zeep.transports"))
+            zeep_logger = logging.getLogger("zeep")
+            zeep_logger.setLevel(logging.DEBUG)
 
     async def async_get_data(self) -> dict:
         """Get tank data from the API"""
