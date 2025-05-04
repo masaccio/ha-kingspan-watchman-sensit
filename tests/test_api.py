@@ -19,7 +19,7 @@ from .const import (
 )
 
 
-async def test_api(mock_sensor_client, mocker):
+async def test_api(mock_sensor_client, mocker, caplog):
     """Test API calls."""
     set_default_time_zone(get_localzone())
 
@@ -38,7 +38,43 @@ async def test_api(mock_sensor_client, mocker):
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
     with pytest.raises(APIError) as e:
         _ = await api.async_get_data()
-    assert "Timeout error logging in" in str(e)
+    assert "Timeout error" in str(e)
+
+
+async def test_api_timeout(mocker, caplog):
+    """Test API calls."""
+    set_default_time_zone(get_localzone())
+
+    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=asyncio.TimeoutError)
+    api = SENSiTApiClient("test", "test", 14)
+    caplog.clear()
+
+    assert not await api.check_credentials()
+    assert "Timeout error logging in" in caplog.text
+
+
+async def test_api_error(mocker, caplog):
+    """Test API calls."""
+    set_default_time_zone(get_localzone())
+
+    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=APIError)
+    api = SENSiTApiClient("test", "test", 14)
+    caplog.clear()
+
+    assert not await api.check_credentials()
+    assert "API error logging in" in caplog.text
+
+
+async def test_api_generic_error(mocker, caplog):
+    """Test API calls."""
+    set_default_time_zone(get_localzone())
+
+    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=Exception)
+    api = SENSiTApiClient("test", "test", 14)
+    caplog.clear()
+
+    assert not await api.check_credentials()
+    assert "Unhandled error logging in" in caplog.text
 
 
 async def test_api_filtering(mock_sensor_client):

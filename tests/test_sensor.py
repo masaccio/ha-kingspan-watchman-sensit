@@ -126,14 +126,14 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 1
-    assert "Timeout error logging in" in caplog.record_tuples[0][2]
+    assert "Timeout error fetching data" in caplog.record_tuples[0][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 1
-    assert "API error logging in as test@example.com" in caplog.record_tuples[0][2]
+    assert "API error fetching data for test@example.com" in caplog.record_tuples[0][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
