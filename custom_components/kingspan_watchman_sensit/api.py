@@ -42,23 +42,37 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
         except APIError as e:
-            msg = f"API error logging in as {self._username}: {e}"
+            msg = f"API error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
             raise APIError(msg) from e
-        except TimeoutError as e:
-            msg = f"Timeout error logging in as {self._username}: {e}"
+        except TimeoutError:
+            msg = f"Timeout error fetching data for {self._username}"
             _LOGGER.error(msg)
-            raise APIError(msg) from e
+            raise APIError(msg)
         except Exception as e:  # pylint: disable=broad-except
-            msg = f"Unhandled error logging in as {self._username}: {e}"
+            msg = f"Unhandled error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
             raise APIError(msg) from e
 
     async def check_credentials(self) -> bool:
         """Login to check credentials"""
-        async with timeout(API_TIMEOUT):
-            async with AsyncSensorClient() as client:
-                await client.login(self._username, self._password)
+        try:
+            async with timeout(API_TIMEOUT):
+                async with AsyncSensorClient() as client:
+                    await client.login(self._username, self._password)
+        except APIError as e:
+            msg = f"API error logging in as {self._username}: {e}"
+            _LOGGER.error(msg)
+            return False
+        except TimeoutError:
+            msg = f"Timeout error logging in as {self._username}"
+            _LOGGER.error(msg)
+            return False
+        except Exception as e:  # pylint: disable=broad-except
+            msg = f"Unhandled error logging in as {self._username}: {e}"
+            _LOGGER.error(msg)
+            return False
+
         return True
 
     async def _get_tank_data(self):

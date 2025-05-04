@@ -3,6 +3,11 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.10
+
+🚀 Connections have been made more robust to catch timeouts when connecting to the Kingspan service for the first time.
+🚀 Low-level connection logging can be enabled to debug issues connecting to the Kingspan service (**WARNING: enabling this will log passwords in the Home Assistant Logfile**)
+
 ## v1.6.9
 
 🪲 Fixes problem with `sensor.oil_consumption` reported in [issue-42](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/42) on version 2025.4 of Home Assistant Core.
