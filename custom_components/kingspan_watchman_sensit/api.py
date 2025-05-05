@@ -1,6 +1,7 @@
 """Sample API Client."""
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from async_timeout import timeout
@@ -13,9 +14,17 @@ from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
+@dataclass
 class TankData:
-    def __init__(self):
-        pass
+    level: float = 0.0
+    serial_number: str = ""
+    model: str = ""
+    name: str = ""
+    capacity: float = 0.0
+    last_read: datetime = None
+    history: list[dict] = None
+    usage_rate: float = 0.0
+    forecast_empty: float = 0.0
 
 
 class SENSiTApiClient:
@@ -36,7 +45,7 @@ class SENSiTApiClient:
             zeep_logger = logging.getLogger("zeep")
             zeep_logger.setLevel(logging.DEBUG)
 
-    async def async_get_data(self) -> dict:
+    async def async_get_data(self) -> list[TankData]:
         """Get tank data from the API"""
         try:
             async with timeout(API_TIMEOUT):
@@ -48,7 +57,7 @@ class SENSiTApiClient:
         except TimeoutError:
             msg = f"Timeout error fetching data for {self._username}"
             _LOGGER.error(msg)
-            raise APIError(msg)
+            raise APIError(msg) from None
         except Exception as e:  # pylint: disable=broad-except
             msg = f"Unhandled error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
@@ -75,7 +84,7 @@ class SENSiTApiClient:
 
         return True
 
-    async def _get_tank_data(self):
+    async def _get_tank_data(self) -> list[TankData]:
         _LOGGER.debug("Fetching tank data with username=%s", self._username)
         async with AsyncSensorClient() as client:
             await client.login(self._username, self._password)
