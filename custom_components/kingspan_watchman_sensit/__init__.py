@@ -70,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             hours=config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         ),
     )
-    await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
@@ -110,7 +110,8 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             return await self.api.async_get_data()
         except APIError as e:
-            raise UpdateFailed() from e
+            _LOGGER.warning("APIError during update: %s", e)
+            raise UpdateFailed("Failed to fetch data from API") from e
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:

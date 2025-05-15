@@ -125,22 +125,25 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 1
+    assert len(caplog.record_tuples) == 2
     assert "Timeout error fetching data" in caplog.record_tuples[0][2]
+    assert "APIError during update: Timeout error fetching data" in caplog.record_tuples[1][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 1
+    assert len(caplog.record_tuples) == 2
     assert "API error fetching data for test@example.com" in caplog.record_tuples[0][2]
+    assert "APIError during update: API error fetching data" in caplog.record_tuples[1][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 1
+    assert len(caplog.record_tuples) == 2
     assert "Unhandled error" in caplog.record_tuples[0][2]
+    assert "APIError during update: Unhandled error" in caplog.record_tuples[1][2]
 
 
 @pytest.mark.parametrize(
