@@ -1,6 +1,7 @@
 """Sample API Client."""
 
 import logging
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -59,7 +60,8 @@ class SENSiTApiClient:
             _LOGGER.error(msg)
             raise APIError(msg) from None
         except Exception as e:  # pylint: disable=broad-except
-            msg = f"Unhandled error fetching data for {self._username}: {e}"
+            tb_str = "".join(traceback.format_tb(e.__traceback__))
+            msg = f"Unhandled error fetching data for {self._username}: '{e}' from {tb_str}"
             _LOGGER.error(msg)
             raise APIError(msg) from e
 
