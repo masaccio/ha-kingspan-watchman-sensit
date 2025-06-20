@@ -3,6 +3,11 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.12
+
+🚀 Additional connections error robustness included to cope with unstable connections to the Kingspan servers.
+
+
 ## v1.6.11
 
 🪲 Fixed regression reported on [issue-29](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/29) which caused values not to be updated after the initial readign from the tank.
