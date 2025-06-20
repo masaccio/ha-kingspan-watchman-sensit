@@ -6,13 +6,23 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from async_timeout import timeout
-from connectsensor.client import AsyncSensorClient
-from connectsensor.exceptions import APIError
+from httpx import TimeoutException as httpxTimeoutException
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
+
+try:  # pragma: no cover
+    # Support debugging of API calls with local API client
+    from .connectsensor.client import AsyncSensorClient  # type: ignore
+    from .connectsensor.exceptions import APIError  # type: ignore
+
+    _LOGGER.debug("Using local connectsensor client for debugging")  # type: ignore
+except ImportError:
+    from connectsensor.client import AsyncSensorClient
+    from connectsensor.exceptions import APIError
+
 from homeassistant.util.dt import as_local
 
 from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
-
-_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 @dataclass
@@ -59,6 +69,10 @@ class SENSiTApiClient:
             msg = f"Timeout error fetching data for {self._username}"
             _LOGGER.error(msg)
             raise APIError(msg) from None
+        except httpxTimeoutException:
+            msg = f"HTTPX timeout error fetching data for {self._username}"
+            _LOGGER.error(msg)
+            raise APIError(msg) from None
         except Exception as e:  # pylint: disable=broad-except
             tb_str = "".join(traceback.format_tb(e.__traceback__))
             msg = f"Unhandled error fetching data for {self._username}: '{e}' from {tb_str}"
@@ -79,6 +93,10 @@ class SENSiTApiClient:
             msg = f"Timeout error logging in as {self._username}"
             _LOGGER.error(msg)
             return False
+        except httpxTimeoutException:
+            msg = f"HTTPX timeout error logging in as {self._username}"
+            _LOGGER.error(msg)
+            raise APIError(msg) from None
         except Exception as e:  # pylint: disable=broad-except
             msg = f"Unhandled error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
