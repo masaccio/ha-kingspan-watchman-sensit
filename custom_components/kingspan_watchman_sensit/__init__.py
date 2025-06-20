@@ -72,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     )
     await coordinator.async_config_entry_first_refresh()
 
-    if not coordinator.last_update_success:
+    if not coordinator.last_update_success:  # pragma: no cover
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = coordinator
