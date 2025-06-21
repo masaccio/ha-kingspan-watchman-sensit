@@ -121,7 +121,7 @@ async def test_restore_sensor_state(hass, mock_sensor_client):
         "sensor.oil_consumption",
         "0.0",
         {
-            "last_update_time": dt_util.utcnow() - timedelta(hours=4),
+            "last_update_time": str(dt_util.utcnow() - timedelta(hours=4)),
             "last_level": 1100.0,
         },
     )
