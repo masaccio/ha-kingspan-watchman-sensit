@@ -15,6 +15,7 @@ from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolu
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .entity import SENSiTEntity
@@ -157,27 +158,57 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
 
     def __init__(self, coordinator, config_entry, idx):
         super().__init__(coordinator, config_entry, idx)
-        self._state = None
+        self._consumption_rate = None
+        self._last_update_time = None
+        self._last_level = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
-        state = await self.async_get_last_state()
-        if not state:
-            return
-        self._state = state.state
+        old_state = await self.async_get_last_state()
+        if old_state:
+            self._state = old_state.state
+            self._last_update_time = dt_util.parse_datetime(
+                old_state.attributes.get("last_update_time")  # type: ignore[reportArgumentType]
+            )
+            self._last_level = old_state.attributes.get("last_level")
+            _LOGGER.debug(
+                "Oil consumption: last level seen %d litres at %s",
+                self._last_level,
+                self._last_update_time,
+            )
 
     @property
-    def state(self):
-        """Return the state of the sensor."""
-        update_interval = int((self.coordinator.update_interval.seconds) / 3600)
-        consumption = self.coordinator.data[self.idx].usage_rate / update_interval
-        if self._state is None or str(self._state) == "unavailable":
-            self._state = consumption
+    def extra_state_attributes(self):
+        return {
+            "last_update_time": self._last_update_time,
+            "last_level": self._last_level,
+        }
+
+    # @callback
+    def _handle_coordinator_update(self) -> None:
+        """Update internal state based on coordinator data."""
+        super()._handle_coordinator_update()
+
+        now = dt_util.utcnow()
+        level = self.coordinator.data[self.idx].level
+        if self._last_update_time and self._last_level is not None and level <= self._last_level:
+            # Wait until we have a new level reading and ignore tank refills
+            time_delta = (now - self._last_update_time).total_seconds() / 3600
+            consumption = (self._last_level - level) / time_delta
+            self._consumption_rate = Decimal(f"{consumption:.1f}")
+            _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
         else:
-            self._state = float(self._state) + consumption
-        _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", self._state, update_interval)
-        return Decimal(f"{self._state:.1f}")
+            self._consumption_rate = None
+
+        self._last_update_time = now
+        self._last_level = level
+
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self):
+        return self._consumption_rate
 
 
 def tank_icon(level: int, capacity: int) -> str:
