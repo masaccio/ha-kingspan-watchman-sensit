@@ -168,18 +168,18 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
         old_state = await self.async_get_last_state()
         if old_state:
             self._state = old_state.state
-            self._last_update_time = dt_util.parse_datetime(
-                old_state.attributes.get("last_update_time")  # type: ignore[reportArgumentType]
-            )
-            self._last_level = old_state.attributes.get("last_level")
+            # Ensure last_update_time is a string; may be datetime object
+            last_update_time = str(old_state.attributes.get("last_update_time"))
+            last_level = old_state.attributes.get("last_level")
+            self._last_update_time = dt_util.parse_datetime(last_update_time)
+            self._last_level = last_level
             _LOGGER.debug(
-                "Oil consumption: last level seen %d litres at %s",
-                self._last_level,
-                self._last_update_time,
+                "Oil consumption: last level seen %d litres at %s", last_level, last_update_time
             )
 
     @property
     def extra_state_attributes(self):
+        _LOGGER.debug("Saving level %d litres at %s", self._last_level, self._last_update_time)
         return {
             "last_update_time": self._last_update_time,
             "last_level": self._last_level,
