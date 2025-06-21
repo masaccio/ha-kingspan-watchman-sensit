@@ -179,7 +179,8 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
 
     @property
     def extra_state_attributes(self):
-        _LOGGER.debug("Saving level %d litres at %s", self._last_level, self._last_update_time)
+        if self._last_level is not None:
+            _LOGGER.debug("Saving level %d litres at %s", self._last_level, self._last_update_time)
         return {
             "last_update_time": self._last_update_time,
             "last_level": self._last_level,
