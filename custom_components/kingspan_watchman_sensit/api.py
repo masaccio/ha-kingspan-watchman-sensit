@@ -20,9 +20,9 @@ except ImportError:
     from connectsensor.client import AsyncSensorClient
     from connectsensor.exceptions import APIError
 
-from homeassistant.util.dt import as_local
+from homeassistant.util.dt import as_local  # noqa: E402
 
-from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD
+from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD  # noqa: E402
 
 
 @dataclass
@@ -32,8 +32,8 @@ class TankData:
     model: str = ""
     name: str = ""
     capacity: float = 0.0
-    last_read: datetime = None
-    history: list[dict] = None
+    last_read: datetime | None = None
+    history: list[dict] | None = None
     usage_rate: float = 0.0
     forecast_empty: float = 0.0
 
