@@ -1,45 +1,45 @@
-[tool.poetry]
-authors = ["Jon Connell <python@figsandfudge.com>"]
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
+[project]
+authors = [
+    {name = "Jon Connell", email = "python@figsandfudge.com"},
 ]
 description = "Kingspan Connect Sensor integration for Home Assistant"
 documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/main/README.md"
 license = "MIT"
 name = "ha-kingspan-connect-sensor"
-packages = [{include = "custom_components/kingspan_watchman_sensit"}]
 readme = "README.md"
-repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
+requires-python = ">=3.13,<3.14"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+]
 version = "1.6.12"
+dependencies = [
+  "async-timeout>=4.0.2",
+  "homeassistant>=2025.2",
+  "kingspan-connect-sensor>=3.1.0",
+  "voluptuous>=0.13.1",
+  "async-property>=0.2.1",
+  "asyncio>=3.4.3",
+]
 
-[tool.poetry.dependencies]
-async-timeout = ">=4.0.2"
-homeassistant = ">=2025.2"
-kingspan-connect-sensor = ">=3.1.0"
-python = ">=3.13,<3.14"
-voluptuous = ">=0.13.1"
-async-property = ">=0.2.1"
-asyncio = ">=3.4.3"
+[project.urls]
+repository = "https://github.com/masaccio/ha-kingspan-connect-sensor"
 
-[tool.poetry.group.dev.dependencies]
-async-property = ">=0.2.1"
-aiohttp = {version=">=3.8.2", allow-prereleases = true}
-black = {version = ">=22.12.0", allow-prereleases = true}
-datetime = ">=4.7"
-pylama = ">=8.4.1"
-pytest-homeassistant-custom-component = "*"
-pytest-mock = ">=3.9.0"
-toml = ">=0.10.2"
-pygithub = ">=1.58.0"
-pandas = ">=2.0.2"
-ruff = ">=0.1.0"
-tzlocal = "^5.3.1"
-
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+[dependency-groups]
+dev = [
+  "aiohttp>=3.8.2",
+  "black>=22.12.0",
+  "datetime>=4.7",
+  "pylama>=8.4.1",
+  "pytest-homeassistant-custom-component",
+  "pytest-mock>=3.9.0",
+  "toml>=0.10.2",
+  "pygithub>=1.58.0",
+  "pandas>=2.0.2",
+  "ruff>=0.1.0",
+  "tzlocal>=5.3.1",
+]
 
 [tool.coverage.run]
 branch = true
