@@ -16,7 +16,11 @@ from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import APIError, SENSiTApiClient
+from .api import (
+    APIError,  # type: ignore[reportAttributeAccessIssue]
+    SENSiTApiClient,
+    TankData,
+)
 from .const import (
     CONF_KINGSPAN_DEBUG,
     CONF_PASSWORD,
@@ -50,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     if username is None or not username:
         raise ConfigEntryAuthFailed("Credentials not set")
 
-    client = SENSiTApiClient(username, password, usage_window, kingspan_debug)
+    client = SENSiTApiClient(username, str(password), usage_window, kingspan_debug)
     try:
         _ = await client.check_credentials()
     except APIError as e:
@@ -101,11 +105,11 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_method=self.update,
+            update_method=self.update,  # type: ignore[reportArgumentType]
             update_interval=update_interval,
         )
 
-    async def update(self):
+    async def update(self) -> list[TankData]:
         """Update data via API."""
         try:
             return await self.api.async_get_data()
