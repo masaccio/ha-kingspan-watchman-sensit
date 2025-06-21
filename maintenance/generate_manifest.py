@@ -1,4 +1,4 @@
-#! /usr/bin/env poetry run python3
+#! /usr/bin/env uv run python3
 import json
 from importlib.metadata import version
 
@@ -23,7 +23,7 @@ manifest = {
         f"kingspan-connect-sensor>={connectsensor_version}",
         f"httpx>={httpx_version}",
     ],
-    "version": pyproject["tool"]["poetry"]["version"],
+    "version": pyproject["project"]["version"],
 }
 
 with open(MANIFEST, "w") as fh:
