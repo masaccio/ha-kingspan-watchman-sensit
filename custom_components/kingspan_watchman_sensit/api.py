@@ -96,7 +96,7 @@ class SENSiTApiClient:
         except httpxTimeoutException:
             msg = f"HTTPX timeout error logging in as {self._username}"
             _LOGGER.error(msg)
-            raise APIError(msg) from None
+            return False
         except Exception as e:  # pylint: disable=broad-except
             msg = f"Unhandled error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
