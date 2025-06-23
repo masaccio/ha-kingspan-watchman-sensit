@@ -18,7 +18,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Generate coverage report
-        run: uv run run pytest --cov-report=xml
+        run: uv run pytest --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
