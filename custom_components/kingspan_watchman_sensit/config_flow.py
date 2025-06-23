@@ -137,10 +137,3 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         }
 
         return self.async_show_form(step_id="init", data_schema=vol.Schema(options))
-
-    @callback
-    def async_update_options(self, new_options: dict) -> None:
-        """Update options correctly."""
-        self.hass.config_entries.async_update_entry(
-            self.config_entry, options={**self.config_entry.options, **new_options}
-        )
