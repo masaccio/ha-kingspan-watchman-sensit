@@ -1,12 +1,14 @@
 """Tests for Kingspan Watchman SENSiT api."""
 
 import asyncio
+import logging
 
 import pandas as pd
 import pytest
-from connectsensor.exceptions import APIError
+from connectsensor import APIError
 from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
 from homeassistant.util.dt import as_local, set_default_time_zone
+from httpx import TimeoutException as httpxTimeoutException
 from tzlocal import get_localzone
 
 from .const import (
@@ -86,3 +88,33 @@ async def test_api_filtering(mock_sensor_client):
     api = SENSiTApiClient("test", "test", 5)
     tank_data = await api.async_get_data()
     assert int(tank_data[0].usage_rate) == 100.0
+
+
+@pytest.mark.asyncio
+async def test_async_httpx_timeout(mocker, mock_sensor_client, caplog):
+    api = SENSiTApiClient("test", "test")
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=httpxTimeoutException("HTTPX timeout error"))
+
+    caplog.clear()
+    with pytest.raises(APIError) as exc:
+        await api.async_get_data()
+    assert "HTTPX timeout error fetching data" in caplog.text
+    assert "HTTPX timeout error fetching data" in str(exc.value)
+
+
+async def zeep_exception(*args, **kwargs):
+    raise httpxTimeoutException("Test error")
+
+
+@pytest.mark.asyncio
+async def test_async_httpx_exception(mocker, caplog):
+    mocker.patch(
+        "connectsensor.client.AsyncSensorClient._init_zeep",
+        side_effect=httpxTimeoutException("Test error"),
+    )
+
+    api = SENSiTApiClient("test", "test")
+    caplog.clear()
+    caplog.set_level(logging.ERROR)
+    assert not await api.check_credentials()
+    assert "HTTPX timeout error logging in" in caplog.text
