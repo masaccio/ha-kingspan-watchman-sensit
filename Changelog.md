@@ -3,20 +3,21 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
-## v1.6.13
+## v1.7.0
 
 🪲 Fixed re-auth flow [issue-46](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/46) which caused problems re-authenticating with the Kingspan service.
+🪲 Fixed `load_verify_locations` [issue-43](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/43) which had Home Assistant blocking on startup to load OpenSSL.
+🪲 Fixed the spelling of the empty forecast sensor. It has been renamed to `sensor.forecast_empty`.
 🚀 Updated naming of the Device Info
-
+🚀 The oil consumption sensor should now be functional and has changed to `sensor.oil_consumption_per_hour` for clarity.
 
 ## v1.6.12
 
 🚀 Additional connections error robustness included to cope with unstable connections to the Kingspan servers.
 
-
 ## v1.6.11
 
-🪲 Fixed regression reported on [issue-29](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/29) which caused values not to be updated after the initial readign from the tank.
+🪲 Fixed regression reported on [issue-29](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/29) which caused values not to be updated after the initial reading from the tank.
 🚀 Connections errors such as timeouts on update have been made warnings to cope with unstable connections to the Kingspan servers.
 
 ## v1.6.10

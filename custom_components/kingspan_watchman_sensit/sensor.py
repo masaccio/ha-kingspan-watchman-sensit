@@ -1,7 +1,6 @@
 """Sensor platform for Kingspan Watchman SENSiT."""
 
 import logging
-from datetime import timedelta
 from decimal import Decimal
 from functools import cached_property
 
@@ -12,7 +11,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
@@ -39,7 +38,7 @@ async def async_setup_entry(
             TankCapacity(coordinator, config_entry, idx),
             LastReadDate(coordinator, config_entry, idx),
             CurrentUsage(coordinator, config_entry, idx),
-            ForcastEmpty(coordinator, config_entry, idx),
+            ForecastEmpty(coordinator, config_entry, idx),
             OilConsumption(coordinator, config_entry, idx),
         ]
     async_add_entities(entities)
@@ -101,7 +100,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
     def native_value(self):
         """Return the tank capacity in litres"""
         _LOGGER.debug(
-            "Read tank capcity: %d litres",
+            "Read tank capacity: %d litres",
             self.coordinator.data[self.idx].capacity,
         )
         return self.coordinator.data[self.idx].capacity
@@ -134,7 +133,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
         return Decimal(f"{current_usage:.1f}")
 
 
-class ForcastEmpty(SENSiTEntity, SensorEntity):
+class ForecastEmpty(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:calendar"
     _attr_name: str | None = "Forecast Empty"
     _attr_native_unit_of_measurement: str | None = UnitOfTime.DAYS
@@ -146,12 +145,11 @@ class ForcastEmpty(SENSiTEntity, SensorEntity):
         empty_days = self.coordinator.data[self.idx].forecast_empty
         _LOGGER.debug("Tank forecast empty %d days", empty_days)
         return empty_days
-        return timedelta(days=empty_days)
 
 
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon: str | None = "mdi:fire"
-    _attr_name: str | None = "Oil Consumption"
+    _attr_name: str | None = "Oil Consumption (per hour)"
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
     _attr_device_class: SensorDeviceClass | str | None = SensorDeviceClass.ENERGY
@@ -180,36 +178,29 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
 
     @property
     def extra_state_attributes(self):
-        if self._last_level is not None:
-            _LOGGER.debug("Saving level %d litres at %s", self._last_level, self._last_update_time)
         return {
             "last_update_time": self._last_update_time,
             "last_level": self._last_level,
         }
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update internal state based on coordinator data."""
-        super()._handle_coordinator_update()
-
+    @property
+    def native_value(self):
         now = dt_util.utcnow()
         level = self.coordinator.data[self.idx].level
         if self._last_update_time and self._last_level is not None and level < self._last_level:
             # Wait until we have a new level reading and ignore tank refills
             time_delta = (now - self._last_update_time).total_seconds() / 3600
-            consumption = (self._last_level - level) / time_delta
-            self._consumption_rate = Decimal(f"{consumption:.1f}")
-            _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
+            if time_delta >= 1.0:
+                # Wait until we've got an hour of data
+                consumption = (self._last_level - level) / time_delta
+                self._consumption_rate = Decimal(f"{consumption:.1f}")
+                self._last_update_time = now
+                self._last_level = level
+                _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
         else:
+            _LOGGER.debug("Cannot calculate oil consumption")
             self._consumption_rate = None
 
-        self._last_update_time = now
-        self._last_level = level
-
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self):
         return self._consumption_rate
 
 

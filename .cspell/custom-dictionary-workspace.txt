@@ -1,10 +1,15 @@
 addopts
 asyncio
+caplog
+connectsensor
 Connell
+HACS
 hass
 homeassistant
 isort
 kingspan
+Kolkata
+Logfile
 minversion
 Pycodestyle
 Pyflakes

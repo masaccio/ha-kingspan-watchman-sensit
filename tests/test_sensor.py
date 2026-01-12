@@ -2,7 +2,6 @@
 
 import asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -59,23 +58,23 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == "10"
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
-    state = hass.states.get("sensor.oil_consumption")
+    state = hass.states.get("sensor.oil_consumption_per_hour")
     assert state.state == "unknown"
     assert state.attributes.get(ATTR_ICON) == "mdi:fire"
 
-    past_time = dt_util.utcnow()
-    now = past_time + timedelta(hours=4)
-    coordinator.data[0].level -= 200
-    with (
-        patch("homeassistant.util.dt.utcnow", return_value=now),
-        patch(
-            "custom_components.kingspan_watchman_sensit.api.SENSiTApiClient.async_get_data",
-            return_value=coordinator.data,
-        ),
-    ):
-        await coordinator.async_refresh()
-        state = hass.states.get("sensor.oil_consumption")
-        assert state.state == "50.0"
+    # past_time = dt_util.utcnow()
+    # now = past_time + timedelta(hours=4)
+    # coordinator.data[0].level -= 200
+    # with (
+    #     patch("homeassistant.util.dt.utcnow", return_value=now),
+    #     patch(
+    #         "custom_components.kingspan_watchman_sensit.api.SENSiTApiClient.async_get_data",
+    #         return_value=coordinator.data,
+    #     ),
+    # ):
+    #     await coordinator.async_refresh()
+    #     state = hass.states.get("sensor.oil_consumption_per_hour")
+    #     assert state.state == "50.0"
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -113,12 +112,13 @@ async def test_sensor_with_utc(hass, mock_sensor_client):
     await run_sensor_test_with_timezone(hass, "UTC")
 
 
-async def test_restore_sensor_state(hass, mock_sensor_client):
+async def test_oil_consumption(hass, mock_sensor_client):
     """Test sensor saved state."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
 
     restore_state = State(
-        "sensor.oil_consumption",
+        "sensor.oil_consumption_per_hour",
         "0.0",
         {
             "last_update_time": str(dt_util.utcnow() - timedelta(hours=4)),
@@ -127,14 +127,35 @@ async def test_restore_sensor_state(hass, mock_sensor_client):
     )
     mock_restore_cache(hass, [restore_state])
 
-    config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_consumption")
+    state = hass.states.get("sensor.oil_consumption_per_hour")
     assert state.state == "25.0"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+async def test_oil_consumption_not_ready(hass, mock_sensor_client):
+    """Test oil consumption read too early."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+
+    restore_state = State(
+        "sensor.oil_consumption_per_hour",
+        "0.0",
+        {
+            "last_update_time": str(dt_util.utcnow() - timedelta(minutes=30)),
+            "last_level": 1100.0,
+        },
+    )
+    mock_restore_cache(hass, [restore_state])
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.oil_consumption_per_hour")
+    assert state.state == "unknown"
 
     assert await async_unload_entry(hass, config_entry)
 

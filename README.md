@@ -16,7 +16,7 @@ You will be asked for your Kingspan username and password which will then be cac
 
 ## Entities
 
-The integration reads data from the SENSiT sensor every 8 hours. The tank data is updated every 24 hours but 8 hours is chosen as the update point. Usage data and forcasts of empty are different from the Kingspan app. Rather than using just the previous day's reading, this integration uses the pasy 14 days as the basis for a prediction of empty, and the current usage is also the average of the past 14 days. These values can be changed in the [integration's configuration](#configuration).
+The integration reads data from the SENSiT sensor every 8 hours. The tank data is updated every 24 hours but 8 hours is chosen as the update point. Usage data and forecasts of empty are different from the Kingspan app. Rather than using just the previous day's reading, this integration uses the past 14 days as the basis for a prediction of empty, and the current usage is also the average of the past 14 days. These values can be changed in the [integration's configuration](#configuration).
 
 ![Lovelace Card for SENSiT integration](https://raw.githubusercontent.com/masaccio/ha-kingspan-watchman-sensit/main/images/lovelace-card.png)
 
