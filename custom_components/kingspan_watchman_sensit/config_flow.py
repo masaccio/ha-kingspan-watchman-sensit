@@ -85,7 +85,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
 
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
@@ -114,13 +114,6 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
-        self.options = {**config_entry.options}
-        self.options.setdefault(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
-        self.options.setdefault(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
-        self.options.setdefault(CONF_KINGSPAN_DEBUG, False)
 
     async def async_step_init(
         self, user_input: dict | None = None
