@@ -5,12 +5,14 @@ from unittest.mock import patch
 
 import pytest_asyncio
 from custom_components.kingspan_watchman_sensit import async_setup_entry
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
+from custom_components.kingspan_watchman_sensit.const import (
+    CONF_PASSWORD,
+    DOMAIN,
+)
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.config_entries import ConfigEntryState
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import MOCK_CONFIG
+from .const import CONF_NAME, CONF_USERNAME, MOCK_CONFIG
 
 
 # This fixture bypasses the actual setup of the integration
@@ -19,12 +21,15 @@ from .const import MOCK_CONFIG
 @pytest_asyncio.fixture(autouse=True)
 def bypass_setup_fixture():
     """Prevent setup."""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.async_setup",
-        return_value=True,
-    ), patch(
-        "custom_components.kingspan_watchman_sensit.async_setup_entry",
-        return_value=True,
+    with (
+        patch(
+            "custom_components.kingspan_watchman_sensit.async_setup",
+            return_value=True,
+        ),
+        patch(
+            "custom_components.kingspan_watchman_sensit.async_setup_entry",
+            return_value=True,
+        ),
     ):
         yield
 
@@ -133,28 +138,31 @@ async def test_options_flow(hass, bypass_get_data):
     }
 
 
-async def test_reauth_flow(hass, mock_password_check):
-    """Test an reauthentication flow."""
-
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
+async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, bypass_get_data):
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
 
-    config_entry.async_start_reauth(hass)
-    await hass.async_block_till_done()
+    result1 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_REAUTH, "entry_id": config_entry.entry_id},
+        data=config_entry.data,
+    )
+    assert result1["step_id"] == "reauth_confirm"
 
-    assert config_entry.state is ConfigEntryState.LOADED
-    flows = hass.config_entries.flow.async_progress()
-    assert len(flows) == 1
-    assert flows[0]["step_id"] == "reauth_confirm"
+    result2 = await hass.config_entries.flow.async_configure(
+        result1["flow_id"],
+        user_input={},
+    )
+    assert result2["step_id"] == "user"
 
-    _ = await hass.config_entries.flow.async_configure(flows[0]["flow_id"], user_input=MOCK_CONFIG)
-    config_entry.async_start_reauth(hass)
-    await hass.async_block_till_done()
-    flows = hass.config_entries.flow.async_progress()
+    result3 = await hass.config_entries.flow.async_configure(
+        result2["flow_id"],
+        user_input={
+            CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME],
+            CONF_PASSWORD: "new-password",
+            CONF_NAME: MOCK_CONFIG[CONF_NAME],
+        },
+    )
 
-    assert flows[0]["context"]["source"] == "reauth"
-
-    await hass.async_block_till_done()
+    assert result3["type"] == data_entry_flow.FlowResultType.ABORT
+    assert config_entry.data[CONF_PASSWORD] == "new-password"
