@@ -173,9 +173,10 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             last_level = old_state.attributes.get("last_level")
             self._last_update_time = dt_util.parse_datetime(last_update_time)
             self._last_level = last_level
-            _LOGGER.debug(
-                "Oil consumption: last level seen %d litres at %s", last_level, last_update_time
-            )
+            if last_level is not None:
+                _LOGGER.debug(
+                    "Oil consumption: last level seen %d litres at %s", last_level, last_update_time
+                )
 
     @property
     def extra_state_attributes(self):
