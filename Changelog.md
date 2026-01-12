@@ -3,6 +3,12 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.6.13
+
+🪲 Fixed re-auth flow [issue-46](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/46) which caused problems re-authenticating with the Kingspan service.
+🚀 Updated naming of the Device Info
+
+
 ## v1.6.12
 
 🚀 Additional connections error robustness included to cope with unstable connections to the Kingspan servers.
