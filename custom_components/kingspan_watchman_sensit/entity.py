@@ -6,7 +6,7 @@ from functools import cached_property
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, NAME
+from .const import ATTRIBUTION, DOMAIN, MANUFACTURER, MODEL
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -29,9 +29,9 @@ class SENSiTEntity(CoordinatorEntity):
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={(DOMAIN, self.coordinator.data[self.idx].serial_number)},
-            model=self.coordinator.data[self.idx].model,
+            model=MODEL,
             name=self.coordinator.data[self.idx].name,
-            manufacturer=NAME,
+            manufacturer=MANUFACTURER,
         )
 
     @cached_property
