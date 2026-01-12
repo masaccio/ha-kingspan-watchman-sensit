@@ -1,7 +1,8 @@
 """Constants for Kingspan Watchman SENSiT."""
 
 # Base component constants
-NAME = "Kingspan Watchman SENSiT"
+MANUFACTURER = "Kingspan"
+MODEL = "Watchman SENSiT"
 DOMAIN = "kingspan_watchman_sensit"
 DOMAIN_DATA = f"{DOMAIN}_data"
 
