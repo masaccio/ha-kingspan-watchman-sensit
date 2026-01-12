@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
@@ -186,14 +186,14 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             "last_level": self._last_level,
         }
 
-    # @callback
+    @callback
     def _handle_coordinator_update(self) -> None:
         """Update internal state based on coordinator data."""
         super()._handle_coordinator_update()
 
         now = dt_util.utcnow()
         level = self.coordinator.data[self.idx].level
-        if self._last_update_time and self._last_level is not None and level <= self._last_level:
+        if self._last_update_time and self._last_level is not None and level < self._last_level:
             # Wait until we have a new level reading and ignore tank refills
             time_delta = (now - self._last_update_time).total_seconds() / 3600
             consumption = (self._last_level - level) / time_delta
