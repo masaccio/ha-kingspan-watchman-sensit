@@ -9,6 +9,7 @@ import asyncio
 import builtins
 import logging
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -88,6 +89,35 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     config_entry.add_update_listener(async_reload_entry)
     return True
+
+
+async def async_get_config_entry_diagnostics(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> dict[str, Any]:
+    """Return diagnostics for a config entry."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    return {
+        "config_entry_data": {
+            CONF_USERNAME: entry.data.get(CONF_USERNAME, "redacted"),
+            "unique_id": entry.unique_id,
+        },
+        "last_update_success": coordinator.last_update_success,
+        "tank_count": len(coordinator.data),
+        "tanks": [
+            {
+                "level": tank.level,
+                "serial_number": tank.serial_number,
+                "model": tank.model,
+                "name": tank.name,
+                "capacity": tank.capacity,
+                "last_read": tank.last_read,
+                "history": tank.history,
+                "usage_rate": tank.usage_rate,
+                "forecast_empty": tank.forecast_empty,
+            }
+            for tank in coordinator.data
+        ],
+    }
 
 
 class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):

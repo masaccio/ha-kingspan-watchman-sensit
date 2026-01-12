@@ -1,7 +1,7 @@
 addopts
 asyncio
 Connell
-s3cret
+hass
 homeassistant
 isort
 kingspan
@@ -13,6 +13,7 @@ Pylama
 pylint
 pytest
 pyupgrade
+s3cret
 sensit
 Tanky
 testpaths
