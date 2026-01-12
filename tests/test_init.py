@@ -3,6 +3,7 @@
 import pytest
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
+    async_get_config_entry_diagnostics,
     async_reload_entry,
     async_setup_entry,
     async_unload_entry,
@@ -11,7 +12,7 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import MOCK_CONFIG
+from .const import CONF_USERNAME, MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
 
 
 async def test_refresh_data(hass, mock_sensor_client, caplog):
@@ -22,7 +23,7 @@ async def test_refresh_data(hass, mock_sensor_client, caplog):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    assert type(hass.data[DOMAIN][config_entry.entry_id]) == SENSiTDataUpdateCoordinator
+    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
 
     # Check that the API is called to update data twice for two calls
     # to HASS's data update method
@@ -44,12 +45,12 @@ async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
     await hass.async_block_till_done()
 
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert type(hass.data[DOMAIN][config_entry.entry_id]) == SENSiTDataUpdateCoordinator
+    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
 
     # Reload the entry and assert that the data from above is still there
     assert await async_reload_entry(hass, config_entry) is None
     assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert type(hass.data[DOMAIN][config_entry.entry_id]) == SENSiTDataUpdateCoordinator
+    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
 
     # Unload the entry and verify that the data has been removed
     assert await async_unload_entry(hass, config_entry)
@@ -111,3 +112,27 @@ async def test_auth_no_tank_data(hass, error_no_tank_data, caplog):
         if "No data available for username 'test@example.com'" in log[2]
     ]
     assert len(level_warnings) == 1
+
+
+@pytest.mark.parametrize(
+    "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
+)
+async def test_diagnostics(hass, mock_sensor_client):
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    # _ = hass.states.get("sensor.oil_level")
+
+    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
+
+    assert diagnostics["config_entry_data"]["username"] == MOCK_CONFIG[CONF_USERNAME]
+    assert diagnostics["tank_count"] == 2
+    assert len(diagnostics["tanks"]) == 2
+    assert diagnostics["last_update_success"]
+    assert diagnostics["tanks"][0]["serial_number"] == "20001234-1"
+    assert diagnostics["tanks"][0]["level"] == 1000
