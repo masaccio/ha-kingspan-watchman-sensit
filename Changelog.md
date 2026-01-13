@@ -8,8 +8,9 @@
 🪲 Fixed re-auth flow [issue-46](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/46) which caused problems re-authenticating with the Kingspan service.
 🪲 Fixed `load_verify_locations` [issue-43](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/43) which had Home Assistant blocking on startup to load OpenSSL.
 🪲 Fixed the spelling of the empty forecast sensor. It has been renamed to `sensor.forecast_empty`.
-🚀 Updated naming of the Device Info
+🚀 Updated naming of the Device Info to be more consistent with other integrations
 🚀 The oil consumption sensor should now be functional and has changed to `sensor.oil_consumption_per_hour` for clarity.
+🚀 A new sensor `sensor.current_energy_usage` is a simple kWh conversion of the daily oil usage report by Kingspan. This assumes an oil energy density of 9.5 kWh per litre.
 
 ## v1.6.12
 

@@ -9,7 +9,7 @@ DOMAIN_DATA = f"{DOMAIN}_data"
 ATTRIBUTION = "Data provided by https://www.connectsensor.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
 
-ENERGY_DENSITY_KWH_PER_LITER = 10.35
+ENERGY_DENSITY_KWH_PER_LITER = 9.8
 
 # Platforms
 SENSOR = "sensor"
