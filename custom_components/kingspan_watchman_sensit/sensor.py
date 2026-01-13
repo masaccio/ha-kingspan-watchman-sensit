@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -39,6 +39,7 @@ async def async_setup_entry(
             LastReadDate(coordinator, config_entry, idx),
             CurrentUsage(coordinator, config_entry, idx),
             ForecastEmpty(coordinator, config_entry, idx),
+            CurrentEnergyUsage(coordinator, config_entry, idx),
             OilConsumption(coordinator, config_entry, idx),
         ]
     async_add_entities(entities)
@@ -147,6 +148,25 @@ class ForecastEmpty(SENSiTEntity, SensorEntity):
         return empty_days
 
 
+class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
+    """Oil consumption in kWh from litres/day sensor."""
+
+    _attr_icon: str | None = "mdi:fire"
+    _attr_name: str | None = "Current Energy Usage"
+    _attr_device_class: SensorDeviceClass | str | None = SensorDeviceClass.ENERGY
+    _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
+
+    @property
+    def native_value(self) -> float | None:
+        """Return energy usage in kWh from litres/day data."""
+        litres_per_day = self.coordinator.data[self.idx].usage_rate
+        kwh_per_day = float(
+            Decimal(str(litres_per_day)) * Decimal(str(ENERGY_DENSITY_KWH_PER_LITER))
+        )
+        return round(kwh_per_day, 1)
+
+
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Oil Consumption (per hour)"
@@ -171,10 +191,9 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             last_level = old_state.attributes.get("last_level")
             self._last_update_time = dt_util.parse_datetime(last_update_time)
             self._last_level = last_level
-            if last_level is not None:
-                _LOGGER.debug(
-                    "Oil consumption: last level seen %d litres at %s", last_level, last_update_time
-                )
+            _LOGGER.debug(
+                "Restoring oil consumption: level=%d litres at %s", last_level, last_update_time
+            )
 
     @property
     def extra_state_attributes(self):
@@ -187,18 +206,25 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     def native_value(self):
         now = dt_util.utcnow()
         level = self.coordinator.data[self.idx].level
-        if self._last_update_time and self._last_level is not None and level < self._last_level:
-            # Wait until we have a new level reading and ignore tank refills
-            time_delta = (now - self._last_update_time).total_seconds() / 3600
-            if time_delta >= 1.0:
-                # Wait until we've got an hour of data
-                consumption = (self._last_level - level) / time_delta
-                self._consumption_rate = Decimal(f"{consumption:.1f}")
-                self._last_update_time = now
-                self._last_level = level
-                _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
+        if self._last_update_time is None:
+            self._last_update_time = now
+        if self._last_level is None:
+            self._last_level = level
+
+        time_delta = (now - self._last_update_time).total_seconds() / 3600
+        level_delta = self._last_level - level
+        if time_delta > 1.0 and level_delta > 0:
+            consumption = (self._last_level - level) / time_delta
+            self._consumption_rate = Decimal(f"{consumption:.1f}")
+            self._last_update_time = now
+            self._last_level = level
+            _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
         else:
-            _LOGGER.debug("Cannot calculate oil consumption")
+            _LOGGER.debug(
+                "Skipping consumption: time-delta=%.1f hours, level-delta=%.1f litres",
+                time_delta,
+                level_delta,
+            )
             self._consumption_rate = None
 
         return self._consumption_rate
