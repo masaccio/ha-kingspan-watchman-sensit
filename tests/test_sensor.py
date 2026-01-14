@@ -95,6 +95,20 @@ async def test_sensor_with_utc(hass, mock_sensor_client):
 
 
 async def test_oil_consumption(hass, mock_sensor_client):
+    """Test oil consumption read too early."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.oil_consumption")
+    assert state.state == "unknown"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
+async def test_oil_consumption_restore(hass, mock_sensor_client):
     """Test sensor saved state."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
@@ -117,30 +131,6 @@ async def test_oil_consumption(hass, mock_sensor_client):
     consumption_total += round(float(state.state) * ENERGY_DENSITY_KWH_PER_LITER, 1)
     state = hass.states.get("sensor.oil_consumption")
     assert state.state == str(consumption_total)
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-async def test_oil_consumption_not_ready(hass, mock_sensor_client):
-    """Test oil consumption read too early."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-    config_entry.add_to_hass(hass)
-
-    restore_state = State(
-        "sensor.oil_consumption",
-        "0.0",
-        {
-            "consumption_last_read": str(dt_util.utcnow() - timedelta(minutes=30)),
-            "last_level": 1100.0,
-        },
-    )
-    mock_restore_cache(hass, [restore_state])
-
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.oil_consumption")
-    assert state.state == "unknown"
 
     assert await async_unload_entry(hass, config_entry)
 

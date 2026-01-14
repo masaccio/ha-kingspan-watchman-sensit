@@ -188,7 +188,8 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             # Ensure consumption_last_read is a string; may be datetime object
             consumption_last_read = str(old_state.attributes.get("consumption_last_read"))
             self._consumption_last_read = dt_util.parse_datetime(consumption_last_read)
-            self._consumption_total = round(float(old_state.attributes.get("consumption_total")), 1)
+            consumption_total = old_state.attributes.get("consumption_total")
+            self._consumption_total = round(float(consumption_total or 0.0), 1)
             _LOGGER.debug(
                 "Restoring consumption: %.1f litres at %s",
                 self._consumption_total,
