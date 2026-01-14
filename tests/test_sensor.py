@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from connectsensor.exceptions import APIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
+from custom_components.kingspan_watchman_sensit.const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -58,24 +58,6 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == "10"
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
-    state = hass.states.get("sensor.oil_consumption_per_hour")
-    assert state.state == "unknown"
-    assert state.attributes.get(ATTR_ICON) == "mdi:fire"
-
-    # past_time = dt_util.utcnow()
-    # now = past_time + timedelta(hours=4)
-    # coordinator.data[0].level -= 200
-    # with (
-    #     patch("homeassistant.util.dt.utcnow", return_value=now),
-    #     patch(
-    #         "custom_components.kingspan_watchman_sensit.api.SENSiTApiClient.async_get_data",
-    #         return_value=coordinator.data,
-    #     ),
-    # ):
-    #     await coordinator.async_refresh()
-    #     state = hass.states.get("sensor.oil_consumption_per_hour")
-    #     assert state.state == "50.0"
-
     assert await async_unload_entry(hass, config_entry)
 
 
@@ -117,12 +99,13 @@ async def test_oil_consumption(hass, mock_sensor_client):
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
 
+    consumption_total = 20000.0
     restore_state = State(
-        "sensor.oil_consumption_per_hour",
-        "0.0",
+        "sensor.oil_consumption",
+        str(consumption_total),
         {
-            "last_update_time": str(dt_util.utcnow() - timedelta(hours=4)),
-            "last_level": 1100.0,
+            "consumption_total": str(consumption_total),
+            "consumption_last_read": str(dt_util.utcnow() - timedelta(hours=24)),
         },
     )
     mock_restore_cache(hass, [restore_state])
@@ -130,8 +113,10 @@ async def test_oil_consumption(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_consumption_per_hour")
-    assert state.state == "25.0"
+    state = hass.states.get("sensor.current_usage")
+    consumption_total += round(float(state.state) * ENERGY_DENSITY_KWH_PER_LITER, 1)
+    state = hass.states.get("sensor.oil_consumption")
+    assert state.state == str(consumption_total)
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -142,10 +127,10 @@ async def test_oil_consumption_not_ready(hass, mock_sensor_client):
     config_entry.add_to_hass(hass)
 
     restore_state = State(
-        "sensor.oil_consumption_per_hour",
+        "sensor.oil_consumption",
         "0.0",
         {
-            "last_update_time": str(dt_util.utcnow() - timedelta(minutes=30)),
+            "consumption_last_read": str(dt_util.utcnow() - timedelta(minutes=30)),
             "last_level": 1100.0,
         },
     )
@@ -154,7 +139,7 @@ async def test_oil_consumption_not_ready(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_consumption_per_hour")
+    state = hass.states.get("sensor.oil_consumption")
     assert state.state == "unknown"
 
     assert await async_unload_entry(hass, config_entry)

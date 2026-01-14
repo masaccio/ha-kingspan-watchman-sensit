@@ -26,6 +26,6 @@ CONF_KINGSPAN_DEBUG = "debug_kingspan"
 # Defaults
 DEFAULT_TANK_NAME = "My Tank"
 API_TIMEOUT = 30  # seconds
-REFILL_THRESHOLD = 1.1  # factor considerd a tank refill
+REFILL_THRESHOLD = 1.1  # factor considered a tank refill
 DEFAULT_USAGE_WINDOW = 14  # days
 DEFAULT_UPDATE_INTERVAL = 8  # hours
