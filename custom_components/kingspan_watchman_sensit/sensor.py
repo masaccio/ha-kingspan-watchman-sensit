@@ -169,16 +169,15 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon: str | None = "mdi:fire"
-    _attr_name: str | None = "Oil Consumption (per hour)"
+    _attr_name: str | None = "Oil Consumption"
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
+    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL_INCREASING
     _attr_device_class: SensorDeviceClass | str | None = SensorDeviceClass.ENERGY
 
     def __init__(self, coordinator, config_entry, idx):
         super().__init__(coordinator, config_entry, idx)
-        self._consumption_rate = None
-        self._last_update_time = None
-        self._last_level = None
+        self._consumption_total = None
+        self._consumption_last_read = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -186,48 +185,38 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
         old_state = await self.async_get_last_state()
         if old_state:
             self._state = old_state.state
-            # Ensure last_update_time is a string; may be datetime object
-            last_update_time = str(old_state.attributes.get("last_update_time"))
-            last_level = old_state.attributes.get("last_level")
-            self._last_update_time = dt_util.parse_datetime(last_update_time)
-            self._last_level = last_level
+            # Ensure consumption_last_read is a string; may be datetime object
+            consumption_last_read = str(old_state.attributes.get("consumption_last_read"))
+            self._consumption_last_read = dt_util.parse_datetime(consumption_last_read)
+            self._consumption_total = round(float(old_state.attributes.get("consumption_total")), 1)
             _LOGGER.debug(
-                "Restoring oil consumption: level=%d litres at %s", last_level, last_update_time
+                "Restoring consumption: %.1f litres at %s",
+                self._consumption_total,
+                self._consumption_last_read,
             )
 
     @property
     def extra_state_attributes(self):
         return {
-            "last_update_time": self._last_update_time,
-            "last_level": self._last_level,
+            "consumption_last_read": self._consumption_last_read,
+            "consumption_total": self._consumption_total,
         }
 
     @property
     def native_value(self):
-        now = dt_util.utcnow()
-        level = self.coordinator.data[self.idx].level
-        if self._last_update_time is None:
-            self._last_update_time = now
-        if self._last_level is None:
-            self._last_level = level
+        last_read = self.coordinator.data[self.idx].last_read
+        if self._consumption_last_read is None:
+            self._consumption_last_read = last_read
 
-        time_delta = (now - self._last_update_time).total_seconds() / 3600
-        level_delta = self._last_level - level
-        if time_delta > 1.0 and level_delta > 0:
-            consumption = (self._last_level - level) / time_delta
-            self._consumption_rate = Decimal(f"{consumption:.1f}")
-            self._last_update_time = now
-            self._last_level = level
-            _LOGGER.debug("Oil consumption %.1f kWh in last %d hours", consumption, time_delta)
-        else:
-            _LOGGER.debug(
-                "Skipping consumption: time-delta=%.1f hours, level-delta=%.1f litres",
-                time_delta,
-                level_delta,
-            )
-            self._consumption_rate = None
+        if self._consumption_last_read != last_read:
+            usage_rate = self.coordinator.data[self.idx].usage_rate
+            self._consumption_total += ENERGY_DENSITY_KWH_PER_LITER * round(usage_rate, 1)
+            self._consumption_last_read = last_read
 
-        return self._consumption_rate
+        if self._consumption_total is None:
+            return None
+
+        return Decimal(f"{self._consumption_total:.1f}")
 
 
 def tank_icon(level: int, capacity: int) -> str:
