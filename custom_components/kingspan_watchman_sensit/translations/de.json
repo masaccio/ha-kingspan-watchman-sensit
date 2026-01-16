@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Watchman SENSiT",
+        "description": "Wenn Sie Hilfe bei der Konfiguration benötigen, schauen Sie bitte hier nach: https://github.com/masaccio/ha-kingspan-watchman-sensit",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Watchman SENSiT",
+        "description": "Anmeldedaten für den Kingspan-Dienst erneut eingeben",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "auth": "Benutzername/Passwort ist falsch."
+    },
+    "abort": {
+      "single_instance_allowed": "Nur eine einzelne Instanz ist zulässig."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Watchman SENSiT Optionen",
+        "description": "Optionen für Kingspan Watchman SENSiT konfigurieren",
+        "data": {
+          "update_interval": "Wie oft die Tankdaten aktualisiert werden sollen (Stunden)",
+          "usage_window": "Zeitraum für die Berechnung des durchschnittlichen Verbrauchs (Tage)",
+          "oil_energy_density": "Energiedichte von Heizöl (kWh pro Liter)",
+          "debug_kingspan": "Ausführliches Debugging der Verbindung zum Kingspan-Dienst aktivieren (Warnung: Passwort erscheint im Logfile)"
+        }
+      }
+    }
+  }
+}
