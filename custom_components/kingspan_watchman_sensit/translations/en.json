@@ -33,6 +33,7 @@
         "data": {
           "update_interval": "How often to refresh the tank data (hours)",
           "usage_window": "Period to consider for average usage (days)",
+          "oil_energy_density": "Energy density of heating oil (kWh per litre)",
           "debug_kingspan": "Enable verbose debug of Kingspan service connection (warning: exposes password in logfile)"
         }
       }

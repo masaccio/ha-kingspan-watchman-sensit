@@ -12,10 +12,12 @@ from .api import SENSiTApiClient
 from .const import (
     CONF_KINGSPAN_DEBUG,
     CONF_NAME,
+    CONF_OIL_ENERGY_DENSITY,
     CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
     CONF_USAGE_WINDOW,
     CONF_USERNAME,
+    DEFAULT_OIL_ENERGY_DENSITY,
     DEFAULT_TANK_NAME,
     DEFAULT_UPDATE_INTERVAL,
     DEFAULT_USAGE_WINDOW,
@@ -137,6 +139,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_USAGE_WINDOW,
                 default=self.config_entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW),
             ): cv.positive_int,
+            vol.Optional(
+                CONF_OIL_ENERGY_DENSITY,
+                default=self.config_entry.options.get(
+                    CONF_OIL_ENERGY_DENSITY, DEFAULT_OIL_ENERGY_DENSITY
+                ),
+            ): cv.positive_float,
             vol.Optional(
                 CONF_KINGSPAN_DEBUG,
                 default=self.config_entry.options.get(CONF_KINGSPAN_DEBUG, False),

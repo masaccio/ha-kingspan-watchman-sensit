@@ -5,12 +5,14 @@
 
 ## v1.7.0
 
+**This version contains breaking changes to the `sensor.oil_consumption` entity.**
+
 🪲 Fixed re-auth flow [issue-46](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/46) which caused problems re-authenticating with the Kingspan service.
 🪲 Fixed `load_verify_locations` [issue-43](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/43) which had Home Assistant blocking on startup to load OpenSSL.
 🪲 Fixed the spelling of the empty forecast sensor. It has been renamed to `sensor.forecast_empty`.
 🚀 Updated naming of the Device Info to be more consistent with other integrations.
-🚀 The oil consumption sensor `sensor.oil_consumption` has been changed to a monotonically increasing value which should implement much of what is currently documented in [issue-31](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/31).
-🚀 A new sensor `sensor.current_energy_usage` is a simple kWh conversion of the daily oil usage report by Kingspan. This assumes an oil energy density of 9.5 kWh per litre.
+🚀 The oil consumption sensor `sensor.oil_consumption` has been changed to a monotonically increasing value which implements much of what is currently documented in [issue-31](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/31). The sensor assumes a fixed oil energy density in kWh per litre. This is configurable using the options configuration of the integration, and defaults to 9.8 kWh per litre. This value assumes 10.35 kWh per litre for heating oil and a boiler efficiency of 95%. The readme has been updated with installation instructions including how to fetch oil prices in the UK.
+🚀 A new sensor `sensor.current_energy_usage` is a simple kWh conversion of the daily oil usage report by Kingspan. It uses the same energy density conversion factor as `sensor.oil_consumption`.
 
 ## v1.6.12
 

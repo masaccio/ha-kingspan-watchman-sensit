@@ -1,5 +1,6 @@
 addopts
 asyncio
+autouse
 caplog
 connectsensor
 Connell

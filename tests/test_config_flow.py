@@ -7,6 +7,7 @@ import pytest_asyncio
 from custom_components.kingspan_watchman_sensit import async_setup_entry
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
+    DEFAULT_OIL_ENERGY_DENSITY,
     DOMAIN,
 )
 from homeassistant import config_entries, data_entry_flow
@@ -18,7 +19,7 @@ from .const import CONF_NAME, CONF_USERNAME, MOCK_CONFIG
 # This fixture bypasses the actual setup of the integration
 # since we only want to test the config flow. We test the
 # actual functionality of the integration in other test modules.
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)  # pyright: ignore[reportArgumentType]
 def bypass_setup_fixture():
     """Prevent setup."""
     with (
@@ -100,6 +101,7 @@ async def test_options_default_flow(hass, caplog):
 
     assert config_entry.options == {
         "debug_kingspan": False,
+        "oil_energy_density": DEFAULT_OIL_ENERGY_DENSITY,
         "update_interval": 8,
         "usage_window": 14,
     }
@@ -122,17 +124,25 @@ async def test_options_flow(hass, bypass_get_data):
 
     assert config_entry.options == {
         "debug_kingspan": True,
+        "oil_energy_density": DEFAULT_OIL_ENERGY_DENSITY,
         "update_interval": 4,
         "usage_window": 28,
     }
 
     hass.config_entries.async_update_entry(
-        config_entry, options={"debug_kingspan": False, "update_interval": 8, "usage_window": 14}
+        config_entry,
+        options={
+            "debug_kingspan": False,
+            "update_interval": 8,
+            "usage_window": 14,
+            "oil_energy_density": 10.2,
+        },
     )
     await hass.async_block_till_done()
 
     assert config_entry.options == {
         "debug_kingspan": False,
+        "oil_energy_density": 10.2,
         "update_interval": 8,
         "usage_window": 14,
     }
