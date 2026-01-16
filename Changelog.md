@@ -13,6 +13,7 @@
 🚀 Updated naming of the Device Info to be more consistent with other integrations.
 🚀 The oil consumption sensor `sensor.oil_consumption` has been changed to a monotonically increasing value which implements much of what is currently documented in [issue-31](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/31). The sensor assumes a fixed oil energy density in kWh per litre. This is configurable using the options configuration of the integration, and defaults to 9.8 kWh per litre. This value assumes 10.35 kWh per litre for heating oil and a boiler efficiency of 95%. The readme has been updated with installation instructions including how to fetch oil prices in the UK.
 🚀 A new sensor `sensor.current_energy_usage` is a simple kWh conversion of the daily oil usage report by Kingspan. It uses the same energy density conversion factor as `sensor.oil_consumption`.
+🚀 A German translation of the integration has been added. Corrections are welcomed.
 
 ## v1.6.12
 
