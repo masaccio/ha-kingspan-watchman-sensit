@@ -34,7 +34,9 @@ The usage interval is the number of days to average for oil usage. This is also 
 
 ## Energy Dashboard
 
-[Home Assistant Energy Management](https://www.home-assistant.io/docs/energy/) doesn't include support for oil consumption, so you need to use gas instead. This integration provides a sensor `sensor.oil_consumption` which is the monotonically increasing amount of oil consumed represented as kWh. The integration uses a simple conversion of 9.8kWh per litre of oil to calculate this. The sensor is restored on restart and updated every day using the `sensor.current_usage` value.
+[Home Assistant Energy Management](https://www.home-assistant.io/docs/energy/) doesn't include support for oil consumption, so you need to use gas instead. This integration provides a sensor `sensor.oil_consumption` which is the monotonically increasing amount of oil consumed represented as kWh.  The sensor is restored on restart and updated every day using the `sensor.current_usage` value.
+
+The integration uses a simple conversion of 9.8kWh per litre of oil to calculate the energy usage in kWh. This value assumes 10.35 kWh per litre for heating oil and a boiler efficiency of 95%. The value can be configured in the integration's configuration.
 
 You can add price information by locating a suitable online price source and scraping the value. In the UK, one such source is Home Fuels Direct which is a cheap broker for oil and publishes prices by UK county. Add the following template to you `configuration.yaml` adjusting the URL to your location and restart Home Assistant. The scan interval in this example is set to 24 hours.
 

@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from connectsensor.exceptions import APIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
-from custom_components.kingspan_watchman_sensit.const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
+from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -128,7 +128,7 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     await hass.async_block_till_done()
 
     state = hass.states.get("sensor.current_usage")
-    consumption_total += round(float(state.state) * ENERGY_DENSITY_KWH_PER_LITER, 1)
+    consumption_total += round(float(state.state) * DEFAULT_OIL_ENERGY_DENSITY, 1)
     state = hass.states.get("sensor.oil_consumption")
     assert state.state == str(consumption_total)
 

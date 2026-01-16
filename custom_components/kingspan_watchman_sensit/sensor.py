@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, ENERGY_DENSITY_KWH_PER_LITER
+from .const import CONF_OIL_ENERGY_DENSITY, DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -157,13 +157,22 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
 
+    def __init__(self, coordinator, config_entry, idx):
+        super().__init__(coordinator, config_entry, idx)
+        self._config_entry = config_entry
+
     @property
     def native_value(self) -> float | None:
         """Return energy usage in kWh from litres/day data."""
         litres_per_day = self.coordinator.data[self.idx].usage_rate
-        kwh_per_day = float(
-            Decimal(str(litres_per_day)) * Decimal(str(ENERGY_DENSITY_KWH_PER_LITER))
+        energy_density = self._config_entry.options.get(
+            CONF_OIL_ENERGY_DENSITY,
+            self._config_entry.data.get(
+                CONF_OIL_ENERGY_DENSITY,
+                DEFAULT_OIL_ENERGY_DENSITY,
+            ),
         )
+        kwh_per_day = float(litres_per_day * energy_density)
         return round(kwh_per_day, 1)
 
 
@@ -176,6 +185,7 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
 
     def __init__(self, coordinator, config_entry, idx):
         super().__init__(coordinator, config_entry, idx)
+        self._config_entry = config_entry
         self._consumption_total = None
         self._consumption_last_read = None
 
@@ -211,7 +221,14 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
 
         if self._consumption_last_read != last_read:
             usage_rate = self.coordinator.data[self.idx].usage_rate
-            self._consumption_total += ENERGY_DENSITY_KWH_PER_LITER * round(usage_rate, 1)
+            energy_density = self._config_entry.options.get(
+                CONF_OIL_ENERGY_DENSITY,
+                self._config_entry.data.get(
+                    CONF_OIL_ENERGY_DENSITY,
+                    DEFAULT_OIL_ENERGY_DENSITY,
+                ),
+            )
+            self._consumption_total += energy_density * round(usage_rate, 1)
             self._consumption_last_read = last_read
 
         if self._consumption_total is None:
