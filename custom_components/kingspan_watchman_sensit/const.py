@@ -1,17 +1,16 @@
 """Constants for Kingspan Watchman SENSiT."""
 
+from homeassistant.const import Platform
+
 # Base component constants
 MANUFACTURER = "Kingspan"
 MODEL = "Watchman SENSiT"
 DOMAIN = "kingspan_watchman_sensit"
 DOMAIN_DATA = f"{DOMAIN}_data"
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 ATTRIBUTION = "Data provided by https://www.connectsensor.com/"
 ISSUE_URL = "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues"
-
-# Platforms
-SENSOR = "sensor"
-PLATFORMS = [SENSOR]
 
 # Configuration and options
 CONF_USERNAME = "username"

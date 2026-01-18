@@ -47,3 +47,7 @@ class SENSiTEntity(CoordinatorEntity):
     def last_reset(self):
         """Time sensor was initialised (returns None)"""
         return None
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.last_update_success

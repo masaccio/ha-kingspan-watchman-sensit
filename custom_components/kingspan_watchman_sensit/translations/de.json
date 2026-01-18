@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Watchman SENSiT",
-        "description": "Wenn Sie Hilfe bei der Konfiguration benötigen, schauen Sie bitte hier nach: https://github.com/masaccio/ha-kingspan-watchman-sensit",
+        "description": "Wenn Du Hilfe bei der Konfiguration brauchst, schau bitte hier nach: https://github.com/masaccio/ha-kingspan-watchman-sensit",
         "data": {
           "username": "Benutzername",
           "password": "Passwort"
