@@ -21,6 +21,8 @@ from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
