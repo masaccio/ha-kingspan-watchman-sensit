@@ -1,12 +1,15 @@
 {
+  "after_dependencies": [],
   "domain": "kingspan_watchman_sensit",
   "name": "Kingspan Watchman SENSiT",
   "codeowners": [
     "@masaccio"
   ],
   "config_flow": true,
-  "dependencies": [],
-  "after_dependencies": [],
+  "diagnostics": true,
+  "dependencies": [
+    "diagnostics"
+  ],
   "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
