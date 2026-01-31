@@ -12,7 +12,7 @@ from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import CONF_USERNAME, MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
+from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
 
 
 async def test_refresh_data(hass, mock_sensor_client, caplog):
@@ -130,7 +130,8 @@ async def test_diagnostics(hass, mock_sensor_client):
 
     diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
 
-    assert diagnostics["config_entry_data"]["username"] == MOCK_CONFIG[CONF_USERNAME]
+    assert diagnostics["config_entry_data"]["username"] == "**REDACTED**"
+    assert diagnostics["config_entry_data"]["password"] == "**REDACTED**"
     assert diagnostics["tank_count"] == 2
     assert len(diagnostics["tanks"]) == 2
     assert diagnostics["last_update_success"]
