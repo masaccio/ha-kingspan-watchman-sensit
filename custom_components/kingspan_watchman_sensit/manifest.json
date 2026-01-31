@@ -1,7 +1,7 @@
 {
-  "after_dependencies": [],
   "domain": "kingspan_watchman_sensit",
   "name": "Kingspan Watchman SENSiT",
+  "after_dependencies": [],
   "codeowners": [
     "@masaccio"
   ],
