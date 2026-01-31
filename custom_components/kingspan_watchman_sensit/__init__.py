@@ -11,6 +11,7 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.core_config import Config
@@ -33,6 +34,8 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
