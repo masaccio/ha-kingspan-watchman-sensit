@@ -6,7 +6,6 @@
     "@masaccio"
   ],
   "config_flow": true,
-  "diagnostics": true,
   "dependencies": [
     "diagnostics"
   ],
