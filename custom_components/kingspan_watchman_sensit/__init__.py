@@ -12,6 +12,7 @@ from datetime import timedelta
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.core_config import Config
@@ -38,6 +39,11 @@ from .const import (
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
+
+TO_REDACT = [
+    CONF_USERNAME,
+    CONF_PASSWORD,
+]
 
 
 async def async_setup(hass: HomeAssistant, config: Config):
@@ -100,10 +106,7 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     return {
-        "config_entry_data": {
-            CONF_USERNAME: entry.data.get(CONF_USERNAME, "redacted"),
-            "unique_id": entry.unique_id,
-        },
+        "config_entry_data": async_redact_data(entry.data, TO_REDACT),
         "last_update_success": coordinator.last_update_success,
         "tank_count": len(coordinator.data),
         "tanks": [
