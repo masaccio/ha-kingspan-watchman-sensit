@@ -9,7 +9,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
   "requirements": [
-    "kingspan-connect-sensor>=3.2.0",
+    "kingspan-connect-sensor==3.2.1",
     "httpx>=0.28.1"
   ],
   "version": "1.7.0"
