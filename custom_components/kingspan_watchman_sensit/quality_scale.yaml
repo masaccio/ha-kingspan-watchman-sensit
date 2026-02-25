@@ -42,12 +42,14 @@ rules:
   # Gold
   devices: todo
   diagnostics: todo
-  discovery-update-info: todo
+  discovery-update-info:
+    status: exempt
+    comment: |
+      The integration is cloud-based and does not discover devices on the local network.
   discovery:
     status: exempt
     comment: |
-      This is a cloud-polling integration that relies on user credentials, and the device itself is not locally discoverable.
-
+      The integration is cloud-based and does not discover devices on the local network.
   docs-data-update: todo
   docs-examples: todo
   docs-known-limitations: todo
