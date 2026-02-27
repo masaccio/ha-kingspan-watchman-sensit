@@ -17,10 +17,10 @@ version = "2.0.0"
 dependencies = [
   "async-timeout>=4.0.2",
   "homeassistant>=2026.1.0",
-  "kingspan-connect-sensor>=4.0.0",
   "voluptuous>=0.13.1",
   "async-property>=0.2.1",
   "asyncio>=3.4.3",
+  "kingspan-connect-sensor==4.0.0",
 ]
 
 [project.urls]
@@ -91,6 +91,3 @@ max-branches = 20
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
-
-[tool.uv.sources]
-kingspan-connect-sensor = { path = "../kingspan-connect-sensor", editable = true }

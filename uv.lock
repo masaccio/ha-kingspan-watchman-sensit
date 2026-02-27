@@ -933,7 +933,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.1.0" },
-    { name = "kingspan-connect-sensor", editable = "../kingspan-connect-sensor" },
+    { name = "kingspan-connect-sensor", specifier = "==4.0.0" },
     { name = "voluptuous", specifier = ">=0.13.1" },
 ]
 
@@ -1279,7 +1279,7 @@ wheels = [
 [[package]]
 name = "kingspan-connect-sensor"
 version = "4.0.0"
-source = { editable = "../kingspan-connect-sensor" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
     { name = "asyncio" },
@@ -1287,30 +1287,9 @@ dependencies = [
     { name = "httpx" },
     { name = "requests" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "async-property", specifier = ">=0.2.1,<0.3.0" },
-    { name = "asyncio", specifier = ">=3.4.3,<4.0.0" },
-    { name = "datetime", specifier = ">=4.7,<5.0.0" },
-    { name = "httpx", specifier = ">=0.28" },
-    { name = "requests", specifier = ">=2.28.1,<3.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "aiofiles", specifier = ">=22.1.0" },
-    { name = "black", specifier = ">=22.10.0" },
-    { name = "mypy", specifier = ">=1.14.1" },
-    { name = "openpyxl", specifier = ">=3.0.10" },
-    { name = "pytest", specifier = ">=7.1.0" },
-    { name = "pytest-asyncio", specifier = ">=0.20.2" },
-    { name = "pytest-console-scripts", specifier = ">=1.3.1" },
-    { name = "pytest-cov", specifier = ">=3.0.0" },
-    { name = "pytest-mock", specifier = ">=3.14.0" },
-    { name = "pytest-xdist", specifier = ">=3.3.1,<4.0.0" },
-    { name = "ruff", specifier = ">=0.7.1" },
-    { name = "tox", specifier = ">=4.23.2" },
+sdist = { url = "https://files.pythonhosted.org/packages/b3/1d/62d94ded614f3c88adac6b22d497a41948b88cf9d5d848bcd0fcd79165a0/kingspan_connect_sensor-4.0.0.tar.gz", hash = "sha256:fd9c7294f133a4b1326030cd9624f92b8c20fb78c78d0fa47281c5cae9872581", size = 12161, upload-time = "2026-02-27T12:25:36.402Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/d7/c2552e289ccbd5d203115b8cb2a82243d7156af66525bd1420b81df6adef/kingspan_connect_sensor-4.0.0-py3-none-any.whl", hash = "sha256:9006be26efd50990b37f7dca84e8851a260c407e2c00e29ed3df06300e780dbe", size = 11480, upload-time = "2026-02-27T12:25:37.261Z" },
 ]
 
 [[package]]
