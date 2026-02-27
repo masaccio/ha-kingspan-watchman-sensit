@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest_asyncio
 from async_property import async_property
-from connectsensor.exceptions import APIError
+from connectsensor.exceptions import KingspanAPIError
 
 from .const import (
     CONF_PASSWORD,
@@ -34,8 +34,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 @pytest_asyncio.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
-    with patch("homeassistant.components.persistent_notification.async_create"), patch(
-        "homeassistant.components.persistent_notification.async_dismiss"
+    with (
+        patch("homeassistant.components.persistent_notification.async_create"),
+        patch("homeassistant.components.persistent_notification.async_dismiss"),
     ):
         yield
 
@@ -45,8 +46,9 @@ def skip_notifications_fixture():
 @pytest_asyncio.fixture(name="bypass_get_data")
 def bypass_get_data_fixture():
     """Skip calls to get data from API."""
-    with patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"), patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"
+    with (
+        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"),
+        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"),
     ):
         yield
 
@@ -56,10 +58,13 @@ def bypass_get_data_fixture():
 @pytest_asyncio.fixture(name="error_on_get_data")
 def error_get_data_fixture():
     """Simulate error when retrieving data from API."""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data",
-        side_effect=Exception,
-    ), patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"):
+    with (
+        patch(
+            "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data",
+            side_effect=Exception,
+        ),
+        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"),
+    ):
         yield
 
 
@@ -68,21 +73,21 @@ def error_sensor_client_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        side_effect=APIError,
+        side_effect=KingspanAPIError,
     ):
         yield
 
 
 @pytest_asyncio.fixture(name="mock_password_check")
 def mock_password_check_fixture():
-    """Check password and return True or raise a APIError if invalid"""
+    """Check password and return True or raise a KingspanAPIError if invalid"""
 
     def mock_check_credentials(self):
         if (
             self._username != MOCK_CONFIG[CONF_USERNAME]
             or self._password != MOCK_CONFIG[CONF_PASSWORD]
         ):
-            raise APIError()
+            raise KingspanAPIError()
         return True
 
     with patch(
@@ -97,7 +102,7 @@ def error_no_tank_data_fixture():
     """Throw an exception from a mock AsyncSensorClient"""
     with patch(
         "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        side_effect=APIError("No Level Data Available"),
+        side_effect=KingspanAPIError("No Level Data Available"),
     ):
         yield
 
@@ -255,9 +260,10 @@ def mock_sensor_client(request):
 
     # AsyncSensorClient is instantiated in different import contexts
     # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
-    with patch("connectsensor.client.AsyncSensorClient") as mock_client, patch(
-        "custom_components.kingspan_watchman_sensit.api.AsyncSensorClient"
-    ) as ha_mock_client:
+    with (
+        patch("connectsensor.client.AsyncSensorClient") as mock_client,
+        patch("custom_components.kingspan_watchman_sensit.api.AsyncSensorClient") as ha_mock_client,
+    ):
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
             tank_level=tank_level, history_type=history_type, num_tanks=num_tanks
         )

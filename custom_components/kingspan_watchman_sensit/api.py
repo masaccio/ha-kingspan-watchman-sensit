@@ -1,28 +1,26 @@
 """Sample API Client."""
 
+import inspect
 import logging
 import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from async_timeout import timeout
+from connectsensor import __version__ as api_version
+from connectsensor.client import AsyncSensorClient  # type: ignore
+from connectsensor.exceptions import (
+    KingspanAPIError,
+    KingspanInvalidCredentials,
+    KingspanTimeoutError,
+)
+from homeassistant.util.dt import as_local  # noqa: E402
 from httpx import TimeoutException as httpxTimeoutException
 
-_LOGGER: logging.Logger = logging.getLogger(__package__)
-
-try:  # pragma: no cover
-    # Support debugging of API calls with local API client
-    from .connectsensor.client import AsyncSensorClient  # type: ignore
-    from .connectsensor.exceptions import APIError  # type: ignore
-
-    _LOGGER.debug("Using local connectsensor client for debugging")  # type: ignore
-except ImportError:
-    from connectsensor.client import AsyncSensorClient
-    from connectsensor.exceptions import APIError
-
-from homeassistant.util.dt import as_local  # noqa: E402
-
 from .const import API_TIMEOUT, DEFAULT_USAGE_WINDOW, REFILL_THRESHOLD  # noqa: E402
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
+_LOGGER.debug("AsyncSensorClient loaded from %s", inspect.getfile(AsyncSensorClient))
 
 
 @dataclass
@@ -47,37 +45,33 @@ class SENSiTApiClient:
         debug=False,
     ) -> None:
         """Simple API Client for ."""
-        _LOGGER.debug("API init as username=%s", username)
+        _LOGGER.debug("API init as username=%s [API version %s]", username, api_version)
         self._username = username
         self._password = password
         self._usage_window = usage_window
         if debug:
-            _LOGGER.debug("Enabling Zeep service debug")
-            zeep_logger = logging.getLogger("zeep")
-            zeep_logger.setLevel(logging.DEBUG)
+            _LOGGER.debug("Enabling API debug")
+            connectsensor_logger = logging.getLogger("connectsensor")
+            connectsensor_logger.setLevel(logging.DEBUG)
 
     async def async_get_data(self) -> list[TankData]:
         """Get tank data from the API"""
         try:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
-        except APIError as e:
+        except (KingspanAPIError, KingspanInvalidCredentials) as e:
             msg = f"API error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
-            raise APIError(msg) from e
-        except TimeoutError:
-            msg = f"Timeout error fetching data for {self._username}"
+            raise KingspanAPIError(msg) from e
+        except (TimeoutError, httpxTimeoutException, KingspanTimeoutError) as e:
+            msg = f"Timeout error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
-            raise APIError(msg) from None
-        except httpxTimeoutException:
-            msg = f"HTTPX timeout error fetching data for {self._username}"
-            _LOGGER.error(msg)
-            raise APIError(msg) from None
+            raise KingspanAPIError(msg) from None
         except Exception as e:  # pylint: disable=broad-except
             tb_str = "".join(traceback.format_tb(e.__traceback__))
             msg = f"Unhandled error fetching data for {self._username}: '{e}' from {tb_str}"
             _LOGGER.error(msg)
-            raise APIError(msg) from e
+            raise KingspanAPIError(msg) from e
 
     async def check_credentials(self) -> bool:
         """Login to check credentials"""
@@ -85,16 +79,12 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 async with AsyncSensorClient() as client:
                     await client.login(self._username, self._password)
-        except APIError as e:
+        except (KingspanAPIError, KingspanInvalidCredentials) as e:
             msg = f"API error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
             return False
-        except TimeoutError:
-            msg = f"Timeout error logging in as {self._username}"
-            _LOGGER.error(msg)
-            return False
-        except httpxTimeoutException:
-            msg = f"HTTPX timeout error logging in as {self._username}"
+        except (TimeoutError, httpxTimeoutException, KingspanTimeoutError) as e:
+            msg = f"Timeout error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
             return False
         except Exception as e:  # pylint: disable=broad-except

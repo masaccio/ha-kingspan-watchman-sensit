@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
-from connectsensor.exceptions import APIError
+from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.const import ATTR_ICON
@@ -148,15 +148,17 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 2
     assert "Timeout error fetching data" in caplog.record_tuples[0][2]
-    assert "APIError during update: Timeout error fetching data" in caplog.record_tuples[1][2]
+    assert (
+        "KingspanAPIError during update: Timeout error fetching data" in caplog.record_tuples[1][2]
+    )
 
     caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=APIError("api-test error"))
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
     with pytest.raises(UpdateFailed):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 2
     assert "API error fetching data for test@example.com" in caplog.record_tuples[0][2]
-    assert "APIError during update: API error fetching data" in caplog.record_tuples[1][2]
+    assert "KingspanAPIError during update: API error fetching data" in caplog.record_tuples[1][2]
 
     caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
@@ -164,7 +166,7 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
         await hass.data[DOMAIN][config_entry.entry_id].update()
     assert len(caplog.record_tuples) == 2
     assert "Unhandled error" in caplog.record_tuples[0][2]
-    assert "APIError during update: Unhandled error" in caplog.record_tuples[1][2]
+    assert "KingspanAPIError during update: Unhandled error" in caplog.record_tuples[1][2]
 
 
 @pytest.mark.parametrize(

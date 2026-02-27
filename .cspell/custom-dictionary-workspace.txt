@@ -9,9 +9,12 @@ hass
 homeassistant
 isort
 kingspan
+KNECT
 Kolkata
+localzone
 Logfile
 minversion
+pathlib
 Pycodestyle
 Pyflakes
 pygithub
@@ -21,6 +24,7 @@ pytest
 pyupgrade
 s3cret
 sensit
+setaf
 Tanky
 testpaths
 tzlocal

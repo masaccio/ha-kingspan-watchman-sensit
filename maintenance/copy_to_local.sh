@@ -4,13 +4,35 @@ INTEGRATION_SRC_DIR="custom_components/kingspan_watchman_sensit"
 INTEGRATION_SRC_FILES="__init__.py api.py config_flow.py const.py entity.py manifest.json sensor.py"
 REMOTE_INTEGRATION_DIR="/config/custom_components/kingspan_watchman_sensit"
 API_SRC_DIR="../kingspan-connect-sensor/src/connectsensor"
-API_SRC_FILES="client.py debug.py exceptions.py tank.py"
+API_SRC_FILES="__init__.py client.py debug.py exceptions.py tank.py"
 
-if [ "$1" = "--api" ]; then
-  USE_LOCAL_API=true
-else
-  USE_LOCAL_API=false
-fi
+USE_LOCAL_API=false
+RESTART_HASS=false
+for arg in "$@"; do
+  if [ "$arg" = "--api" ]; then
+    USE_LOCAL_API=true
+  elif [ "$arg" = "--restart" ]; then
+    RESTART_HASS=true
+  else
+    echo "$(tput setaf 1)Error: Ignoring unknown argument '$arg'$(tput sgr0)"
+  fi
+done
+
+function insert_local_connectsensor() {
+  awk '
+    BEGIN {
+      inserted = 0
+      block = "\nimport sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path(__file__).resolve().parent))\n"
+    }
+    {
+      if (!inserted && $0 ~ /^from connectsensor/) {
+        print block
+        inserted = 1
+      }
+      print
+    }
+  '
+}
 
 function copy() {
   local src=$1
@@ -27,7 +49,13 @@ function copy() {
 }
 
 for file in $INTEGRATION_SRC_FILES; do
-  copy $INTEGRATION_SRC_DIR/$file $REMOTE_INTEGRATION_DIR/
+  if [ $USE_LOCAL_API = "true" -a "$file" == "api.py" ]; then
+    dest="$REMOTE_INTEGRATION_DIR/$file"
+    echo "$(tput setaf 2)Patching:$(tput sgr0) $file $(tput setaf 2)->$(tput sgr0) $dest"
+    cat $INTEGRATION_SRC_DIR/$file | insert_local_connectsensor | ssh $REMOTE_HOST "cat > $dest"
+  else
+    copy $INTEGRATION_SRC_DIR/$file $REMOTE_INTEGRATION_DIR/
+  fi
 done
 
 if [ $USE_LOCAL_API = "false" ]; then
@@ -41,6 +69,8 @@ fi
 
 copy $INTEGRATION_SRC_DIR/translations/en.json $REMOTE_INTEGRATION_DIR/translations
 
-echo $(tput setaf 2)"Restarting HA Core"$(tput sgr0)
-ssh $REMOTE_HOST "source /etc/profile.d/homeassistant.sh && ha core restart"
-echo $(tput setaf 2)"Done"$(tput sgr0)
+if [ $RESTART_HASS = "true" ]; then
+  echo $(tput setaf 2)"Restarting HA Core"$(tput sgr0)
+  ssh $REMOTE_HOST "source /etc/profile.d/homeassistant.sh && ha core restart"
+  echo $(tput setaf 2)"Done"$(tput sgr0)
+fi

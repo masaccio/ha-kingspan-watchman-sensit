@@ -7,17 +7,17 @@ documentation = "https://github.com/masaccio/ha-kingspan-connect-sensor/blob/mai
 license = "MIT"
 name = "ha-kingspan-connect-sensor"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.13.2,<3.14"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
 ]
-version = "1.7.0"
+version = "2.0.0"
 dependencies = [
   "async-timeout>=4.0.2",
-  "homeassistant>=2025.2",
-  "kingspan-connect-sensor>=3.1.0",
+  "homeassistant>=2026.1.0",
+  "kingspan-connect-sensor>=4.0.0",
   "voluptuous>=0.13.1",
   "async-property>=0.2.1",
   "asyncio>=3.4.3",
@@ -91,3 +91,6 @@ max-branches = 20
 
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
+
+[tool.uv.sources]
+kingspan-connect-sensor = { path = "../kingspan-connect-sensor", editable = true }

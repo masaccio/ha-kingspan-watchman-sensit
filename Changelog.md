@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v2.0.0
+
+This is a major update to reflect the API changes introduced by the move to KNECT Pro in February 2026. The underlying API module should be considered experimental as the roll-out of KNECT Pro was sudden and some of the APIs have a very preliminary feel so could easily change in the future. There is no date for when the APIs used by the 1.x Home Assistant integration will be retired, so you may wish to stay on that version. There are no functional differences in the 2.x versions.
+
 ## v1.7.0
 
 **This version contains breaking changes to the `sensor.oil_consumption` entity.**

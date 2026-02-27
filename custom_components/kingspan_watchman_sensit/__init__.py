@@ -20,7 +20,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import (
-    APIError,  # type: ignore[reportAttributeAccessIssue]
+    KingspanAPIError,  # type: ignore[reportAttributeAccessIssue]
     SENSiTApiClient,
     TankData,
 )
@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     client = SENSiTApiClient(username, str(password), usage_window, kingspan_debug)
     try:
         _ = await client.check_credentials()
-    except APIError as e:
+    except KingspanAPIError as e:
         if "no level data" in str(e).lower():
             _LOGGER.warning("No data available for username '%s'", username)
         else:
@@ -80,11 +80,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     coordinator = SENSiTDataUpdateCoordinator(
         hass,
         client=client,
+        config_entry=config_entry,
         update_interval=timedelta(
             hours=config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         ),
     )
-    await coordinator.async_config_entry_first_refresh()
+    await coordinator.async_refresh()
 
     if not coordinator.last_update_success:  # pragma: no cover
         raise ConfigEntryNotReady
@@ -130,10 +131,11 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""
 
     def __init__(
-        self, hass: HomeAssistant, client: SENSiTApiClient, update_interval: timedelta
+        self, hass: HomeAssistant, config_entry, client: SENSiTApiClient, update_interval: timedelta
     ) -> None:
         """Initialize."""
         self.api = client
+        super().__init__(hass, _LOGGER, name=DOMAIN, config_entry=config_entry)
         self.platforms = []
 
         _LOGGER.debug("Update interval set to %s", update_interval)
@@ -149,8 +151,8 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via API."""
         try:
             return await self.api.async_get_data()
-        except APIError as e:
-            _LOGGER.warning("APIError during update: %s", e)
+        except KingspanAPIError as e:
+            _LOGGER.warning("KingspanAPIError during update: %s", e)
             raise UpdateFailed("Failed to fetch data from API") from e
 
 
