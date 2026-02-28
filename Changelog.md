@@ -3,6 +3,10 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v1.7.1
+
+🪲 Fixed API version selection [issue-51](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/451) which caused the integration to pickup a ver development version of the Kingspan API.
+
 ## v1.7.0
 
 **This version contains breaking changes to the `sensor.oil_consumption` entity.**

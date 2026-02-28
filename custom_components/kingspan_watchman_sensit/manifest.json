@@ -1,14 +1,10 @@
 {
   "domain": "kingspan_watchman_sensit",
   "name": "Kingspan Watchman SENSiT",
-  "after_dependencies": [],
   "codeowners": [
     "@masaccio"
   ],
   "config_flow": true,
-  "dependencies": [
-    "diagnostics"
-  ],
   "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
@@ -16,5 +12,5 @@
     "kingspan-connect-sensor==3.2.1",
     "httpx>=0.28.1"
   ],
-  "version": "1.7.0"
+  "version": "1.7.1"
 }
