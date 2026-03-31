@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from async_timeout import timeout
 from connectsensor import __version__ as api_version
-from connectsensor.client import AsyncSensorClient  # type: ignore
+from connectsensor.client import APIVersion, AsyncSensorClient  # type: ignore
 from connectsensor.exceptions import (
     KingspanAPIError,
     KingspanInvalidCredentialsError,
@@ -77,7 +77,7 @@ class SENSiTApiClient:
         """Login to check credentials"""
         try:
             async with timeout(API_TIMEOUT):
-                async with AsyncSensorClient() as client:
+                async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
                     await client.login(self._username, self._password)
         except (KingspanAPIError, KingspanInvalidCredentialsError) as e:
             msg = f"API error logging in as {self._username}: {e}"
@@ -96,7 +96,7 @@ class SENSiTApiClient:
 
     async def _get_tank_data(self) -> list[TankData]:
         _LOGGER.debug("Fetching tank data with username=%s", self._username)
-        async with AsyncSensorClient() as client:
+        async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
             self.data = []
