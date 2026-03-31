@@ -108,7 +108,7 @@ class SENSiTApiClient:
                 tank_data.name = await tank.name
                 tank_data.capacity = await tank.capacity
                 tank_data.last_read = as_local(await tank.last_read)
-                tank_data.history = await tank.history
+                tank_data.history = await tank.history()
                 if len(tank_data.history) == 0:
                     _LOGGER.warning("No history: usage and forecast unavailable")
                     tank_data.usage_rate = 0

@@ -190,13 +190,12 @@ class MockAsyncTank:
 
     @async_property
     async def last_read(self) -> datetime:
-        history = await self.history
+        history = await self.history()
         if len(history) > 0:
             return history[-1]["reading_date"]
         else:
             return datetime.now()
 
-    @async_property
     async def history(self) -> list[dict]:
         # Build a month of history with a refill halfway through
         if self._history_type == HistoryType.DECREASING:
