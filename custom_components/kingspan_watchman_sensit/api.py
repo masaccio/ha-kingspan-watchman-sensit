@@ -11,7 +11,7 @@ from connectsensor import __version__ as api_version
 from connectsensor.client import AsyncSensorClient  # type: ignore
 from connectsensor.exceptions import (
     KingspanAPIError,
-    KingspanInvalidCredentials,
+    KingspanInvalidCredentialsError,
     KingspanTimeoutError,
 )
 from homeassistant.util.dt import as_local  # noqa: E402
@@ -59,7 +59,7 @@ class SENSiTApiClient:
         try:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
-        except (KingspanAPIError, KingspanInvalidCredentials) as e:
+        except (KingspanAPIError, KingspanInvalidCredentialsError) as e:
             msg = f"API error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
             raise KingspanAPIError(msg) from e
@@ -79,7 +79,7 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 async with AsyncSensorClient() as client:
                     await client.login(self._username, self._password)
-        except (KingspanAPIError, KingspanInvalidCredentials) as e:
+        except (KingspanAPIError, KingspanInvalidCredentialsError) as e:
             msg = f"API error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
             return False

@@ -4,7 +4,7 @@ INTEGRATION_SRC_DIR="custom_components/kingspan_watchman_sensit"
 INTEGRATION_SRC_FILES="__init__.py api.py config_flow.py const.py entity.py manifest.json sensor.py"
 REMOTE_INTEGRATION_DIR="/config/custom_components/kingspan_watchman_sensit"
 API_SRC_DIR="../kingspan-connect-sensor/src/connectsensor"
-API_SRC_FILES="__init__.py client.py debug.py exceptions.py tank.py"
+API_SRC_FILES="__init__.py client.py debug.py exceptions.py tank.py const.py"
 
 USE_LOCAL_API=false
 RESTART_HASS=false
