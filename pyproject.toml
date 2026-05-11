@@ -31,7 +31,7 @@ dev = [
   "aiohttp>=3.11.11",
   "datetime>=4.7",
   "pytest-homeassistant-custom-component",
-  "pytest-mock>=3.9.0",
+  "pytest-mock>=3.15.1",
   "toml>=0.10.2",
   "pandas>=3.0.2",
   "ruff>=0.15.12",
