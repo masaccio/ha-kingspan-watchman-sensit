@@ -35,26 +35,26 @@ async def test_sensor(hass, mock_sensor_client):
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_level")
+    state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
     assert state.state == str(MOCK_TANK_LEVEL)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
-    state = hass.states.get("sensor.tank_capacity")
+    state = hass.states.get("sensor.tanky_mctankface_tank_capacity")
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
-    state = hass.states.get("sensor.tank_percentage_full")
+    state = hass.states.get("sensor.tanky_mctankface_tank_percentage_full")
     assert state
     assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
-    state = hass.states.get("sensor.current_usage")
+    state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state.state == "96.7"
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
-    state = hass.states.get("sensor.forecast_empty")
+    state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
     assert state.state == "10"
     assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
@@ -78,7 +78,7 @@ async def run_sensor_test_with_timezone(hass, tz: str):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.last_reading_date")
+    state = hass.states.get("sensor.tanky_mctankface_last_reading_date")
     assert state
     assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
     assert state.state == reference_date
@@ -102,7 +102,7 @@ async def test_oil_consumption(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_consumption")
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
     assert state.state == "unknown"
 
     assert await async_unload_entry(hass, config_entry)
@@ -115,7 +115,7 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
 
     consumption_total = 20000.0
     restore_state = State(
-        "sensor.oil_consumption",
+        "sensor.tanky_mctankface_oil_consumption",
         str(consumption_total),
         {
             "consumption_total": str(consumption_total),
@@ -127,9 +127,9 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.current_usage")
+    state = hass.states.get("sensor.tanky_mctankface_current_usage")
     consumption_total += round(float(state.state) * DEFAULT_OIL_ENERGY_DENSITY, 1)
-    state = hass.states.get("sensor.oil_consumption")
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
     assert state.state == str(consumption_total)
 
     assert await async_unload_entry(hass, config_entry)
@@ -196,7 +196,7 @@ async def test_sensor_icon_full(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_level")
+    state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
@@ -213,7 +213,7 @@ async def test_sensor_icon_empty(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_level")
+    state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
     assert state.state == str(100)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-empty"
@@ -230,7 +230,7 @@ async def test_sensor_icon_low(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.oil_level")
+    state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY * 0.3)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge-low"
@@ -253,11 +253,11 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
     assert len(history_log) == 1
 
-    state = hass.states.get("sensor.current_usage")
+    state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state
     assert state.state == "0.0"
 
-    state = hass.states.get("sensor.forecast_empty")
+    state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
     assert state
     assert state.state == "0"
 
@@ -276,11 +276,11 @@ async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.current_usage")
+    state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state
     assert state.state == "0.0"
 
-    state = hass.states.get("sensor.forecast_empty")
+    state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
     assert state
     assert state.state == "0"
 
