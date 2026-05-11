@@ -33,7 +33,7 @@ dev = [
   "pytest-homeassistant-custom-component",
   "pytest-mock>=3.9.0",
   "toml>=0.10.2",
-  "pandas>=2.0.2",
+  "pandas>=3.0.2",
   "ruff>=0.15.12",
   "tzlocal>=5.3.1",
 ]
