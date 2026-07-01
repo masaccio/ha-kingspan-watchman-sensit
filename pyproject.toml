@@ -35,7 +35,7 @@ dev = [
   "toml>=0.10.2",
   "pandas>=2.3.3",
   "ruff>=0.15.20",
-  "tzlocal>=5.3.1",
+  "tzlocal>=5.4.4",
 ]
 
 [tool.coverage.run]
