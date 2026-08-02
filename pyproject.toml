@@ -13,7 +13,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
 ]
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
   "async-timeout>=4.0.2",
   "voluptuous>=0.15.2",
