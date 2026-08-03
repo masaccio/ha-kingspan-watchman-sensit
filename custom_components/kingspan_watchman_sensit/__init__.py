@@ -66,16 +66,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     client = SENSiTApiClient(username, str(password), usage_window, kingspan_debug)
     try:
-        _ = await client.check_credentials()
+        credentials_ok = await client.check_credentials()
     except KingspanAPIError as e:
         if "no level data" in str(e).lower():
             _LOGGER.warning("No data available for username '%s'", username)
-        else:
-            _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
-            raise ConfigEntryAuthFailed("Credentials invalid") from e
+            return False
+        _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
+        raise ConfigEntryAuthFailed("Credentials invalid") from e
     except builtins.TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
         raise ConfigEntryNotReady("Timed out while connecting to Kingspan service") from e
+
+    if not credentials_ok:
+        _LOGGER.warning("No data available for username '%s'", username)
+        return False
 
     coordinator = SENSiTDataUpdateCoordinator(
         hass,

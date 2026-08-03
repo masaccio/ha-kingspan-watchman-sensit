@@ -28,6 +28,23 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest_asyncio.fixture(autouse=True)
+def clear_proxy_env(monkeypatch):
+    """Ensure tests do not inherit proxy settings from the host environment."""
+    for key in (
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "all_proxy",
+        "NO_PROXY",
+        "no_proxy",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    yield
+
+
 # This fixture is used to prevent HomeAssistant from attempting to create and
 # dismiss persistent notifications. These calls would fail without this fixture
 # since the persistent_notification integration is never loaded during a test.
