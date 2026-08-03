@@ -24,7 +24,7 @@ jobs:
         python-version: ["3.14"]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Install uv and set the python version
       uses: astral-sh/setup-uv@v7
@@ -36,6 +36,13 @@ jobs:
 
     - name: Run tests
       run: uv run pytest
+
+  all-tests-passed:
+    name: All Tests Passed
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All matrix jobs completed."
 
   dependabot:
     needs: test
