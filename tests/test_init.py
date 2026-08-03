@@ -1,5 +1,7 @@
 """Test Kingspan Watchman SENSiT setup process."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
@@ -112,6 +114,19 @@ async def test_auth_no_tank_data(hass, error_no_tank_data, caplog):
         if "No data available for username 'test@example.com'" in log[2]
     ]
     assert len(level_warnings) == 1
+
+
+async def test_setup_entry_no_data_return_false(hass):
+    """Test setup exits cleanly when a valid login finds no tank data."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+
+    with patch(
+        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
+        AsyncMock(return_value=False),
+    ):
+        assert await async_setup_entry(hass, config_entry) is False
+
+    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
 
 
 @pytest.mark.parametrize(
