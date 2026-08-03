@@ -16,6 +16,9 @@ manifest = {
     "name": "Kingspan Watchman SENSiT",
     "codeowners": ["@masaccio"],
     "config_flow": True,
+    "dependencies": [
+      "diagnostics"
+    ],
     "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
