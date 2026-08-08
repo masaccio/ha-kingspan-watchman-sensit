@@ -1,5 +1,7 @@
 addopts
+aiohttp
 asyncio
+autoremove
 autouse
 caplog
 connectsensor
@@ -9,11 +11,14 @@ hass
 homeassistant
 isort
 kingspan
+Kingspan
 KNECT
 Kolkata
 localzone
 Logfile
+mctankface
 minversion
+mypy
 pathlib
 Pycodestyle
 Pyflakes
@@ -22,6 +27,7 @@ Pylama
 pylint
 pytest
 pyupgrade
+rcfile
 s3cret
 sensit
 setaf
