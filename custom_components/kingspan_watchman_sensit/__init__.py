@@ -133,7 +133,7 @@ async def async_get_config_entry_diagnostics(
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
 
-    if DOMAIN not in hass.data:
+    if DOMAIN not in hass.data or config_entry.entry_id not in hass.data[DOMAIN]:
         return False
 
     coordinator = hass.data[DOMAIN][config_entry.entry_id]

@@ -18,10 +18,10 @@ rules:
   docs-removal-instructions: todo
   entity-event-setup: done
   entity-unique-id: done
-  has-entity-name: todo
+  has-entity-name: done
   runtime-data: todo
   test-before-configure: done
-  test-before-setup: todo
+  test-before-setup: done
   unique-config-entry: todo
 
   # Silver

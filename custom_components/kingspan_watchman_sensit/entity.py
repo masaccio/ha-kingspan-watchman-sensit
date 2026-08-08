@@ -12,6 +12,8 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTEntity(CoordinatorEntity):
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, config_entry, idx):
         _LOGGER.debug("Init entity %s", self._attr_name)
         super().__init__(coordinator)
