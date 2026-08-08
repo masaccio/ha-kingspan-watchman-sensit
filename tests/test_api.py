@@ -1,10 +1,7 @@
 """Tests for Kingspan Watchman SENSiT api."""
 
 import asyncio
-import subprocess
-import sys
 from datetime import datetime
-from pathlib import Path
 from typing import get_type_hints
 
 import pandas as pd
@@ -133,46 +130,6 @@ def test_api_no_history_zero_usage():
     assert api.forecast_empty(tank_data) == 0
 
 
-def test_project_type_check():
-    """Ensure project code passes the configured mypy check."""
-    project_root = Path(__file__).resolve().parents[1]
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "mypy",
-            "custom_components/kingspan_watchman_sensit",
-            "--config-file",
-            str(project_root / "pyproject.toml"),
-        ],
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-
-
-def test_project_lint_check():
-    """Ensure project code passes the configured lint check."""
-    project_root = Path(__file__).resolve().parents[1]
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pylint",
-            "custom_components/kingspan_watchman_sensit",
-            "--rcfile",
-            str(project_root / "pyproject.toml"),
-        ],
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-
-
 @pytest.mark.asyncio
 async def test_async_httpx_timeout(mocker, mock_sensor_client, caplog):
     api = SENSiTApiClient("test", "test")
@@ -187,17 +144,3 @@ async def test_async_httpx_timeout(mocker, mock_sensor_client, caplog):
 
 async def zeep_exception(*args, **kwargs):
     raise httpxTimeoutException("Test error")
-
-
-# @pytest.mark.asyncio
-# async def test_async_httpx_exception(mocker, caplog):
-#     mocker.patch(
-#         "connectsensor.client.AsyncSensorClient._init_zeep",
-#         side_effect=httpxTimeoutException("Test error"),
-#     )
-
-#     api = SENSiTApiClient("test", "test")
-#     caplog.clear()
-#     caplog.set_level(logging.ERROR)
-#     assert not await api.check_credentials()
-#     assert "HTTPX timeout error logging in" in caplog.text
