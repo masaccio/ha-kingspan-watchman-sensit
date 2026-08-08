@@ -17,12 +17,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import (
     KingspanAPIError,  # type: ignore[reportAttributeAccessIssue]
     SENSiTApiClient,
-    TankData,
 )
 from .const import (
     CONF_KINGSPAN_DEBUG,
@@ -35,6 +33,7 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
+from .coordinator import SENSiTDataUpdateCoordinator
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -129,35 +128,6 @@ async def async_get_config_entry_diagnostics(
             for tank in coordinator.data
         ],
     }
-
-
-class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
-
-    def __init__(
-        self, hass: HomeAssistant, config_entry, client: SENSiTApiClient, update_interval: timedelta
-    ) -> None:
-        """Initialize."""
-        self.api = client
-        super().__init__(hass, _LOGGER, name=DOMAIN, config_entry=config_entry)
-        self.platforms = []
-
-        _LOGGER.debug("Update interval set to %s", update_interval)
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_method=self.update,  # type: ignore[reportArgumentType]
-            update_interval=update_interval,
-        )
-
-    async def update(self) -> list[TankData]:
-        """Update data via API."""
-        try:
-            return await self.api.async_get_data()
-        except KingspanAPIError as e:
-            _LOGGER.warning("KingspanAPIError during update: %s", e)
-            raise UpdateFailed("Failed to fetch data from API") from e
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
