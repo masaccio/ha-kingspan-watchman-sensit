@@ -9,7 +9,8 @@ from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.const import ATTR_ICON
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 from homeassistant.util.dt import get_time_zone, set_default_time_zone
