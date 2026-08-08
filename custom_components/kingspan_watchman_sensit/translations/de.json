@@ -38,5 +38,33 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "oil_level": {
+        "name": "Ölstand"
+      },
+      "tank_percentage_full": {
+        "name": "Tankfüllstand (%)"
+      },
+      "tank_capacity": {
+        "name": "Tankkapazität"
+      },
+      "last_reading_date": {
+        "name": "Letzter Messzeitpunkt"
+      },
+      "current_usage": {
+        "name": "Aktiver Verbrauch"
+      },
+      "forecast_empty": {
+        "name": "Leermeldung"
+      },
+      "current_energy_usage": {
+        "name": "Aktiver Energieverbrauch"
+      },
+      "oil_consumption": {
+        "name": "Ölverbrauch"
+      }
+    }
   }
 }

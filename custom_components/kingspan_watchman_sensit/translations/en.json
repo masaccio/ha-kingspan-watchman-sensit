@@ -38,5 +38,33 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "oil_level": {
+        "name": "Oil Level"
+      },
+      "tank_percentage_full": {
+        "name": "Tank Percentage Full"
+      },
+      "tank_capacity": {
+        "name": "Tank Capacity"
+      },
+      "last_reading_date": {
+        "name": "Last Reading Date"
+      },
+      "current_usage": {
+        "name": "Current Usage"
+      },
+      "forecast_empty": {
+        "name": "Forecast Empty"
+      },
+      "current_energy_usage": {
+        "name": "Current Energy Usage"
+      },
+      "oil_consumption": {
+        "name": "Oil Consumption"
+      }
+    }
   }
 }

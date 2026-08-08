@@ -12,6 +12,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
@@ -50,6 +51,7 @@ async def async_setup_entry(
 class OilLevel(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge"
     _attr_name: str | None = "Oil Level"
+    _attr_translation_key = "oil_level"
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME_STORAGE
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
@@ -71,6 +73,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name: str | None = "Tank Percentage Full"
+    _attr_translation_key = "tank_percentage_full"
     _attr_native_unit_of_measurement: str | None = PERCENTAGE
     _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
 
@@ -95,6 +98,8 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
 class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Tank Capacity"
+    _attr_translation_key = "tank_capacity"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
     _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
@@ -112,6 +117,8 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 class LastReadDate(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:clock-outline"
     _attr_name: str | None = "Last Reading Date"
+    _attr_translation_key = "last_reading_date"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.TIMESTAMP
 
     @property
@@ -124,6 +131,8 @@ class LastReadDate(SENSiTEntity, SensorEntity):
 class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Current Usage"
+    _attr_translation_key = "current_usage"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
     _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
@@ -139,6 +148,8 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
 class ForecastEmpty(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:calendar"
     _attr_name: str | None = "Forecast Empty"
+    _attr_translation_key = "forecast_empty"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement: str | None = UnitOfTime.DAYS
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
 
@@ -155,6 +166,9 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Current Energy Usage"
+    _attr_translation_key = "current_energy_usage"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
@@ -181,6 +195,9 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Oil Consumption"
+    _attr_translation_key = "oil_consumption"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL_INCREASING
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY

@@ -9,7 +9,7 @@ from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.const import ATTR_ICON
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 from homeassistant.util.dt import get_time_zone, set_default_time_zone
@@ -102,7 +102,16 @@ async def test_oil_consumption(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
+    entity_registry = er.async_get(hass)
+    entity_registry.async_update_entity(
+        "sensor.tanky_mctankface_oil_consumption",
+        disabled_by=None,
+    )
+    await hass.config_entries.async_reload(config_entry.entry_id)
+    await hass.async_block_till_done()
+
     state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state is not None
     assert state.state == "unknown"
 
     assert await async_unload_entry(hass, config_entry)
@@ -127,9 +136,18 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
+    entity_registry = er.async_get(hass)
+    entity_registry.async_update_entity(
+        "sensor.tanky_mctankface_oil_consumption",
+        disabled_by=None,
+    )
+    await hass.config_entries.async_reload(config_entry.entry_id)
+    await hass.async_block_till_done()
+
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     consumption_total += round(float(state.state) * DEFAULT_OIL_ENERGY_DENSITY, 1)
     state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state is not None
     assert state.state == str(consumption_total)
 
     assert await async_unload_entry(hass, config_entry)
