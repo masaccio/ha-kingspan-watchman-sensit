@@ -76,6 +76,26 @@ async def test_failed_config_flow(hass, error_on_get_data):
     assert result["errors"] == {"base": "auth"}
 
 
+async def test_duplicate_config_flow_aborts(hass, bypass_get_data):
+    """A second config flow for the same username should abort as already configured."""
+    existing_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=MOCK_CONFIG,
+        unique_id=MOCK_CONFIG["username"].casefold(),
+    )
+    existing_entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input=MOCK_CONFIG
+    )
+
+    assert result["type"] == data_entry_flow.FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
 async def test_options_default_flow(hass, caplog):
     """Test an options flow."""
     caplog.clear()

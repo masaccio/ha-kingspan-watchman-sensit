@@ -44,6 +44,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             username = user_input[CONF_USERNAME]
+            if self.source != config_entries.SOURCE_REAUTH:
+                await self.async_set_unique_id(username.casefold())
+                self._abort_if_unique_id_configured()
+
             password = user_input[CONF_PASSWORD]
             valid = await self._test_credentials(username, password)
             if not valid:
