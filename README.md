@@ -15,6 +15,17 @@ You will be asked for your Kingspan username and password which will then be cac
 
 [![Open your Home Assistant instance and add this integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=kingspan_watchman_sensit)
 
+## Removal
+
+To remove the integration from Home Assistant:
+
+1. Open Settings > Devices & Services.
+2. Select Kingspan Watchman SENSiT.
+3. Click the three-dot menu and choose Delete.
+4. Confirm the removal.
+
+This removes the integration entry from Home Assistant. Your Kingspan account credentials are managed by Home Assistant and are not deleted automatically by the integration itself.
+
 ## Entities
 
 The integration reads data from the SENSiT sensor every 8 hours. The tank data is updated every 24 hours but 8 hours is chosen as the update point. Usage data and forecasts of empty are different from the Kingspan app. Rather than using just the previous day's reading, this integration uses the past 14 days as the basis for a prediction of empty, and the current usage is also the average of the past 14 days. These values can be changed in the [integration's configuration](#configuration).
