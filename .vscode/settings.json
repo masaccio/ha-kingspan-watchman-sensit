@@ -21,5 +21,45 @@
     "python.testing.unittestEnabled": false,
     "python.analysis.typeCheckingMode": "basic",
     "python-envs.defaultEnvManager": "ms-python.python:venv",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "cSpell.language": "en",
+    "cSpell.ignorePaths": [
+        "**/settings.json"
+    ],
+    "cSpell.dictionaryDefinitions": [
+        {
+            "name": "Project English Dictionary",
+            "path": "./.vscode/dictionaries/en.txt",
+            "addWords": true
+        },
+        {
+            "name": "Project German Dictionary",
+            "path": "./.vscode/dictionaries/de.txt",
+            "addWords": true
+        },
+    ],
+    "cSpell.languageSettings": [
+        {
+            "languageId": "python,markdown,yaml,toml",
+            "dictionaries": [
+                "Project English Dictionary"
+            ]
+        }
+    ],
+    "cSpell.overrides": [
+        {
+            "filename": "**/en.json",
+            "language": "en",
+            "dictionaries": [
+                "Project English Dictionary"
+            ]
+        },
+        {
+            "filename": "**/de.json",
+            "language": "de",
+            "dictionaries": [
+                "Project German Dictionary"
+            ]
+        },
+    ],
 }

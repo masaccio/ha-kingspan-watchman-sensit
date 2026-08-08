@@ -28,9 +28,11 @@ pylint
 pytest
 pyupgrade
 rcfile
+reauthentication
 s3cret
 sensit
 setaf
 Tanky
 testpaths
 tzlocal
+websession
