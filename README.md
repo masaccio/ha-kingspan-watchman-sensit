@@ -57,15 +57,57 @@ The tank refresh interval configures how often the integration will request new 
 
 The usage interval is the number of days to average for oil usage. This is also used to calculate the predicted empty date.
 
+## Data update
+
+The integration uses Home Assistant's config-entry polling model to fetch updated tank information from the Kingspan cloud service. By default it checks every 8 hours, but this can be adjusted in the options flow.
+
+The underlying SENSiT transmitter updates at regular intervals, and the integration reads the latest available data from the cloud rather than from a local network device. For this reason, the displayed state reflects the most recent cloud reading rather than a direct local sensor feed.
+
+## Supported devices
+
+This integration is designed for Kingspan Watchman SENSiT smart tank-monitoring systems that expose data through the Kingspan cloud API for residential and commercial oil tank monitoring.
+
+## Supported functions
+
+The integration supports:
+
+- reading current tank level
+- reading tank capacity and percentage full
+- reporting last reading timestamp
+- calculating rolling usage rate and forecast empty date
+- converting usage to energy figures for Energy Dashboard use
+- tracking cumulative oil consumption over time
+
+## Known limitations
+
+- The integration is cloud-based and does not discover devices locally.
+- Data availability depends on the Kingspan cloud service and connector availability.
+- The forecast and usage calculations use the configured rolling history window; they are estimates based on recent readings rather than an exact tank model.
+- The integration only supports a single Kingspan account per config entry and one or more tanks associated with that account.
+
+## Troubleshooting
+
+If the integration does not update as expected:
+
+1. Verify the Kingspan username and password are still valid.
+2. Check the Home Assistant logs for authentication or API errors.
+3. Confirm the account has data available for the configured tank.
+4. In the options flow, enable the debug flag to capture more detailed API logging.
+5. Review the update interval and usage window settings to ensure they match your monitoring expectations.
+
+## Use cases
+
+This integration is intended for users who want to monitor heating oil levels and consumption, predict when a tank may run empty, and include oil use in Home Assistant energy dashboards or custom monitoring views.
+
 ## Energy Dashboard
 
-[Home Assistant Energy Management](https://www.home-assistant.io/docs/energy/) doesn't include support for oil consumption, so you need to use gas instead. This integration provides a sensor `sensor.oil_consumption` which is the monotonically increasing amount of oil consumed represented as kWh.  The sensor is restored on restart and updated every day using the `sensor.current_usage` value.
+[Home Assistant Energy Management](https://www.home-assistant.io/docs/energy/) doesn't include support for oil consumption, so you need to use gas instead. This integration provides a sensor `sensor.oil_consumption` which is the monotonically increasing amount of oil consumed represented as kWh. The sensor is restored on restart and updated every day using the `sensor.current_usage` value.
 
 The integration uses a simple conversion of 9.8kWh per litre of oil to calculate the energy usage in kWh. This value assumes 10.35 kWh per litre for heating oil and a boiler efficiency of 95%. The value can be configured in the integration's configuration.
 
-You can add price information by locating a suitable online price source and scraping the value. In the UK, one such source is Home Fuels Direct which is a cheap broker for oil and publishes prices by UK county. Add the following template to you `configuration.yaml` adjusting the URL to your location and restart Home Assistant. The scan interval in this example is set to 24 hours.
+You can add price information by locating a suitable online price source and scraping the value. In the UK, one such source is Home Fuels Direct which is a cheap broker for oil and publishes prices by UK county. Add the following template to your `configuration.yaml`, adjusting the URL to your location and restarting Home Assistant. The scan interval in this example is set to 24 hours.
 
-``` yaml
+```yaml
 scrape:
   - resource: https://homefuelsdirect.co.uk/home/heating-oil-prices/london
     scan_interval: 86400
@@ -78,4 +120,6 @@ scrape:
         value_template: "{{ (value | float / 100) | round(4) }}"
 ```
 
-With this you can configure gas consumption in Home Assistant by adding `sensor.oil_consumption` as your source of gas usage, then select "Use an entity with current price" and use your new `sensor.oil_price_per_litre` sensor as the price feed.
+With this, you can configure gas consumption in Home Assistant by adding `sensor.oil_consumption` as your source of gas usage, then select "Use an entity with current price" and use your new `sensor.oil_price_per_litre` sensor as the price feed.
+
+The integration also exposes per-tank sensors such as `sensor.tanky_mctankface_oil_level`, `sensor.tanky_mctankface_current_usage`, and `sensor.tanky_mctankface_oil_consumption` to support dashboards and automations.
