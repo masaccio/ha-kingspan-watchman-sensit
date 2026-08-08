@@ -22,6 +22,7 @@ dependencies = [
   "asyncio>=3.4.3",
   "kingspan-connect-sensor==4.2.0",
   "mypy>=2.3.0",
+  "pylint>=4.0.6",
 ]
 
 [project.urls]
