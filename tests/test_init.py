@@ -1,8 +1,10 @@
 """Test Kingspan Watchman SENSiT setup process."""
 
+import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
     async_get_config_entry_diagnostics,
@@ -127,6 +129,53 @@ async def test_setup_entry_no_data_return_false(hass):
         assert await async_setup_entry(hass, config_entry) is False
 
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
+
+
+async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
+    """Runtime data should be stored on the entry and cleaned up on unload."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
+    assert diagnostics["tank_count"] == 1
+    assert config_entry.runtime_data is hass.data[DOMAIN][config_entry.entry_id]
+
+    del config_entry.runtime_data
+    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
+    assert diagnostics["tank_count"] == 1
+
+    assert await async_unload_entry(hass, config_entry)
+    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
+
+
+async def test_coordinator_logs_available_again(hass, mock_sensor_client, mocker, caplog):
+    """Coordinator should log a recovery message after a previously failed refresh."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = config_entry.runtime_data
+    caplog.set_level(logging.INFO)
+
+    mocker.patch.object(
+        coordinator.api,
+        "async_get_data",
+        AsyncMock(side_effect=KingspanAPIError("api-test error")),
+    )
+    with pytest.raises(Exception):
+        await coordinator.update()
+
+    mocker.patch.object(
+        coordinator.api,
+        "async_get_data",
+        AsyncMock(return_value=coordinator.data),
+    )
+    await coordinator.update()
+
+    assert "Kingspan service is available again" in caplog.text
 
 
 @pytest.mark.parametrize(

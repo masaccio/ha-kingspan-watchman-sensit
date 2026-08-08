@@ -26,6 +26,7 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
         """Initialize."""
         self.api = client
         self.platforms: list[str] = []
+        self._unavailable_logged = False
         super().__init__(
             hass,
             _LOGGER,
@@ -38,7 +39,13 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
     async def update(self) -> list[TankData]:
         """Update data via API."""
         try:
-            return await self.api.async_get_data()
+            data = await self.api.async_get_data()
         except KingspanAPIError as e:
             _LOGGER.warning("KingspanAPIError during update: %s", e)
+            self._unavailable_logged = True
             raise UpdateFailed("Failed to fetch data from API") from e
+
+        if self._unavailable_logged:
+            _LOGGER.info("Kingspan service is available again")
+            self._unavailable_logged = False
+        return data

@@ -93,6 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     if not coordinator.last_update_success:  # pragma: no cover
         raise ConfigEntryNotReady
 
+    config_entry.runtime_data = coordinator
     hass.data[DOMAIN][config_entry.entry_id] = coordinator
 
     for platform in PLATFORMS:
@@ -108,7 +109,9 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is None:
+        coordinator = hass.data[DOMAIN][entry.entry_id]
     return {
         "config_entry_data": async_redact_data(entry.data, TO_REDACT),
         "last_update_success": coordinator.last_update_success,
@@ -133,10 +136,12 @@ async def async_get_config_entry_diagnostics(
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
 
-    if DOMAIN not in hass.data or config_entry.entry_id not in hass.data[DOMAIN]:
-        return False
+    coordinator = getattr(config_entry, "runtime_data", None)
+    if coordinator is None:
+        if DOMAIN not in hass.data or config_entry.entry_id not in hass.data[DOMAIN]:
+            return False
+        coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
     unloaded = all(
         await asyncio.gather(
             *[
@@ -147,7 +152,9 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
         )
     )
     if unloaded:  # pragma: no branch
-        hass.data[DOMAIN].pop(config_entry.entry_id)
+        hass.data.get(DOMAIN, {}).pop(config_entry.entry_id, None)
+        if hasattr(config_entry, "runtime_data"):
+            del config_entry.runtime_data
 
     return unloaded
 
