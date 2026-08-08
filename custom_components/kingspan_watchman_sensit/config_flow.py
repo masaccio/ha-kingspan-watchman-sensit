@@ -33,6 +33,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     reauth_entry: config_entries.ConfigEntry | None = None
+    reconfigure_entry: config_entries.ConfigEntry | None = None
 
     def __init__(self):
         """Initialize."""
@@ -46,7 +47,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             username = user_input[CONF_USERNAME]
-            if self.source != config_entries.SOURCE_REAUTH:
+            if self.source not in {config_entries.SOURCE_REAUTH, config_entries.SOURCE_RECONFIGURE}:
                 await self.async_set_unique_id(username.casefold())
                 self._abort_if_unique_id_configured()
 
@@ -73,6 +74,47 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle reconfiguration of an existing entry."""
+        self._errors = {}
+        self.reconfigure_entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            username = user_input[CONF_USERNAME]
+            password = user_input[CONF_PASSWORD]
+            valid = await self._test_credentials(username, password)
+            if not valid:
+                _LOGGER.debug("login failed for username '%s'", username)
+                self._errors["base"] = "auth"
+            else:
+                _LOGGER.debug("reconfigured username '%s'", username)
+                return self.async_update_reload_and_abort(
+                    self.reconfigure_entry,
+                    title=username,
+                    data_updates={
+                        **self.reconfigure_entry.data,
+                        CONF_USERNAME: username,
+                        CONF_PASSWORD: password,
+                        CONF_NAME: user_input.get(
+                            CONF_NAME,
+                            self.reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
+                        ),
+                    },
+                )
+
+        defaults = {
+            CONF_USERNAME: self.reconfigure_entry.data.get(CONF_USERNAME, ""),
+            CONF_PASSWORD: self.reconfigure_entry.data.get(CONF_PASSWORD, ""),
+            CONF_NAME: self.reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
+        }
+        return await self._show_config_form(
+            user_input,
+            step_id="reconfigure",
+            defaults=defaults,
+        )
+
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -96,16 +138,23 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler()
 
     async def _show_config_form(
-        self, user_input: dict[str, Any] | None
+        self,
+        user_input: dict[str, Any] | None,
+        step_id: str = "user",
+        defaults: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
+        defaults = defaults or {}
         return self.async_show_form(
-            step_id="user",
+            step_id=step_id,
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_USERNAME): str,
-                    vol.Required(CONF_PASSWORD): str,
-                    vol.Optional(CONF_NAME, default=DEFAULT_TANK_NAME): str,
+                    vol.Required(CONF_USERNAME, default=defaults.get(CONF_USERNAME, "")): str,
+                    vol.Required(CONF_PASSWORD, default=defaults.get(CONF_PASSWORD, "")): str,
+                    vol.Optional(
+                        CONF_NAME,
+                        default=defaults.get(CONF_NAME, DEFAULT_TANK_NAME),
+                    ): str,
                 }
             ),
             errors=self._errors,

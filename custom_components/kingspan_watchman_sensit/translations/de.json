@@ -27,6 +27,15 @@
           "username": "Benutzername",
           "password": "Passwort"
         }
+      },
+      "reconfigure": {
+        "title": "Watchman SENSiT",
+        "description": "Anmeldedaten für den Kingspan-Dienst aktualisieren",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort",
+          "name": "Tankname"
+        }
       }
     },
     "error": {

@@ -168,6 +168,33 @@ async def test_options_flow(hass, bypass_get_data):
     }
 
 
+async def test_reconfigure_updates_entry_and_aborts(hass, bypass_get_data):
+    """Reconfigure should update the entry data and finish the flow."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_RECONFIGURE, "entry_id": config_entry.entry_id},
+    )
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME],
+            CONF_PASSWORD: "new-password",
+            CONF_NAME: MOCK_CONFIG[CONF_NAME],
+        },
+    )
+
+    assert result["type"] == data_entry_flow.FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert config_entry.title == MOCK_CONFIG[CONF_USERNAME]
+    assert config_entry.data[CONF_PASSWORD] == "new-password"
+
+
 async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, bypass_get_data):
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
