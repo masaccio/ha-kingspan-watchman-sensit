@@ -13,6 +13,12 @@ You will need [HACS](https://hacs.xyz) installed in your Home Assistant server. 
 
 You will be asked for your Kingspan username and password which will then be cached by Home Assistant for all future updates.
 
+During installation, the following parameters are requested:
+
+- Username: your Kingspan account email address.
+- Password: your Kingspan account password.
+- Tank name (optional): a friendly name used for the entity naming in Home Assistant.
+
 [![Open your Home Assistant instance and add this integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=kingspan_watchman_sensit)
 
 ## Removal
@@ -39,6 +45,13 @@ The integration reads data from the SENSiT sensor every 8 hours. The tank data i
 You can configure some parameters for the integration using by clicking **Configure** from the integration's entry in **Settings > Devices & Services** which is available through this helper:
 
 [![Open your Home Assistant instance and show the SENSiT integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=kingspan_watchman_sensit)
+
+The integration exposes the following configuration parameters in the options flow:
+
+- Update interval: how often to poll the Kingspan service, in hours. Default: 8.
+- Usage window: the number of recent days used to calculate usage and forecast-empty values. Default: 14.
+- Oil energy density: the conversion factor used for oil-to-energy calculations, in kWh per litre. Default: 9.8.
+- Debug Kingspan: enables verbose debug logging for the API client when troubleshooting connectivity or parsing issues.
 
 The tank refresh interval configures how often the integration will request new data from the Kingspan service. The SENSiT tank transmitter only updates every 2 hours, but the timing is not configurable. It is therefore possible that the integration and the Kingspan service can not be well aligned, so this option allows for more frequent checks.
 
