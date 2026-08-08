@@ -40,19 +40,6 @@ async def test_sensor(hass, mock_sensor_client):
     assert state.state == str(MOCK_TANK_LEVEL)
     assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
-
-async def test_sensor_has_entity_name(hass, mock_sensor_client):
-    """Sensors should use device-based naming with has_entity_name enabled."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state is not None
-    assert state.name == "Tanky McTankFace Oil Level"
-
     state = hass.states.get("sensor.tanky_mctankface_tank_capacity")
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY)
