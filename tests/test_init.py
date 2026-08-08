@@ -14,6 +14,7 @@ from custom_components.kingspan_watchman_sensit import (
 )
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
@@ -94,6 +95,19 @@ async def test_auth_exception(hass, error_sensor_client):
     assert "Credentials invalid" in str(e)
     assert e.value.translation_domain == DOMAIN
     assert e.value.translation_key == "credentials_invalid"
+
+
+async def test_auth_exception_creates_repair_issue(hass, error_sensor_client):
+    """Authentication failures should create a repair issue for the user."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+
+    with pytest.raises(ConfigEntryAuthFailed):
+        await async_setup_entry(hass, config_entry)
+
+    issue_registry = ir.async_get(hass)
+    issue = issue_registry.async_get_issue(DOMAIN, f"credentials_{config_entry.entry_id}")
+    assert issue is not None
+    assert issue.is_fixable is True
 
 
 async def test_auth_timeout(hass, timeout_sensor_client):
