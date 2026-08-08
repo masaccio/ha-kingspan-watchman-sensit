@@ -177,6 +177,36 @@ async def test_options_flow(hass, bypass_get_data):
     }
 
 
+async def test_reconfigure_credentials_invalid(hass):
+    """Reconfigure should stay on the form when credential validation fails."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_RECONFIGURE, "entry_id": config_entry.entry_id},
+    )
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    with patch(
+        "custom_components.kingspan_watchman_sensit.config_flow.SENSiTApiClient.async_get_data",
+        side_effect=Exception,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME],
+                CONF_PASSWORD: "bad-password",
+                CONF_NAME: MOCK_CONFIG[CONF_NAME],
+            },
+        )
+
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"] == {"base": "auth"}
+
+
 async def test_reconfigure_updates_entry_and_aborts(hass, bypass_get_data):
     """Reconfigure should update the entry data and finish the flow."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
