@@ -5,10 +5,11 @@ import logging
 import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import TypedDict, cast
 
 from async_timeout import timeout
 from connectsensor import __version__ as api_version
-from connectsensor.client import APIVersion, AsyncSensorClient  # type: ignore
+from connectsensor.client import APIVersion, AsyncSensorClient
 from connectsensor.exceptions import (
     KingspanAPIError,
     KingspanInvalidCredentialsError,
@@ -23,6 +24,13 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 _LOGGER.debug("AsyncSensorClient loaded from %s", inspect.getfile(AsyncSensorClient))
 
 
+class TankHistoryPoint(TypedDict):
+    """Single point of tank history returned by the Kingspan API."""
+
+    level_litres: float
+    reading_date: datetime
+
+
 @dataclass
 class TankData:
     level: float = 0.0
@@ -31,7 +39,7 @@ class TankData:
     name: str = ""
     capacity: float = 0.0
     last_read: datetime | None = None
-    history: list[dict] | None = None
+    history: list[TankHistoryPoint] | None = None
     usage_rate: float = 0.0
     forecast_empty: float = 0.0
 
@@ -42,7 +50,7 @@ class SENSiTApiClient:
         username: str,
         password: str,
         usage_window: int = DEFAULT_USAGE_WINDOW,
-        debug=False,
+        debug: bool = False,
     ) -> None:
         """Simple API Client for ."""
         _LOGGER.debug("API init as username=%s [API version %s]", username, api_version)
@@ -99,7 +107,7 @@ class SENSiTApiClient:
         async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
-            self.data = []
+            self.data: list[TankData] = []
             for tank in tanks:
                 tank_data = TankData()
                 tank_data.level = await tank.level
@@ -130,14 +138,14 @@ class SENSiTApiClient:
                 self.data.append(tank_data)
             return self.data
 
-    def usage_rate(self, tank_data: TankData):
+    def usage_rate(self, tank_data: TankData) -> float:
         history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
-            return 0
+            return 0.0
 
-        delta_levels = []
+        delta_levels: list[float] = []
         current_level = history[0]["level_litres"]
-        for _, row in enumerate(history[1:]):
+        for row in history[1:]:
             # Ignore refill days where oil goes up significantly
             if current_level != 0 and (row["level_litres"] / current_level) < REFILL_THRESHOLD:
                 delta_levels.append(current_level - row["level_litres"])
@@ -146,10 +154,9 @@ class SENSiTApiClient:
 
         if len(delta_levels) > 0:
             return sum(delta_levels) / len(delta_levels)
-        else:  # pragma: no cover
-            return 0
+        return 0.0
 
-    def forecast_empty(self, tank_data: TankData):
+    def forecast_empty(self, tank_data: TankData) -> int:
         history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
             return 0
@@ -158,15 +165,22 @@ class SENSiTApiClient:
         if rate == 0:  # pragma: no cover
             # Avoid divide by zero in corner case of no usage
             return 0
-        else:
-            current_level = int(history[-1]["level_litres"])
-            return int(current_level / abs(rate))
+
+        current_level = int(history[-1]["level_litres"])
+        return int(current_level / abs(rate))
 
 
-def filter_history(history: list[dict], usage_window) -> list[dict]:
-    """Filter tank history to a smaller recent window of days"""
+def filter_history(
+    history: list[TankHistoryPoint] | None, usage_window: int
+) -> list[TankHistoryPoint]:
+    """Filter tank history to a smaller recent window of days."""
+    if history is None:
+        return []
+
     time_delta = as_local(datetime.today() - timedelta(days=usage_window))
     # API returns naive datetime rather than with timezones
-    history = [dict(x, reading_date=as_local(x["reading_date"])) for x in history]
-    history = [x for x in history if x["reading_date"] >= time_delta]
-    return history
+    filtered_history: list[TankHistoryPoint] = []
+    for point in history:
+        converted = {**point, "reading_date": as_local(point["reading_date"])}
+        filtered_history.append(cast(TankHistoryPoint, converted))
+    return [point for point in filtered_history if point["reading_date"] >= time_delta]

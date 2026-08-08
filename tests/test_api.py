@@ -1,11 +1,21 @@
 """Tests for Kingspan Watchman SENSiT api."""
 
 import asyncio
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import get_type_hints
 
 import pandas as pd
 import pytest
 from connectsensor import KingspanAPIError
-from custom_components.kingspan_watchman_sensit.api import SENSiTApiClient
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTApiClient,
+    TankData,
+    TankHistoryPoint,
+    filter_history,
+)
 from homeassistant.util.dt import as_local, set_default_time_zone
 from httpx import TimeoutException as httpxTimeoutException
 from tzlocal import get_localzone
@@ -87,6 +97,60 @@ async def test_api_filtering(mock_sensor_client):
     api = SENSiTApiClient("test", "test", 5)
     tank_data = await api.async_get_data()
     assert int(tank_data[0].usage_rate) == 100.0
+
+
+def test_api_type_annotations():
+    """Assert the strict typing contract remains explicit and stable."""
+    tank_annotations = get_type_hints(TankData)
+    assert tank_annotations["history"] == list[TankHistoryPoint] | None
+
+    filter_annotations = get_type_hints(filter_history)
+    assert filter_annotations["history"] == list[TankHistoryPoint] | None
+    assert filter_annotations["usage_window"] == int
+
+    method_annotations = get_type_hints(SENSiTApiClient.usage_rate)
+    assert method_annotations["return"] is float
+
+    forecast_annotations = get_type_hints(SENSiTApiClient.forecast_empty)
+    assert forecast_annotations["return"] is int
+
+
+def test_api_no_history_zero_usage():
+    """Exercise the no-history and zero-usage edge cases for coverage."""
+    api = SENSiTApiClient("test", "test")
+
+    assert filter_history(None, 14) == []
+
+    tank_data = TankData(
+        history=[
+            {
+                "reading_date": datetime.now(),
+                "level_litres": 100.0,
+            }
+        ]
+    )
+    assert api.usage_rate(tank_data) == 0.0
+    assert api.forecast_empty(tank_data) == 0
+
+
+def test_project_type_check():
+    """Ensure project code passes the configured mypy check."""
+    project_root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mypy",
+            "custom_components/kingspan_watchman_sensit",
+            "--config-file",
+            str(project_root / "pyproject.toml"),
+        ],
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.asyncio

@@ -50,9 +50,9 @@ async def async_setup_entry(
 class OilLevel(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge"
     _attr_name: str | None = "Oil Level"
-    _attr_device_class = SensorDeviceClass.VOLUME_STORAGE
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = UnitOfVolume.LITERS
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME_STORAGE
+    _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
 
     @property
     def native_value(self):
@@ -71,8 +71,8 @@ class OilLevel(SENSiTEntity, SensorEntity):
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     _attr_name: str | None = "Tank Percentage Full"
-    _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_state_class = SensorStateClass.TOTAL
+    _attr_native_unit_of_measurement: str | None = PERCENTAGE
+    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -95,9 +95,9 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
 class TankCapacity(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Tank Capacity"
-    _attr_device_class: SensorStateClass | str | None = SensorDeviceClass.VOLUME
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
+    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -110,9 +110,9 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 
 
 class LastReadDate(SENSiTEntity, SensorEntity):
-    _attr_icon = "mdi:clock-outline"
-    _attr_name = "Last Reading Date"
-    _attr_device_class: SensorStateClass | str | None = SensorDeviceClass.TIMESTAMP
+    _attr_icon: str | None = "mdi:clock-outline"
+    _attr_name: str | None = "Last Reading Date"
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.TIMESTAMP
 
     @property
     def native_value(self):
@@ -124,9 +124,9 @@ class LastReadDate(SENSiTEntity, SensorEntity):
 class CurrentUsage(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Current Usage"
-    _attr_device_class: SensorStateClass | str | None = SensorDeviceClass.VOLUME
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
     _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
+    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
 
     @property
     def native_value(self):
@@ -140,7 +140,7 @@ class ForecastEmpty(SENSiTEntity, SensorEntity):
     _attr_icon: str | None = "mdi:calendar"
     _attr_name: str | None = "Forecast Empty"
     _attr_native_unit_of_measurement: str | None = UnitOfTime.DAYS
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.MEASUREMENT
+    _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
@@ -155,9 +155,9 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Current Energy Usage"
-    _attr_device_class: SensorDeviceClass | str | None = SensorDeviceClass.ENERGY
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL
+    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
 
     def __init__(self, coordinator, config_entry, idx):
         super().__init__(coordinator, config_entry, idx)
@@ -182,8 +182,8 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Oil Consumption"
     _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class: SensorStateClass | str | None = SensorStateClass.TOTAL_INCREASING
-    _attr_device_class: SensorDeviceClass | str | None = SensorDeviceClass.ENERGY
+    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL_INCREASING
+    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY
 
     def __init__(self, coordinator, config_entry, idx):
         super().__init__(coordinator, config_entry, idx)
@@ -239,13 +239,12 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
         return Decimal(f"{self._consumption_total:.1f}")
 
 
-def tank_icon(level: int, capacity: int) -> str:
-    percent_full = level / capacity
+def tank_icon(level: float, capacity: float) -> str:
+    percent_full = level / capacity if capacity else 0.0
     if percent_full >= 0.75:
         return "mdi:gauge-full"
-    elif percent_full >= 0.5:
+    if percent_full >= 0.5:
         return "mdi:gauge"
-    elif percent_full >= 0.25:
+    if percent_full >= 0.25:
         return "mdi:gauge-low"
-    else:
-        return "mdi:gauge-empty"
+    return "mdi:gauge-empty"

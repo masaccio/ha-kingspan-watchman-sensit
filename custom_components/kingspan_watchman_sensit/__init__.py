@@ -18,10 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
-from .api import (
-    KingspanAPIError,  # type: ignore[reportAttributeAccessIssue]
-    SENSiTApiClient,
-)
+from .api import KingspanAPIError, SENSiTApiClient
 from .const import (
     CONF_KINGSPAN_DEBUG,
     CONF_PASSWORD,
@@ -45,12 +42,12 @@ TO_REDACT = [
 ]
 
 
-async def async_setup(hass: HomeAssistant, config: Config):
+async def async_setup(hass: HomeAssistant, config: Config) -> bool:
     """Set up this integration using YAML is not supported."""
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})

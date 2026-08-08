@@ -38,7 +38,9 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize."""
         self._errors = {}
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         self._errors = {}
 
@@ -93,7 +95,9 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return OptionsFlowHandler()
 
-    async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
+    async def _show_config_form(
+        self, user_input: dict[str, Any] | None
+    ) -> config_entries.ConfigFlowResult:  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
         return self.async_show_form(
             step_id="user",
@@ -107,7 +111,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def _test_credentials(self, username, password):
+    async def _test_credentials(self, username: str, password: str) -> bool:
         """Return true if credentials is valid."""
         try:
             client = SENSiTApiClient(username, password)

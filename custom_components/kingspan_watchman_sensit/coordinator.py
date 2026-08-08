@@ -13,7 +13,7 @@ from .const import DOMAIN
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
-class SENSiTDataUpdateCoordinator(DataUpdateCoordinator):
+class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
     """Class to manage fetching data from the API."""
 
     def __init__(
