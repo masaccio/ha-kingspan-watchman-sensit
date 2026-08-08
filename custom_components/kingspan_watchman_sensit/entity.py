@@ -14,6 +14,8 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 class SENSiTEntity(CoordinatorEntity[SENSiTDataUpdateCoordinator]):
+    """Common entity behavior for Kingspan Watchman SENSiT sensors."""
+
     _attr_has_entity_name = True
 
     def __init__(

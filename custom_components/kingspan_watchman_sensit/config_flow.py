@@ -116,7 +116,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_reauth(
-        self, user_input: dict[str, Any] | None = None
+        self, _user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Perform reauth upon an API authentication error."""
         self.reauth_entry = self._get_reauth_entry()
@@ -125,6 +125,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
+        """Confirm the re-authentication flow."""
         _LOGGER.debug("reauth flow started")
         if user_input is not None:
             return await self.async_step_user()
@@ -139,10 +140,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_config_form(
         self,
-        user_input: dict[str, Any] | None,
+        _user_input: dict[str, Any] | None,
         step_id: str = "user",
         defaults: dict[str, Any] | None = None,
-    ) -> config_entries.ConfigFlowResult:  # pylint: disable=unused-argument
+    ) -> config_entries.ConfigFlowResult:
         """Show the configuration form to edit location data."""
         defaults = defaults or {}
         return self.async_show_form(
@@ -159,6 +160,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=self._errors,
         )
+
+    def is_matching(self, other_flow: object) -> bool:
+        """Return whether this flow matches another flow."""
+        return False
 
     async def _test_credentials(self, username: str, password: str) -> bool:
         """Return true if credentials is valid."""

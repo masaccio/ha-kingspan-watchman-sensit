@@ -50,6 +50,7 @@ async def async_setup_entry(
 
 class OilLevel(SENSiTEntity, SensorEntity):
     """Sensor that reports the current oil volume."""
+
     _attr_icon: str | None = "mdi:gauge"
     _attr_name: str | None = "Oil Level"
     _attr_translation_key = "oil_level"
@@ -74,6 +75,7 @@ class OilLevel(SENSiTEntity, SensorEntity):
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
     """Sensor that reports how full the tank is as a percentage."""
+
     _attr_name: str | None = "Tank Percentage Full"
     _attr_translation_key = "tank_percentage_full"
     _attr_native_unit_of_measurement: str | None = PERCENTAGE
@@ -99,6 +101,7 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
 
 class TankCapacity(SENSiTEntity, SensorEntity):
     """Sensor that reports the tank capacity."""
+
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Tank Capacity"
     _attr_translation_key = "tank_capacity"
@@ -119,6 +122,7 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 
 class LastReadDate(SENSiTEntity, SensorEntity):
     """Sensor that reports when the data was last read."""
+
     _attr_icon: str | None = "mdi:clock-outline"
     _attr_name: str | None = "Last Reading Date"
     _attr_translation_key = "last_reading_date"
@@ -134,6 +138,7 @@ class LastReadDate(SENSiTEntity, SensorEntity):
 
 class CurrentUsage(SENSiTEntity, SensorEntity):
     """Sensor that reports the current usage rate."""
+
     _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Current Usage"
     _attr_translation_key = "current_usage"
@@ -152,6 +157,7 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
 
 class ForecastEmpty(SENSiTEntity, SensorEntity):
     """Sensor that reports the forecast days until the tank is empty."""
+
     _attr_icon: str | None = "mdi:calendar"
     _attr_name: str | None = "Forecast Empty"
     _attr_translation_key = "forecast_empty"
@@ -200,6 +206,7 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     """Sensor that tracks cumulative energy consumption."""
+
     _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Oil Consumption"
     _attr_translation_key = "oil_consumption"

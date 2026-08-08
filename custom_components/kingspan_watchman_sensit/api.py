@@ -1,5 +1,7 @@
 """Sample API Client."""
 
+# pylint: disable=too-many-instance-attributes
+
 import inspect
 import logging
 import traceback
@@ -31,8 +33,10 @@ class TankHistoryPoint(TypedDict):
     reading_date: datetime
 
 
-@dataclass
+@dataclass(slots=True)
 class TankData:
+    """Structured tank data returned by the Kingspan API."""
+
     level: float = 0.0
     serial_number: str = ""
     model: str = ""
@@ -44,7 +48,10 @@ class TankData:
     forecast_empty: float = 0.0
 
 
+# pylint: disable=too-many-instance-attributes
 class SENSiTApiClient:
+    """Small wrapper around the Kingspan Connect Sensor API."""
+
     def __init__(
         self,
         username: str,
@@ -57,6 +64,7 @@ class SENSiTApiClient:
         self._username = username
         self._password = password
         self._usage_window = usage_window
+        self.data: list[TankData] = []
         if debug:
             _LOGGER.debug("Enabling API debug")
             connectsensor_logger = logging.getLogger("connectsensor")
@@ -67,11 +75,11 @@ class SENSiTApiClient:
         try:
             async with timeout(API_TIMEOUT):
                 return await self._get_tank_data()
-        except (KingspanAPIError, KingspanInvalidCredentialsError) as e:
+        except (KingspanTimeoutError, KingspanInvalidCredentialsError, KingspanAPIError) as e:
             msg = f"API error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
             raise KingspanAPIError(msg) from e
-        except (TimeoutError, httpxTimeoutException, KingspanTimeoutError) as e:
+        except (TimeoutError, httpxTimeoutException) as e:
             msg = f"Timeout error fetching data for {self._username}: {e}"
             _LOGGER.error(msg)
             raise KingspanAPIError(msg) from None
@@ -87,11 +95,11 @@ class SENSiTApiClient:
             async with timeout(API_TIMEOUT):
                 async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
                     await client.login(self._username, self._password)
-        except (KingspanAPIError, KingspanInvalidCredentialsError) as e:
+        except (KingspanTimeoutError, KingspanInvalidCredentialsError, KingspanAPIError) as e:
             msg = f"API error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
             return False
-        except (TimeoutError, httpxTimeoutException, KingspanTimeoutError) as e:
+        except (TimeoutError, httpxTimeoutException) as e:
             msg = f"Timeout error logging in as {self._username}: {e}"
             _LOGGER.error(msg)
             return False
@@ -103,11 +111,12 @@ class SENSiTApiClient:
         return True
 
     async def _get_tank_data(self) -> list[TankData]:
+        """Fetch and parse all tank data from the API."""
         _LOGGER.debug("Fetching tank data with username=%s", self._username)
         async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
-            self.data: list[TankData] = []
+            self.data = []
             for tank in tanks:
                 tank_data = TankData()
                 tank_data.level = await tank.level
@@ -139,6 +148,7 @@ class SENSiTApiClient:
             return self.data
 
     def usage_rate(self, tank_data: TankData) -> float:
+        """Calculate the average usage rate over the configured window."""
         history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
             return 0.0
@@ -157,6 +167,7 @@ class SENSiTApiClient:
         return 0.0
 
     def forecast_empty(self, tank_data: TankData) -> int:
+        """Estimate how many days until the tank is empty."""
         history = filter_history(tank_data.history, self._usage_window)
         if len(history) == 0:
             return 0
