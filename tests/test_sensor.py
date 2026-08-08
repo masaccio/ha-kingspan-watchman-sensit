@@ -95,6 +95,31 @@ async def test_sensor_with_utc(hass, mock_sensor_client):
     await run_sensor_test_with_timezone(hass, "UTC")
 
 
+async def test_current_energy_usage(hass, mock_sensor_client):
+    """Test current energy usage sensor."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_registry = er.async_get(hass)
+    entity_registry.async_update_entity(
+        "sensor.tanky_mctankface_current_energy_usage",
+        disabled_by=None,
+    )
+    await hass.config_entries.async_reload(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.tanky_mctankface_current_energy_usage")
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    assert state is not None
+    assert state.state == str(round(coordinator.data[0].usage_rate * DEFAULT_OIL_ENERGY_DENSITY, 1))
+    assert state.attributes.get(ATTR_ICON) == "mdi:fire"
+
+    assert await async_unload_entry(hass, config_entry)
+
+
 async def test_oil_consumption(hass, mock_sensor_client):
     """Test oil consumption read too early."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)

@@ -77,9 +77,11 @@ async def test_auth_errors(hass, bypass_get_data):
     # Create a mock entry so we don't have to go through config flow
     config_entry = MockConfigEntry(domain=DOMAIN, data={"username": None}, entry_id="test")
 
-    with pytest.raises(ConfigEntryAuthFailed):
+    with pytest.raises(ConfigEntryAuthFailed) as e:
         assert await async_setup_entry(hass, config_entry)
 
+    assert e.value.translation_domain == DOMAIN
+    assert e.value.translation_key == "credentials_not_set"
     assert DOMAIN in hass.data and config_entry.entry_id not in hass.data[DOMAIN]
 
 
@@ -90,6 +92,8 @@ async def test_auth_exception(hass, error_sensor_client):
     with pytest.raises(ConfigEntryAuthFailed) as e:
         assert await async_setup_entry(hass, config_entry)
     assert "Credentials invalid" in str(e)
+    assert e.value.translation_domain == DOMAIN
+    assert e.value.translation_key == "credentials_invalid"
 
 
 async def test_auth_timeout(hass, timeout_sensor_client):
@@ -99,6 +103,8 @@ async def test_auth_timeout(hass, timeout_sensor_client):
     with pytest.raises(ConfigEntryNotReady) as e:
         assert await async_setup_entry(hass, config_entry)
     assert "Timed out while connecting to Kingspan service" in str(e)
+    assert e.value.translation_domain == DOMAIN
+    assert e.value.translation_key == "timed_out"
 
 
 async def test_auth_no_tank_data(hass, error_no_tank_data, caplog):

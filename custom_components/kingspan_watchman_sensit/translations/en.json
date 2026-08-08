@@ -1,4 +1,15 @@
 {
+  "exceptions": {
+    "credentials_invalid": {
+      "message": "The provided Kingspan credentials are invalid."
+    },
+    "credentials_not_set": {
+      "message": "The Kingspan credentials have not been configured."
+    },
+    "timed_out": {
+      "message": "Timed out while connecting to the Kingspan service."
+    }
+  },
   "config": {
     "step": {
       "user": {

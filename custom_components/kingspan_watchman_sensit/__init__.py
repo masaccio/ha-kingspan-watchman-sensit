@@ -58,7 +58,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     kingspan_debug = config_entry.options.get(CONF_KINGSPAN_DEBUG, False)
 
     if username is None or not username:
-        raise ConfigEntryAuthFailed("Credentials not set")
+        raise ConfigEntryAuthFailed(
+            "Credentials not set",
+            translation_domain=DOMAIN,
+            translation_key="credentials_not_set",
+        )
 
     client = SENSiTApiClient(username, str(password), usage_window, kingspan_debug)
     try:
@@ -68,10 +72,18 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             _LOGGER.warning("No data available for username '%s'", username)
             return False
         _LOGGER.debug("Credentials check for username '%s' failed: %s", username, e)
-        raise ConfigEntryAuthFailed("Credentials invalid") from e
+        raise ConfigEntryAuthFailed(
+            "Credentials invalid",
+            translation_domain=DOMAIN,
+            translation_key="credentials_invalid",
+        ) from e
     except builtins.TimeoutError as e:
         _LOGGER.debug("Credentials check for username '%s' timed out: %s", username, e)
-        raise ConfigEntryNotReady("Timed out while connecting to Kingspan service") from e
+        raise ConfigEntryNotReady(
+            "Timed out while connecting to Kingspan service",
+            translation_domain=DOMAIN,
+            translation_key="timed_out",
+        ) from e
 
     if not credentials_ok:
         _LOGGER.warning("No data available for username '%s'", username)

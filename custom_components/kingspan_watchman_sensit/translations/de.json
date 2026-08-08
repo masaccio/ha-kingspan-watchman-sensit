@@ -1,4 +1,15 @@
 {
+  "exceptions": {
+    "credentials_invalid": {
+      "message": "Die angegebenen Kingspan-Anmeldedaten sind ungültig."
+    },
+    "credentials_not_set": {
+      "message": "Die Kingspan-Anmeldedaten wurden noch nicht konfiguriert."
+    },
+    "timed_out": {
+      "message": "Zeitüberschreitung beim Verbinden mit dem Kingspan-Dienst."
+    }
+  },
   "config": {
     "step": {
       "user": {
