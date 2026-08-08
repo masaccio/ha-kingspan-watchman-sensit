@@ -7,7 +7,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import TankData
 from .const import ATTRIBUTION, DOMAIN, MANUFACTURER, MODEL
 from .coordinator import SENSiTDataUpdateCoordinator
 
