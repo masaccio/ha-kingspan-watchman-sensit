@@ -1,4 +1,10 @@
 {
+  "issues": {
+    "auth_failed": {
+      "title": "Kingspan credentials need attention",
+      "description": "The Kingspan Watchman SENSiT entry {title} could not authenticate. Reconfigure the entry to update the credentials and restore updates."
+    }
+  },
   "exceptions": {
     "credentials_invalid": {
       "message": "The provided Kingspan credentials are invalid."

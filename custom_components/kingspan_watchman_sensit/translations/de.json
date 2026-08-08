@@ -1,4 +1,10 @@
 {
+"issues": {
+    "auth_failed": {
+      "title": "Kingspan-Anmeldedaten ungültig",
+      "description": "Der Eintrag {title} für Kingspan Watchman SENSiT konnte sich nicht authentifizieren. Konfiguriere den Eintrag neu, um die Anmeldedaten zu aktualisieren und Updates wiederherzustellen."
+    }
+  },
   "exceptions": {
     "credentials_invalid": {
       "message": "Die angegebenen Kingspan-Anmeldedaten sind ungültig."
