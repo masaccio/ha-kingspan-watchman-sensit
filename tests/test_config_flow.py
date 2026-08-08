@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest_asyncio
 from custom_components.kingspan_watchman_sensit import async_setup_entry
+from custom_components.kingspan_watchman_sensit.config_flow import SENSiTFlowHandler
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
     DEFAULT_OIL_ENERGY_DENSITY,
@@ -56,6 +57,14 @@ async def test_successful_config_flow(hass, bypass_get_data):
     assert result["title"] == "test@example.com"
     assert result["data"] == MOCK_CONFIG
     assert result["result"]
+
+
+def test_flow_matching_is_never_true():
+    """The flow helper should report no match for unrelated flows."""
+    flow = SENSiTFlowHandler()
+
+    assert not flow.is_matching(object())
+    assert not flow.is_matching(SENSiTFlowHandler())
 
 
 async def test_failed_config_flow(hass, error_on_get_data):
