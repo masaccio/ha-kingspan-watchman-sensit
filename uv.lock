@@ -3,10 +3,10 @@ revision = 3
 requires-python = ">=3.14.2"
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'win32'",
-    "python_full_version < '3.15' and sys_platform == 'win32'",
     "python_full_version >= '3.15' and sys_platform == 'emscripten'",
-    "python_full_version < '3.15' and sys_platform == 'emscripten'",
     "python_full_version >= '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version < '3.15' and sys_platform == 'win32'",
+    "python_full_version < '3.15' and sys_platform == 'emscripten'",
     "python_full_version < '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
@@ -364,11 +364,11 @@ wheels = [
 
 [[package]]
 name = "asyncio"
-version = "3.4.3"
+version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/da/54/054bafaf2c0fb8473d423743e191fcdf49b2c1fd5e9af3524efbe097bafd/asyncio-3.4.3.tar.gz", hash = "sha256:83360ff8bc97980e4ff25c964c7bd3923d333d177aa4f7fb736b019f26c7cb41", size = 204411, upload-time = "2015-03-10T14:11:26.494Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/71/ea/26c489a11f7ca862d5705db67683a7361ce11c23a7b98fc6c2deaeccede2/asyncio-4.0.0.tar.gz", hash = "sha256:570cd9e50db83bc1629152d4d0b7558d6451bb1bfd5dfc2e935d96fc2f40329b", size = 5371, upload-time = "2025-08-05T02:51:46.605Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/74/07679c5b9f98a7cb0fc147b1ef1cc1853bc07a4eb9cb5731e24732c5f773/asyncio-3.4.3-py3-none-any.whl", hash = "sha256:c4d18b22701821de07bd6aea8b53d21449ec0ec5680645e5317062ea21817d2d", size = 101767, upload-time = "2015-03-10T14:05:10.959Z" },
+    { url = "https://files.pythonhosted.org/packages/57/64/eff2564783bd650ca25e15938d1c5b459cda997574a510f7de69688cb0b4/asyncio-4.0.0-py3-none-any.whl", hash = "sha256:c1eddb0659231837046809e68103969b2bef8b0400d59cfa6363f6b5ed8cc88b", size = 5555, upload-time = "2025-08-05T02:51:45.767Z" },
 ]
 
 [[package]]
@@ -1052,7 +1052,7 @@ wheels = [
 
 [[package]]
 name = "ha-kingspan-connect-sensor"
-version = "2.1.0"
+version = "2.0.2"
 source = { virtual = "." }
 dependencies = [
     { name = "async-property" },
@@ -1084,7 +1084,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.6.4" },
-    { name = "kingspan-connect-sensor", specifier = "==4.2.0" },
+    { name = "kingspan-connect-sensor", specifier = "==4.2.1" },
     { name = "mypy", specifier = ">=2.3.0" },
     { name = "pylint", specifier = ">=4.0.6" },
     { name = "voluptuous", specifier = ">=0.15.2" },
@@ -1358,7 +1358,7 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.2.0"
+version = "4.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
@@ -1370,9 +1370,9 @@ dependencies = [
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/4e/bd305637b5fb8c9a2ea8dd7b40f43dc13e2af269cd4dc44b3f69510eafcd/kingspan_connect_sensor-4.2.0.tar.gz", hash = "sha256:ad55da52beb7d9d0374e12c0add8960f8b6f1d06929ce71241006b7dcccef839", size = 16226, upload-time = "2026-03-31T09:40:03.53Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/f4/68bccdd2709a65320f9f85e02a9adade3987581de93dca956f76fafa8294/kingspan_connect_sensor-4.2.1.tar.gz", hash = "sha256:3b5f2b44354b500a3b3b92d20bc1f0188e7420ce7b202d73bd2af0c894bb0f89", size = 14984, upload-time = "2026-08-18T11:16:48.66Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/df/81/a70420ee9faa7085c902e1e42e9ca4b48dfa4646b4ac1e183b7ce0245615/kingspan_connect_sensor-4.2.0-py3-none-any.whl", hash = "sha256:d71de4b4f401e045b95dcaee2535b284caed5fca41e5b99767b0465c3227b9d4", size = 17353, upload-time = "2026-03-31T09:40:02.621Z" },
+    { url = "https://files.pythonhosted.org/packages/44/65/ef94c835e3016272027057054d6e0e03a6ed05e24d3516f88b032e840d00/kingspan_connect_sensor-4.2.1-py3-none-any.whl", hash = "sha256:ccc5580c07063c681a90d89c977a954fb8d09073b47e2b75aa7c55e0551a6fad", size = 12420, upload-time = "2026-08-18T11:16:47.502Z" },
 ]
 
 [[package]]

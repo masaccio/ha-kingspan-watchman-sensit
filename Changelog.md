@@ -3,10 +3,13 @@
 🪲 indicates bug fixes
 🚀 indicates new features or improvements
 
+## v2.0.2
+
+🪲 Fixed API tokens [issue-80](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/80) with latest API library.
+
 ## v2.0.1
 
 🪲 Fixed translations [issue-67](https://github.com/masaccio/ha-kingspan-watchman-sensit/issues/67) which caused errors in Home Assistant.
-
 
 ## v2.0.0
 
