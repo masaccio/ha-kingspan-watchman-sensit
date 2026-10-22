@@ -27,4 +27,4 @@ REFILL_THRESHOLD = 1.1  # factor considered a tank refill
 DEFAULT_TANK_NAME = "My Tank"
 DEFAULT_USAGE_WINDOW = 14  # days
 DEFAULT_UPDATE_INTERVAL = 8  # hours
-DEFAULT_OIL_ENERGY_DENSITY = 9.8  # kwH per litre
+DEFAULT_OIL_ENERGY_DENSITY = 9.8  # kWh per litre
