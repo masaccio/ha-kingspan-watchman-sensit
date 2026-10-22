@@ -1,22 +1,30 @@
 """Sensor platform for Kingspan Watchman SENSiT."""
 
+# pylint: disable=unexpected-keyword-arg
+
+from __future__ import annotations
+
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime, UnitOfVolume
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfEnergy, UnitOfTime, UnitOfVolume
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_OIL_ENERGY_DENSITY, DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
+from .api import TankData
+from .const import CONF_OIL_ENERGY_DENSITY, DEFAULT_OIL_ENERGY_DENSITY
+from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -24,225 +32,200 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 PARALLEL_UPDATES = 0
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Setup sensor platform."""
-    _LOGGER.debug("Adding sensor entities")
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    entities: list[SensorEntity] = []
-    for idx in range(len(coordinator.data)):
-        entities += [
-            OilLevel(coordinator, config_entry, idx),
-            TankPercentageFull(coordinator, config_entry, idx),
-            TankCapacity(coordinator, config_entry, idx),
-            LastReadDate(coordinator, config_entry, idx),
-            CurrentUsage(coordinator, config_entry, idx),
-            ForecastEmpty(coordinator, config_entry, idx),
-            CurrentEnergyUsage(coordinator, config_entry, idx),
-            OilConsumption(coordinator, config_entry, idx),
-        ]
-    async_add_entities(entities)
-
-
-class OilLevel(SENSiTEntity, SensorEntity):
-    """Sensor that reports the current oil volume."""
-
-    _attr_name: str | None = "Oil Level"
-    _attr_translation_key = "oil_level"
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME_STORAGE
-    _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
-
-    @property
-    def native_value(self):
-        """Return the oil level in litres"""
-        _LOGGER.debug("Read oil level: %d litres", self.coordinator.data[self.idx].level)
-        return self.coordinator.data[self.idx].level
-
-
-class TankPercentageFull(SENSiTEntity, SensorEntity):
-    """Sensor that reports how full the tank is as a percentage."""
-
-    _attr_name: str | None = "Tank Percentage Full"
-    _attr_translation_key = "tank_percentage_full"
-    _attr_native_unit_of_measurement: str | None = PERCENTAGE
-    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
-
-    @property
-    def native_value(self):
-        """Return the oil level as a percentage"""
-        percent_full = 100 * (
-            self.coordinator.data[self.idx].level / self.coordinator.data[self.idx].capacity
-        )
-        _LOGGER.debug("Read oil level: %.1f percent", percent_full)
-        return Decimal(f"{percent_full:.1f}")
-
-
-class TankCapacity(SENSiTEntity, SensorEntity):
-    """Sensor that reports the tank capacity."""
-
-    _attr_name: str | None = "Tank Capacity"
-    _attr_translation_key = "tank_capacity"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
-    _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
-    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
-
-    @property
-    def native_value(self):
-        """Return the tank capacity in litres"""
-        _LOGGER.debug(
-            "Read tank capacity: %d litres",
-            self.coordinator.data[self.idx].capacity,
-        )
-        return self.coordinator.data[self.idx].capacity
-
-
-class LastReadDate(SENSiTEntity, SensorEntity):
-    """Sensor that reports when the data was last read."""
-
-    _attr_name: str | None = "Last Reading Date"
-    _attr_translation_key = "last_reading_date"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.TIMESTAMP
-
-    @property
-    def native_value(self):
-        """Return date of the last reading"""
-        _LOGGER.debug("Tank last read %s", str(self.coordinator.data[self.idx].last_read))
-        return self.coordinator.data[self.idx].last_read
-
-
-class CurrentUsage(SENSiTEntity, SensorEntity):
-    """Sensor that reports the current usage rate."""
-
-    _attr_name: str | None = "Current Usage"
-    _attr_translation_key = "current_usage"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME
-    _attr_native_unit_of_measurement: str | None = UnitOfVolume.LITERS
-    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
-
-    @property
-    def native_value(self):
-        """Return the usage in the last day in litres"""
-        current_usage = self.coordinator.data[self.idx].usage_rate
-        _LOGGER.debug("Current oil usage %d litres/day", current_usage)
-        return Decimal(f"{current_usage:.1f}")
-
-
-class ForecastEmpty(SENSiTEntity, SensorEntity):
-    """Sensor that reports the forecast days until the tank is empty."""
-
-    _attr_name: str | None = "Forecast Empty"
-    _attr_translation_key = "forecast_empty"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_native_unit_of_measurement: str | None = UnitOfTime.DAYS
-    _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
-
-    @property
-    def native_value(self):
-        """Return the number of days to empty"""
-        empty_days = self.coordinator.data[self.idx].forecast_empty
-        _LOGGER.debug("Tank forecast empty %d days", empty_days)
-        return empty_days
-
-
-class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
-    """Oil consumption in kWh from litres/day sensor."""
-
-    _attr_name: str | None = "Current Energy Usage"
-    _attr_translation_key = "current_energy_usage"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_entity_registry_enabled_default = False
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL
-
-    def __init__(self, coordinator, config_entry, idx):
-        super().__init__(coordinator, config_entry, idx)
-        self._config_entry = config_entry
-
-    @property
-    def native_value(self) -> float | None:
-        """Return energy usage in kWh from litres/day data."""
-        litres_per_day = self.coordinator.data[self.idx].usage_rate
-        energy_density = self._config_entry.options.get(
+def _get_energy_density(config_entry: SENSiTConfigEntry) -> float:
+    """Return configured oil energy density."""
+    return float(
+        config_entry.options.get(
             CONF_OIL_ENERGY_DENSITY,
-            self._config_entry.data.get(
+            config_entry.data.get(
                 CONF_OIL_ENERGY_DENSITY,
                 DEFAULT_OIL_ENERGY_DENSITY,
             ),
         )
-        kwh_per_day = float(litres_per_day * energy_density)
-        return round(kwh_per_day, 1)
+    )
 
 
-class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
+@dataclass(frozen=True, kw_only=True)
+class SENSiTSensorEntityDescription(SensorEntityDescription):
+    """Describes a Kingspan Watchman SENSiT sensor entity."""
+
+    value_fn: Callable[[TankData, SENSiTConfigEntry], float | int | Decimal | datetime | None]
+
+
+SENSOR_DESCRIPTIONS: tuple[SENSiTSensorEntityDescription, ...] = (
+    SENSiTSensorEntityDescription(
+        key="oil_level",
+        translation_key="oil_level",
+        device_class=SensorDeviceClass.VOLUME_STORAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        suggested_display_precision=0,
+        value_fn=lambda tank, _: tank.level,
+    ),
+    SENSiTSensorEntityDescription(
+        key="tank_percentage_full",
+        translation_key="tank_percentage_full",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        value_fn=lambda tank, _: (
+            Decimal(f"{100 * (tank.level / tank.capacity):.1f}")
+            if tank.capacity > 0
+            else Decimal("0.0")
+        ),
+    ),
+    SENSiTSensorEntityDescription(
+        key="tank_capacity",
+        translation_key="tank_capacity",
+        device_class=SensorDeviceClass.VOLUME_STORAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        suggested_display_precision=0,
+        value_fn=lambda tank, _: tank.capacity,
+    ),
+    SENSiTSensorEntityDescription(
+        key="last_reading_date",
+        translation_key="last_reading_date",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda tank, _: tank.last_read,
+    ),
+    SENSiTSensorEntityDescription(
+        key="current_usage",
+        translation_key="current_usage",
+        device_class=SensorDeviceClass.VOLUME,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        state_class=SensorStateClass.TOTAL,
+        suggested_display_precision=1,
+        value_fn=lambda tank, _: Decimal(f"{tank.usage_rate:.1f}"),
+    ),
+    SENSiTSensorEntityDescription(
+        key="forecast_empty",
+        translation_key="forecast_empty",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda tank, _: tank.forecast_empty,
+    ),
+    SENSiTSensorEntityDescription(
+        key="current_energy_usage",
+        translation_key="current_energy_usage",
+        entity_registry_enabled_default=False,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        suggested_display_precision=1,
+        value_fn=lambda tank, entry: round(float(tank.usage_rate * _get_energy_density(entry)), 1),
+    ),
+)
+
+OIL_CONSUMPTION_DESCRIPTION = SensorEntityDescription(
+    key="oil_consumption",
+    translation_key="oil_consumption",
+    entity_registry_enabled_default=False,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    device_class=SensorDeviceClass.ENERGY,
+    suggested_display_precision=1,
+)
+
+
+async def async_setup_entry(
+    _hass: HomeAssistant,
+    config_entry: SENSiTConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the sensor platform."""
+    coordinator = config_entry.runtime_data
+    entities: list[SensorEntity] = []
+    for idx in range(len(coordinator.data)):
+        entities.extend(
+            SENSiTSensor(coordinator, config_entry, idx, description)
+            for description in SENSOR_DESCRIPTIONS
+        )
+        entities.append(
+            OilConsumptionSensor(coordinator, config_entry, idx, OIL_CONSUMPTION_DESCRIPTION)
+        )
+    async_add_entities(entities)
+
+
+class SENSiTSensor(SENSiTEntity, SensorEntity):
+    """Representation of a Kingspan Watchman SENSiT sensor."""
+
+    entity_description: SENSiTSensorEntityDescription
+
+    @property
+    def native_value(self) -> float | int | Decimal | datetime | None:
+        """Return the state of the sensor."""
+        return self.entity_description.value_fn(self.tank_data, self.config_entry)
+
+
+class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
     """Sensor that tracks cumulative energy consumption."""
 
-    _attr_name: str | None = "Oil Consumption"
-    _attr_translation_key = "oil_consumption"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_entity_registry_enabled_default = False
-    _attr_native_unit_of_measurement: str | None = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class: SensorStateClass | None = SensorStateClass.TOTAL_INCREASING
-    _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.ENERGY
-
-    def __init__(self, coordinator, config_entry, idx):
-        super().__init__(coordinator, config_entry, idx)
-        self._config_entry = config_entry
-        self._state = None
-        self._consumption_total = None
-        self._consumption_last_read = None
+    def __init__(
+        self,
+        coordinator: SENSiTDataUpdateCoordinator,
+        config_entry: SENSiTConfigEntry,
+        idx: int,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the cumulative oil consumption sensor."""
+        super().__init__(coordinator, config_entry, idx, entity_description)
+        self._consumption_total: float | None = None
+        self._consumption_last_read: datetime | None = None
 
     async def async_added_to_hass(self) -> None:
-        """Handle entity which will be added."""
+        """Restore previous cumulative consumption state."""
         await super().async_added_to_hass()
-        old_state = await self.async_get_last_state()
-        if old_state:
-            self._state = old_state.state
-            # Ensure consumption_last_read is a string; may be datetime object
-            consumption_last_read = str(old_state.attributes.get("consumption_last_read"))
-            self._consumption_last_read = dt_util.parse_datetime(consumption_last_read)
-            consumption_total = old_state.attributes.get("consumption_total")
-            self._consumption_total = round(float(consumption_total or 0.0), 1)
+        if (old_state := await self.async_get_last_state()) is not None:
+            raw_last_read = old_state.attributes.get("consumption_last_read")
+            if raw_last_read is not None:  # pragma: no branch
+                self._consumption_last_read = dt_util.parse_datetime(str(raw_last_read))
+            raw_total = old_state.attributes.get("consumption_total")
+            if raw_total is not None:  # pragma: no branch
+                self._consumption_total = round(float(raw_total), 1)
             _LOGGER.debug(
-                "Restoring consumption: %.1f litres at %s",
+                "Restoring consumption: %s kWh at %s",
                 self._consumption_total,
                 self._consumption_last_read,
             )
 
+        self._update_consumption()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_consumption()
+        super()._handle_coordinator_update()
+
+    def _update_consumption(self) -> None:
+        """Calculate and update cumulative energy consumption when a new reading arrives."""
+        last_read = self.tank_data.last_read
+        if self._consumption_last_read is None:
+            self._consumption_last_read = last_read
+            return
+
+        if last_read is not None and self._consumption_last_read != last_read:
+            usage_rate = self.tank_data.usage_rate
+            energy_density = _get_energy_density(self.config_entry)
+            base_total = self._consumption_total or 0.0
+            self._consumption_total = round(base_total + (energy_density * round(usage_rate, 1)), 1)
+            self._consumption_last_read = last_read
+
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Return extra state attributes for restoration."""
+        base_attrs = super().extra_state_attributes or {}
         return {
+            **base_attrs,
             "consumption_last_read": self._consumption_last_read,
             "consumption_total": self._consumption_total,
         }
 
     @property
-    def native_value(self):
+    def native_value(self) -> Decimal | None:
         """Return the cumulative energy consumption value."""
-        last_read = self.coordinator.data[self.idx].last_read
-        if self._consumption_last_read is None:
-            self._consumption_last_read = last_read
-
-        if self._consumption_last_read != last_read:
-            usage_rate = self.coordinator.data[self.idx].usage_rate
-            energy_density = self._config_entry.options.get(
-                CONF_OIL_ENERGY_DENSITY,
-                self._config_entry.data.get(
-                    CONF_OIL_ENERGY_DENSITY,
-                    DEFAULT_OIL_ENERGY_DENSITY,
-                ),
-            )
-            self._consumption_total += energy_density * round(usage_rate, 1)
-            self._consumption_last_read = last_read
-
         if self._consumption_total is None:
             return None
-
         return Decimal(f"{self._consumption_total:.1f}")
