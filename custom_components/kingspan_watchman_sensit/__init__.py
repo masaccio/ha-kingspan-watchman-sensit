@@ -9,10 +9,8 @@ import asyncio
 import builtins
 import logging
 from datetime import timedelta
-from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.core_config import Config
