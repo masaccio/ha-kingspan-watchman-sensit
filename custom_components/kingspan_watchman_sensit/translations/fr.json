@@ -1,0 +1,104 @@
+{
+  "issues": {
+    "auth_failed": {
+      "title": "Les identifiants Kingspan nécessitent une attention",
+      "description": "L'intégration Kingspan Watchman SENSiT {title} n'a pas pu s'authentifier. Reconfigurez l'intégration pour mettre à jour les identifiants et restaurer les mises à jour."
+    }
+  },
+  "exceptions": {
+    "credentials_invalid": {
+      "message": "Les identifiants Kingspan fournis sont invalides."
+    },
+    "credentials_not_set": {
+      "message": "Les identifiants Kingspan n'ont pas été configurés."
+    },
+    "timed_out": {
+      "message": "Délai d'attente dépassé lors de la connexion au service Kingspan."
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Watchman SENSiT",
+        "description": "Entrez les identifiants du service Kingspan (trouvés dans l'application)",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
+          "name": "Nom de la cuve"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Watchman SENSiT",
+        "description": "Entrez à nouveau les identifiants du service Kingspan",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
+          "name": "Nom de la cuve"
+        }
+      },
+      "reconfigure": {
+        "title": "Watchman SENSiT",
+        "description": "Mettez à jour les identifiants du service Kingspan",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
+          "name": "Nom de la cuve"
+        }
+      }
+    },
+    "error": {
+      "auth": "Le nom d'utilisateur ou le mot de passe est incorrect.",
+      "cannot_connect": "Échec de la connexion au service Kingspan.",
+      "no_data": "Aucune donnée de niveau de cuve trouvée pour ce compte.",
+      "unknown_error": "Une erreur inattendue s'est produite."
+    },
+    "abort": {
+      "already_configured": "Le compte est déjà configuré.",
+      "reauth_successful": "La réauthentification a réussi.",
+      "reconfigure_successful": "La reconfiguration a réussi.",
+      "unique_id_mismatch": "Le nom d'utilisateur ne correspond pas au compte existant."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Watchman SENSiT",
+        "description": "Configurer les options pour Kingspan Watchman SENSiT",
+        "data": {
+          "update_interval": "Fréquence d'actualisation des données de la cuve (en heures)",
+          "usage_window": "Période à prendre en compte pour la consommation moyenne (en jours)",
+          "oil_energy_density": "Densité énergétique du fioul (kWh par litre)",
+          "debug_kingspan": "Activer le débogage détaillé de la connexion au service Kingspan"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "oil_level": {
+        "name": "Niveau de fioul"
+      },
+      "tank_percentage_full": {
+        "name": "Pourcentage de remplissage de la cuve"
+      },
+      "tank_capacity": {
+        "name": "Capacité de la cuve"
+      },
+      "last_reading_date": {
+        "name": "Date du dernier relevé"
+      },
+      "current_usage": {
+        "name": "Consommation actuelle"
+      },
+      "forecast_empty": {
+        "name": "Prévision de cuve vide"
+      },
+      "current_energy_usage": {
+        "name": "Consommation d'énergie actuelle"
+      },
+      "oil_consumption": {
+        "name": "Consommation de fioul"
+      }
+    }
+  }
+}

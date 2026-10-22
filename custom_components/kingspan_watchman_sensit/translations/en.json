@@ -23,7 +23,8 @@
         "description": "Enter credentials for Kingspan service (found in the app)",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "name": "Tank name"
         }
       },
       "reauth_confirm": {
@@ -31,7 +32,8 @@
         "description": "Re-enter credentials for Kingspan service",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "name": "Tank name"
         }
       },
       "reconfigure": {
@@ -45,10 +47,16 @@
       }
     },
     "error": {
-      "auth": "Username/Password is wrong."
+      "auth": "Username/Password is wrong.",
+      "cannot_connect": "Failed to connect to the Kingspan service.",
+      "no_data": "No tank level data found for this account.",
+      "unknown_error": "Unexpected error occurred."
     },
     "abort": {
-      "single_instance_allowed": "Only a single instance is allowed."
+      "already_configured": "Account is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "Re-configuration was successful.",
+      "unique_id_mismatch": "The username does not match the existing account."
     }
   },
   "options": {

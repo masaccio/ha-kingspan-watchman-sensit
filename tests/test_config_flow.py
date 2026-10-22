@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest_asyncio
 from custom_components.kingspan_watchman_sensit import async_setup_entry
+from custom_components.kingspan_watchman_sensit.api import SENSiTAuthError
 from custom_components.kingspan_watchman_sensit.config_flow import SENSiTFlowHandler
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
@@ -82,7 +83,7 @@ async def test_failed_config_flow(hass, error_on_get_data):
     )
 
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"] == {"base": "auth"}
+    assert result["errors"] == {"base": "unknown_error"}
 
 
 async def test_duplicate_config_flow_aborts(hass, bypass_get_data):
@@ -126,8 +127,6 @@ async def test_options_default_flow(hass, caplog):
     )
 
     assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Mock Title"
-
     assert config_entry.options == {
         "debug_kingspan": False,
         "oil_energy_density": DEFAULT_OIL_ENERGY_DENSITY,
@@ -179,7 +178,9 @@ async def test_options_flow(hass, bypass_get_data):
 
 async def test_reconfigure_credentials_invalid(hass):
     """Reconfigure should stay on the form when credential validation fails."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, data=MOCK_CONFIG, entry_id="test", unique_id=MOCK_CONFIG[CONF_USERNAME]
+    )
     config_entry.add_to_hass(hass)
 
     result = await hass.config_entries.flow.async_init(
@@ -191,7 +192,7 @@ async def test_reconfigure_credentials_invalid(hass):
 
     with patch(
         "custom_components.kingspan_watchman_sensit.config_flow.SENSiTApiClient.async_get_data",
-        side_effect=Exception,
+        side_effect=SENSiTAuthError,
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -209,7 +210,9 @@ async def test_reconfigure_credentials_invalid(hass):
 
 async def test_reconfigure_updates_entry_and_aborts(hass, bypass_get_data):
     """Reconfigure should update the entry data and finish the flow."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, data=MOCK_CONFIG, entry_id="test", unique_id=MOCK_CONFIG[CONF_USERNAME]
+    )
     config_entry.add_to_hass(hass)
 
     result = await hass.config_entries.flow.async_init(
@@ -243,22 +246,16 @@ async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, bypass
         context={"source": config_entries.SOURCE_REAUTH, "entry_id": config_entry.entry_id},
         data=config_entry.data,
     )
+    assert result1["type"] == data_entry_flow.FlowResultType.FORM
     assert result1["step_id"] == "reauth_confirm"
 
     result2 = await hass.config_entries.flow.async_configure(
         result1["flow_id"],
-        user_input={},
-    )
-    assert result2["step_id"] == "user"
-
-    result3 = await hass.config_entries.flow.async_configure(
-        result2["flow_id"],
         user_input={
-            CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME],
             CONF_PASSWORD: "new-password",
-            CONF_NAME: MOCK_CONFIG[CONF_NAME],
         },
     )
 
-    assert result3["type"] == data_entry_flow.FlowResultType.ABORT
+    assert result2["type"] == data_entry_flow.FlowResultType.ABORT
+    assert result2["reason"] == "reauth_successful"
     assert config_entry.data[CONF_PASSWORD] == "new-password"
