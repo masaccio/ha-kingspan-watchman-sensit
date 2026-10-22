@@ -7,10 +7,13 @@ from zoneinfo import ZoneInfo
 import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTApiClientError,
+    SENSiTConnectionError,
+)
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 from homeassistant.util.dt import get_time_zone, set_default_time_zone
 from pytest_homeassistant_custom_component.common import MockConfigEntry, State, mock_restore_cache
@@ -37,15 +40,15 @@ async def test_sensor(hass, mock_sensor_client):
 
     state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
-    assert state.state == str(MOCK_TANK_LEVEL)
+    assert float(state.state) == float(MOCK_TANK_LEVEL)
 
     state = hass.states.get("sensor.tanky_mctankface_tank_capacity")
     assert state
-    assert state.state == str(MOCK_TANK_CAPACITY)
+    assert float(state.state) == float(MOCK_TANK_CAPACITY)
 
     state = hass.states.get("sensor.tanky_mctankface_tank_percentage_full")
     assert state
-    assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
+    assert float(state.state) == float(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state.state == "96.7"
@@ -171,38 +174,27 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
+async def test_sensor_exceptions(hass, mock_sensor_client, mocker):
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(UpdateFailed):
+    with pytest.raises(SENSiTConnectionError) as exc:
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "Timeout error fetching data" in caplog.record_tuples[0][2]
-    assert (
-        "KingspanAPIError during update: Timeout error fetching data" in caplog.record_tuples[1][2]
-    )
+    assert str(exc.value) == "Timeout or connection error fetching data for test@example.com"
 
-    caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
-    with pytest.raises(UpdateFailed):
+    with pytest.raises(SENSiTApiClientError) as exc:
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "API error fetching data for test@example.com" in caplog.record_tuples[0][2]
-    assert "KingspanAPIError during update: API error fetching data" in caplog.record_tuples[1][2]
+    assert str(exc.value) == "API error fetching data for test@example.com: api-test error"
 
-    caplog.clear()
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    with pytest.raises(UpdateFailed):
+    with pytest.raises(SENSiTApiClientError):
         await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "Unhandled error" in caplog.record_tuples[0][2]
-    assert "KingspanAPIError during update: Unhandled error" in caplog.record_tuples[1][2]
+    assert str(exc.value) == "API error fetching data for test@example.com: api-test error"
 
 
 @pytest.mark.parametrize(
