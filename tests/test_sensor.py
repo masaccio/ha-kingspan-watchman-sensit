@@ -8,7 +8,6 @@ import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
-from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -39,25 +38,20 @@ async def test_sensor(hass, mock_sensor_client):
     state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
     assert state.state == str(MOCK_TANK_LEVEL)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
     state = hass.states.get("sensor.tanky_mctankface_tank_capacity")
     assert state
     assert state.state == str(MOCK_TANK_CAPACITY)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
     state = hass.states.get("sensor.tanky_mctankface_tank_percentage_full")
     assert state
     assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state.state == "96.7"
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
     state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
     assert state.state == "10"
-    assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -81,7 +75,6 @@ async def run_sensor_test_with_timezone(hass, tz: str):
 
     state = hass.states.get("sensor.tanky_mctankface_last_reading_date")
     assert state
-    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
     assert state.state == reference_date
 
     assert await async_unload_entry(hass, config_entry)
@@ -115,7 +108,6 @@ async def test_current_energy_usage(hass, mock_sensor_client):
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
     assert state is not None
     assert state.state == str(round(coordinator.data[0].usage_rate * DEFAULT_OIL_ENERGY_DENSITY, 1))
-    assert state.attributes.get(ATTR_ICON) == "mdi:fire"
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -227,57 +219,6 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     device_entries = dr.async_get(hass).devices.values()
     assert list(device_entries)[0].name == MOCK_TANK_NAME + " #1"
     assert list(device_entries)[1].name == MOCK_TANK_NAME + " #2"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY]], indirect=True)
-async def test_sensor_icon_full(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(MOCK_TANK_CAPACITY)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[100]], indirect=True)
-async def test_sensor_icon_empty(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(100)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-empty"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY * 0.3]], indirect=True)
-async def test_sensor_icon_low(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(MOCK_TANK_CAPACITY * 0.3)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-low"
 
     assert await async_unload_entry(hass, config_entry)
 

@@ -1,6 +1,14 @@
 {
   "entity": {
     "sensor": {
+      "tank_percentage_full": {
+        "default": "mdi:gauge",
+        "range": {
+          "25": "mdi:gauge-low",
+          "50": "mdi:gauge",
+          "75": "mdi:gauge-full"
+        }
+      },
       "oil_level": {
         "default": "mdi:gauge"
       },

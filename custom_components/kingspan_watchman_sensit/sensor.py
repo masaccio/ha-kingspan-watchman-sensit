@@ -2,7 +2,6 @@
 
 import logging
 from decimal import Decimal
-from functools import cached_property
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -51,7 +50,6 @@ async def async_setup_entry(
 class OilLevel(SENSiTEntity, SensorEntity):
     """Sensor that reports the current oil volume."""
 
-    _attr_icon: str | None = "mdi:gauge"
     _attr_name: str | None = "Oil Level"
     _attr_translation_key = "oil_level"
     _attr_device_class: SensorDeviceClass | None = SensorDeviceClass.VOLUME_STORAGE
@@ -63,14 +61,6 @@ class OilLevel(SENSiTEntity, SensorEntity):
         """Return the oil level in litres"""
         _LOGGER.debug("Read oil level: %d litres", self.coordinator.data[self.idx].level)
         return self.coordinator.data[self.idx].level
-
-    @cached_property
-    def icon(self):
-        """Icon to use in the frontend"""
-        return tank_icon(
-            self.coordinator.data[self.idx].level,
-            self.coordinator.data[self.idx].capacity,
-        )
 
 
 class TankPercentageFull(SENSiTEntity, SensorEntity):
@@ -90,19 +80,10 @@ class TankPercentageFull(SENSiTEntity, SensorEntity):
         _LOGGER.debug("Read oil level: %.1f percent", percent_full)
         return Decimal(f"{percent_full:.1f}")
 
-    @cached_property
-    def icon(self):
-        """Icon to use in the frontend"""
-        return tank_icon(
-            self.coordinator.data[self.idx].level,
-            self.coordinator.data[self.idx].capacity,
-        )
-
 
 class TankCapacity(SENSiTEntity, SensorEntity):
     """Sensor that reports the tank capacity."""
 
-    _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Tank Capacity"
     _attr_translation_key = "tank_capacity"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -123,7 +104,6 @@ class TankCapacity(SENSiTEntity, SensorEntity):
 class LastReadDate(SENSiTEntity, SensorEntity):
     """Sensor that reports when the data was last read."""
 
-    _attr_icon: str | None = "mdi:clock-outline"
     _attr_name: str | None = "Last Reading Date"
     _attr_translation_key = "last_reading_date"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -139,7 +119,6 @@ class LastReadDate(SENSiTEntity, SensorEntity):
 class CurrentUsage(SENSiTEntity, SensorEntity):
     """Sensor that reports the current usage rate."""
 
-    _attr_icon: str | None = "mdi:gauge-full"
     _attr_name: str | None = "Current Usage"
     _attr_translation_key = "current_usage"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -158,7 +137,6 @@ class CurrentUsage(SENSiTEntity, SensorEntity):
 class ForecastEmpty(SENSiTEntity, SensorEntity):
     """Sensor that reports the forecast days until the tank is empty."""
 
-    _attr_icon: str | None = "mdi:calendar"
     _attr_name: str | None = "Forecast Empty"
     _attr_translation_key = "forecast_empty"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -176,7 +154,6 @@ class ForecastEmpty(SENSiTEntity, SensorEntity):
 class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
     """Oil consumption in kWh from litres/day sensor."""
 
-    _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Current Energy Usage"
     _attr_translation_key = "current_energy_usage"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -207,7 +184,6 @@ class CurrentEnergyUsage(SENSiTEntity, SensorEntity):
 class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
     """Sensor that tracks cumulative energy consumption."""
 
-    _attr_icon: str | None = "mdi:fire"
     _attr_name: str | None = "Oil Consumption"
     _attr_translation_key = "oil_consumption"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -270,15 +246,3 @@ class OilConsumption(SENSiTEntity, SensorEntity, RestoreEntity):
             return None
 
         return Decimal(f"{self._consumption_total:.1f}")
-
-
-def tank_icon(level: float, capacity: float) -> str:
-    """Return an icon name that reflects how full the tank is."""
-    percent_full = level / capacity if capacity else 0.0
-    if percent_full >= 0.75:
-        return "mdi:gauge-full"
-    if percent_full >= 0.5:
-        return "mdi:gauge"
-    if percent_full >= 0.25:
-        return "mdi:gauge-low"
-    return "mdi:gauge-empty"
