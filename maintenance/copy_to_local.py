@@ -7,7 +7,7 @@ import re
 from io import StringIO
 from pathlib import Path
 
-from fabric import Connection  # type: ignore[import-untyped]
+from fabric import Connection  # type: ignore[import-not-found] # pylint: disable=E0402
 
 # Configuration
 REMOTE_HOST = "hass"
