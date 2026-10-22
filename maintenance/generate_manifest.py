@@ -1,4 +1,6 @@
 #! /usr/bin/env uv run python3
+"""Script to generate a new manifest.json with up-to-date integration version."""
+
 import json
 from importlib.metadata import version
 
@@ -25,5 +27,5 @@ manifest = {
     "version": pyproject["project"]["version"],
 }
 
-with open(MANIFEST, "w") as fh:
+with open(MANIFEST, "w", encoding="ascii") as fh:
     json.dump(manifest, fh, indent=2)

@@ -9,13 +9,17 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .api import (
+from .api import (  # type: ignore[import-not-found] # pylint: disable=E0402
     SENSiTApiClientError,
     SENSiTAuthError,
     SENSiTConnectionError,
     SENSiTNoDataError,
 )
-from .const import CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .const import (  # type: ignore[import-not-found] # pylint: disable=E0402
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,4 +1,5 @@
 #! /usr/bin/env uv run python3
+"""Copy integration to local hass server for testing."""
 
 import argparse
 import posixpath
@@ -6,7 +7,7 @@ import re
 from io import StringIO
 from pathlib import Path
 
-from fabric import Connection
+from fabric import Connection  # type: ignore[import-untyped]
 
 # Configuration
 REMOTE_HOST = "hass"
@@ -22,15 +23,18 @@ RESET = "\033[0m"
 
 
 def make_dir(conn: Connection, remote_dir: str):
+    """Creates a new directory on the target system."""
     conn.run(f'mkdir -p "{remote_dir}"', hide=True)
 
 
 def rm_dir(conn: Connection, remote_dir: str):
+    """Deletes a directory on the target system."""
     print(f"{GREEN}Remove:{RESET} {remote_dir}{GREEN}")
     conn.run(f'rm -rf "{remote_dir}"', hide=True)
 
 
 def insert_local_connectsensor(content: str) -> str:
+    """Patches the import paths to find the connectsensor API locally."""
     block = (
         "\nimport sys\n"
         "from pathlib import Path\n"
@@ -66,6 +70,7 @@ def copy_file(
     content_override: str | None = None,
     rename: str | None = None,
 ):
+    """Copies a local file to the remote HASS server with optional patching."""
     dest_dir = remote_dir.rstrip("/")
     file_name = rename if rename else src.name
     dest_file = posixpath.join(dest_dir, file_name)
@@ -84,6 +89,7 @@ def copy_file(
 
 
 def main():
+    """Script to copy the integration to a local server."""
     parser = argparse.ArgumentParser(description="Deploy Kingspan Watchman integration.")
     parser.add_argument(
         "--api", action="store_true", dest="use_local_api", help="Deploy local connectsensor API"
@@ -98,7 +104,7 @@ def main():
         help="Deploy hidden UI switches to monkey-patch API exceptions",
     )
 
-    args, unknown = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
 
     with Connection(REMOTE_HOST) as conn:
         rm_dir(conn, REMOTE_INTEGRATION_DIR)
