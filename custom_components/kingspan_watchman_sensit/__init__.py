@@ -135,6 +135,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
             coordinator.platforms.append(platform)
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
+    config_entry.runtime_data = coordinator
+
     _async_delete_repair_issue(hass, config_entry)
     config_entry.add_update_listener(async_reload_entry)
     return True

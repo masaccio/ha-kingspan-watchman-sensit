@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_PASSWORD, CONF_USERNAME, DOMAIN
+from .const import CONF_PASSWORD, CONF_USERNAME
 from .coordinator import SENSiTConfigEntry
 
 TO_REDACT = {
@@ -18,28 +19,14 @@ TO_REDACT = {
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: SENSiTConfigEntry
+    _hass: HomeAssistant, entry: SENSiTConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = getattr(entry, "runtime_data", None)
-    if coordinator is None:
-        coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     return {
         "config_entry_data": async_redact_data(entry.data, TO_REDACT),
+        "config_entry_options": async_redact_data(entry.options, TO_REDACT),
         "last_update_success": coordinator.last_update_success,
         "tank_count": len(coordinator.data),
-        "tanks": [
-            {
-                "level": tank.level,
-                "serial_number": tank.serial_number,
-                "model": tank.model,
-                "name": tank.name,
-                "capacity": tank.capacity,
-                "last_read": tank.last_read,
-                "history": tank.history,
-                "usage_rate": tank.usage_rate,
-                "forecast_empty": tank.forecast_empty,
-            }
-            for tank in coordinator.data
-        ],
+        "tanks": [async_redact_data(asdict(tank), TO_REDACT) for tank in coordinator.data],
     }

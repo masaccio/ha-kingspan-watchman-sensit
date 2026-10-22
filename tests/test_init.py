@@ -162,13 +162,10 @@ async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
 
     diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
     assert diagnostics["tank_count"] == 1
-    assert config_entry.runtime_data is hass.data[DOMAIN][config_entry.entry_id]
+    assert config_entry.runtime_data is not None
 
-    del config_entry.runtime_data
-    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
-    assert diagnostics["tank_count"] == 1
-
-    assert await async_unload_entry(hass, config_entry)
+    await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
 
 
@@ -221,5 +218,5 @@ async def test_diagnostics(hass, mock_sensor_client):
     assert diagnostics["tank_count"] == 2
     assert len(diagnostics["tanks"]) == 2
     assert diagnostics["last_update_success"]
-    assert diagnostics["tanks"][0]["serial_number"] == "20001234-1"
+    assert diagnostics["tanks"][0]["serial_number"] == "**REDACTED**"
     assert diagnostics["tanks"][0]["level"] == 1000
