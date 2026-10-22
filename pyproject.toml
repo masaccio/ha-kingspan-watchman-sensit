@@ -39,6 +39,7 @@ dev = [
   "pandas>=2.3.3",
   "ruff>=0.16.1",
   "tzlocal>=5.4.4",
+  "types-toml>=0.10.8.20260518",
 ]
 
 [tool.coverage.run]
@@ -78,7 +79,6 @@ fix = true
 lint.ignore = [
   "PLR2004", # Allow constant values
 ]
-line-length = 100
 lint.select = [
   # Pyflakes including bugbears
   "F",
@@ -90,11 +90,12 @@ lint.select = [
   "UP", # Pylama
   "PL",
 ]
-src = ["src", "tests"]
-target-version = "py312"
 lint.unfixable = [
   "ERA", # do not autoremove commented out code
 ]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py312"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
