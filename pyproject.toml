@@ -40,6 +40,7 @@ dev = [
   "ruff>=0.16.1",
   "tzlocal>=5.4.4",
   "types-toml>=0.10.8.20260518",
+  "fabric>=3.2.3",
 ]
 
 [tool.coverage.run]
