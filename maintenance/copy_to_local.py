@@ -11,6 +11,7 @@ from fabric import Connection
 # Configuration
 REMOTE_HOST = "hass"
 INTEGRATION_SRC_DIR = Path("custom_components/kingspan_watchman_sensit")
+DEV_SWITCHES = Path("maintenance/dev_switch.py")
 REMOTE_INTEGRATION_DIR = "/config/custom_components/kingspan_watchman_sensit"
 API_SRC_DIR = Path("../kingspan-connect-sensor/src/connectsensor")
 
@@ -22,6 +23,11 @@ RESET = "\033[0m"
 
 def make_dir(conn: Connection, remote_dir: str):
     conn.run(f'mkdir -p "{remote_dir}"', hide=True)
+
+
+def rm_dir(conn: Connection, remote_dir: str):
+    print(f"{GREEN}Remove:{RESET} {remote_dir}{GREEN}")
+    conn.run(f'rm -rf "{remote_dir}"', hide=True)
 
 
 def insert_local_connectsensor(content: str) -> str:
@@ -95,6 +101,7 @@ def main():
     args, unknown = parser.parse_known_args()
 
     with Connection(REMOTE_HOST) as conn:
+        rm_dir(conn, REMOTE_INTEGRATION_DIR)
         integration_files = sorted(INTEGRATION_SRC_DIR.glob("*.py"))
         integration_files.extend(sorted(INTEGRATION_SRC_DIR.glob("**/*.json")))
         integration_files.extend(sorted(INTEGRATION_SRC_DIR.glob("**/*.png")))
@@ -116,14 +123,7 @@ def main():
             copy_file(conn, src_file, str(target_dir), content_override)
 
         if args.mock_errors:
-            target_path = posixpath.join(REMOTE_INTEGRATION_DIR, "switch.py")
-            conn.run(f'rm -f "{target_path}"', hide=True)
-            copy_file(
-                conn,
-                Path("maintenance/dev_switch.py"),
-                str(REMOTE_INTEGRATION_DIR),
-                rename="switch.py",
-            )
+            copy_file(conn, DEV_SWITCHES, str(REMOTE_INTEGRATION_DIR), rename="switch.py")
 
         # API, Translations, Brand logic remains identical...
         remote_api_dir = posixpath.join(REMOTE_INTEGRATION_DIR, "connectsensor")

@@ -143,34 +143,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     return True
 
 
-async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> dict[str, Any]:
-    """Return diagnostics for a config entry."""
-    coordinator = getattr(entry, "runtime_data", None)
-    if coordinator is None:
-        coordinator = hass.data[DOMAIN][entry.entry_id]
-    return {
-        "config_entry_data": async_redact_data(entry.data, TO_REDACT),
-        "last_update_success": coordinator.last_update_success,
-        "tank_count": len(coordinator.data),
-        "tanks": [
-            {
-                "level": tank.level,
-                "serial_number": tank.serial_number,
-                "model": tank.model,
-                "name": tank.name,
-                "capacity": tank.capacity,
-                "last_read": tank.last_read,
-                "history": tank.history,
-                "usage_rate": tank.usage_rate,
-                "forecast_empty": tank.forecast_empty,
-            }
-            for tank in coordinator.data
-        ],
-    }
-
-
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
 
