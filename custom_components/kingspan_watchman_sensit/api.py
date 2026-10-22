@@ -26,6 +26,22 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 _LOGGER.debug("AsyncSensorClient loaded from %s", inspect.getfile(AsyncSensorClient))
 
 
+class SENSiTApiClientError(Exception):
+    """Base exception for SENSiT API client errors."""
+
+
+class SENSiTAuthError(SENSiTApiClientError):
+    """Exception raised for authentication errors."""
+
+
+class SENSiTConnectionError(SENSiTApiClientError):
+    """Exception raised for connection or timeout errors."""
+
+
+class SENSiTNoDataError(SENSiTApiClientError):
+    """Exception raised when the account has no tank level data."""
+
+
 class TankHistoryPoint(TypedDict):
     """Single point of tank history returned by the Kingspan API."""
 
