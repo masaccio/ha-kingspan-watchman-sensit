@@ -7,12 +7,14 @@ import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
-    async_get_config_entry_diagnostics,
     async_reload_entry,
     async_setup_entry,
     async_unload_entry,
 )
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
+from custom_components.kingspan_watchman_sensit.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
