@@ -11,7 +11,6 @@ import logging
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -29,7 +28,7 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .coordinator import SENSiTDataUpdateCoordinator
+from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)  # pylint: disable=invalid-name
 
@@ -47,7 +46,7 @@ async def async_setup(_hass: HomeAssistant, _config: Config) -> bool:
 
 
 @callback
-def _async_create_repair_issue(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+def _async_create_repair_issue(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
     """Create a repair issue for an entry that cannot authenticate."""
     ir.async_create_issue(
         hass,
@@ -63,12 +62,12 @@ def _async_create_repair_issue(hass: HomeAssistant, config_entry: ConfigEntry) -
 
 
 @callback
-def _async_delete_repair_issue(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+def _async_delete_repair_issue(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
     """Delete the repair issue for a config entry when it has been fixed."""
     ir.async_delete_issue(hass, DOMAIN, f"credentials_{config_entry.entry_id}")
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> bool:
     """Set up this integration using UI."""
     if hass.data.get(DOMAIN) is None:
         hass.data.setdefault(DOMAIN, {})
@@ -141,7 +140,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> bool:
     """Handle removal of an entry."""
 
     coordinator = getattr(config_entry, "runtime_data", None)
@@ -168,7 +167,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return unloaded
 
 
-async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+async def async_reload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, config_entry)
     await async_setup_entry(hass, config_entry)

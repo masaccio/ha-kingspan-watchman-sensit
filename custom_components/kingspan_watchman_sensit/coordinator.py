@@ -12,6 +12,8 @@ from .const import DOMAIN
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
+type SENSiTConfigEntry = ConfigEntry[SENSiTDataUpdateCoordinator]  # pylint: disable=invalid-name
+
 
 class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
     """Class to manage fetching data from the API."""
@@ -19,7 +21,7 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
     def __init__(
         self,
         hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        config_entry: SENSiTConfigEntry,
         client: SENSiTApiClient,
         update_interval: timedelta,
     ) -> None:
