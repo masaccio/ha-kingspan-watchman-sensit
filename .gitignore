@@ -10,6 +10,7 @@ history.db
 .*.swp
 
 # coverage
+.maxcov
 .coverage
 coverage.xml
 coverage_html_report
@@ -31,6 +32,6 @@ build
 # tox
 .tox
 
-# testinf
+# testing
 *.db
 *.xlsx
