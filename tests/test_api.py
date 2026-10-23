@@ -129,5 +129,10 @@ async def test_async_httpx_timeout(mocker, mock_sensor_client):
     )
 
 
-async def zeep_exception(*args, **kwargs):
-    raise httpxTimeoutException("Test error")
+async def test_api_debug_logging(caplog, mocker):
+    """Test API debug can be enabled."""
+    mocker.patch("connectsensor.client.AsyncSensorClient.login")
+    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, debug=True)
+    _ = await api.check_credentials()
+
+    assert "Init API with version=KNECT_V1" in caplog.text
