@@ -1198,6 +1198,9 @@ dev = [
     { name = "types-toml" },
     { name = "tzlocal" },
 ]
+maxcov = [
+    { name = "pytest-maxcov" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -1225,6 +1228,7 @@ dev = [
     { name = "types-toml", specifier = ">=0.10.8.20260518" },
     { name = "tzlocal", specifier = ">=5.4.4" },
 ]
+maxcov = [{ name = "pytest-maxcov" }]
 
 [[package]]
 name = "habluetooth"
@@ -2710,6 +2714,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b3/5f/a49ca00554245f120fcc9dcf227132820b3cafacabeee1fe9d606b454618/pytest_homeassistant_custom_component-0.13.373.tar.gz", hash = "sha256:9f60c292a3482a500e246e45f895660a198341ffd57658191899fa06885feeef", size = 82182, upload-time = "2026-10-17T08:59:27.545Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bf/f9/8834c497ceb427d4dfa8fc7f87de66d8c28c26fc930168c83d2cd835d424/pytest_homeassistant_custom_component-0.13.373-py3-none-any.whl", hash = "sha256:bdd22816780122def0451564c46b536c9889c14c04da98782ea5db4a40994dab", size = 88186, upload-time = "2026-10-17T08:59:26.335Z" },
+]
+
+[[package]]
+name = "pytest-maxcov"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "coverage" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b3/b5/93c2ff010ab1d514bc165b1871fc9d2e26459fbb90c9f15c5991c1262c78/pytest_maxcov-1.0.1.tar.gz", hash = "sha256:e02bb60c450eab81116cc8b777bde8c7237f6c76ffea56a7aa744c5ad8235bdd", size = 80956, upload-time = "2026-10-23T15:51:40.798Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/b7/f3e6f29007820f219e96f13da32aeed9b7e269db46a3812430091ed52b67/pytest_maxcov-1.0.1-py3-none-any.whl", hash = "sha256:1e1083f406a794db1758e8b8685de5e46eb66b299057ea4c80bf030cc1ad445a", size = 5847, upload-time = "2026-10-23T15:51:39.737Z" },
 ]
 
 [[package]]

@@ -16,6 +16,7 @@ KNECT
 Kolkata
 localzone
 Logfile
+maxcov
 mctankface
 minversion
 mypy
