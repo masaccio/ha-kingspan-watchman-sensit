@@ -65,7 +65,7 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
                 _LOGGER.warning("Error communicating with Kingspan API: %s", err)
                 self._unavailable_logged = True
             raise UpdateFailed(
-                "Timed out while connecting to Kingspan service",
+                "Timed out while connecting to the Kingspan service",
                 translation_domain=DOMAIN,
                 translation_key="timed_out",
             ) from err

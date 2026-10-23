@@ -183,17 +183,12 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker):
     with pytest.raises(UpdateFailed) as exc:
         await coordinator._async_update_data()
     assert exc.value.translation_key == "timed_out"
-    assert str(exc.value) == "Timed out while connecting to Kingspan service"
+    assert str(exc.value) == "Timed out while connecting to the Kingspan service"
 
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
     with pytest.raises(UpdateFailed) as exc:
         await coordinator._async_update_data()
     assert str(exc.value).endswith("api-test error")
-
-    # mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    # with pytest.raises(UpdateFailed):
-    #     await coordinator._async_update_data()
-    # assert "Unhandled error fetching data" in str(exc.value)
 
 
 @pytest.mark.parametrize(
@@ -209,10 +204,11 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    device_entries = dr.async_get(hass).devices.values()
-    assert list(device_entries)[0].name == MOCK_TANK_NAME + " #1"
-    assert list(device_entries)[1].name == MOCK_TANK_NAME + " #2"
+    device_registry = dr.async_get(hass)
+    device_entries = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
 
+    assert device_entries[0].name == MOCK_TANK_NAME + " #1"
+    assert device_entries[1].name == MOCK_TANK_NAME + " #2"
     assert await async_unload_entry(hass, config_entry)
 
 
