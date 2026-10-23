@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+import probatio as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 
@@ -174,7 +174,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         default=defaults.get(CONF_NAME, DEFAULT_TANK_NAME),
                     ): str,
                 }
-            ),  # type: ignore[arg-type]
+            ),
             errors=self._errors,
         )
 
@@ -236,6 +236,4 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ): cv.boolean,
         }
 
-        return self.async_show_form(
-            step_id="init", data_schema=vol.Schema(options)  # type: ignore[arg-type]
-        )
+        return self.async_show_form(step_id="init", data_schema=vol.Schema(options))

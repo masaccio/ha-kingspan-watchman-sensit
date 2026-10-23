@@ -20,6 +20,7 @@ mctankface
 minversion
 mypy
 pathlib
+probatio
 Pycodestyle
 Pyflakes
 pygithub

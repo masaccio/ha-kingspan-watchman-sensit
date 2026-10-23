@@ -1180,8 +1180,8 @@ dependencies = [
     { name = "homeassistant" },
     { name = "kingspan-connect-sensor" },
     { name = "mypy" },
+    { name = "probatio" },
     { name = "pylint" },
-    { name = "voluptuous" },
 ]
 
 [package.dev-dependencies]
@@ -1207,8 +1207,8 @@ requires-dist = [
     { name = "homeassistant", specifier = ">=2026.6.4" },
     { name = "kingspan-connect-sensor", specifier = "==4.2.1" },
     { name = "mypy" },
+    { name = "probatio" },
     { name = "pylint" },
-    { name = "voluptuous", specifier = ">=0.15.2" },
 ]
 
 [package.metadata.requires-dev]
