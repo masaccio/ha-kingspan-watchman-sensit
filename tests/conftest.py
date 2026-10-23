@@ -23,12 +23,12 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 
 # This fixture enables loading custom integrations in all tests.
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)  # pyright: ignore[reportArgumentType]
 def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)  # pyright: ignore[reportArgumentType]
 def clear_proxy_env(monkeypatch):
     """Ensure tests do not inherit proxy settings from the host environment."""
     for key in (
@@ -45,57 +45,7 @@ def clear_proxy_env(monkeypatch):
     yield
 
 
-# This fixture is used to prevent HomeAssistant from attempting to create and
-# dismiss persistent notifications. These calls would fail without this fixture
-# since the persistent_notification integration is never loaded during a test.
-@pytest_asyncio.fixture(name="skip_notifications", autouse=True)
-def skip_notifications_fixture():
-    """Skip notification calls."""
-    with (
-        patch("homeassistant.components.persistent_notification.async_create"),
-        patch("homeassistant.components.persistent_notification.async_dismiss"),
-    ):
-        yield
-
-
-# This fixture, when used, will result in calls to async_get_data to return None. To have the call
-# return a value, we would add the `return_value=<VALUE_TO_RETURN>` parameter to the patch call.
-@pytest_asyncio.fixture(name="bypass_get_data")
-def bypass_get_data_fixture():
-    """Skip calls to get data from API."""
-    with (
-        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data"),
-        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"),
-    ):
-        yield
-
-
-# In this fixture, we are forcing calls to async_get_data to raise an Exception. This is useful
-# for exception handling.
-@pytest_asyncio.fixture(name="error_on_get_data")
-def error_get_data_fixture():
-    """Simulate error when retrieving data from API."""
-    with (
-        patch(
-            "custom_components.kingspan_watchman_sensit.SENSiTApiClient.async_get_data",
-            side_effect=Exception,
-        ),
-        patch("custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials"),
-    ):
-        yield
-
-
-@pytest_asyncio.fixture(name="error_sensor_client")
-def error_sensor_client_fixture():
-    """Throw an exception from a mock AsyncSensorClient"""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        side_effect=KingspanAPIError,
-    ):
-        yield
-
-
-@pytest_asyncio.fixture(name="mock_password_check")
+@pytest_asyncio.fixture(name="mock_password_check")  # pyright: ignore[reportArgumentType]
 def mock_password_check_fixture():
     """Check password and return True or raise a KingspanAPIError if invalid"""
 
@@ -114,27 +64,7 @@ def mock_password_check_fixture():
         yield
 
 
-@pytest_asyncio.fixture(name="error_no_tank_data")
-def error_no_tank_data_fixture():
-    """Throw an exception from a mock AsyncSensorClient"""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        side_effect=KingspanAPIError("No Level Data Available"),
-    ):
-        yield
-
-
-@pytest_asyncio.fixture(name="timeout_sensor_client")
-def timeout_sensor_client_fixture():
-    """Throw an exception from a mock AsyncSensorClient"""
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        side_effect=TimeoutError,
-    ):
-        yield
-
-
-def decreasing_history(start_date: datetime) -> list[dict]:
+def _decreasing_history(start_date: datetime) -> list[dict]:
     history = []
     start_date = start_date.replace(hour=0, minute=30, second=0, microsecond=0) - timedelta(days=30)
 
@@ -216,9 +146,9 @@ class MockAsyncTank:
     async def history(self) -> list[dict]:
         # Build a month of history with a refill halfway through
         if self._history_type == HistoryType.DECREASING:
-            return decreasing_history(datetime.now())
+            return _decreasing_history(datetime.now())
         elif self._history_type == HistoryType.EXPIRED:
-            return decreasing_history(datetime.now() - timedelta(days=365))
+            return _decreasing_history(datetime.now() - timedelta(days=365))
         else:
             return []
 
@@ -228,18 +158,10 @@ class MockAsyncClient(AsyncMock):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if "tank_level" in kwargs:
-            self._level = kwargs["tank_level"]
-        else:
-            self._level = MOCK_TANK_LEVEL
-        if "history_type" in kwargs:
-            self._history_type = kwargs["history_type"]
-        else:
-            self._history_type = HistoryType.DECREASING
-        if "num_tanks" in kwargs and kwargs["num_tanks"] is not None:
-            self._num_tanks = kwargs["num_tanks"]
-        else:
-            self._num_tanks = 1
+        self._level = kwargs.get("tank_level", MOCK_TANK_LEVEL)
+        self._history_type = kwargs.get("history_type", HistoryType.DECREASING)
+        self._num_tanks = kwargs.get("num_tanks", 1)
+        self._exception = kwargs.get("exception", None)
 
     @async_property
     async def tanks(self):
@@ -255,24 +177,19 @@ class MockAsyncClient(AsyncMock):
                 for tank_num in range(1, self._num_tanks + 1)
             ]
 
+    async def login(self, username: str, password: str) -> None:
+        if self._exception:
+            raise (self._exception)
 
-@pytest_asyncio.fixture(params=["tank_level", "history_type", "num_tanks"])
+
+@pytest_asyncio.fixture(name="mock_sensor_client")  # pyright: ignore[reportArgumentType]
 def mock_sensor_client(request):
     """Replace the AsyncSensorClient with a mock context manager"""
-    num_tanks = None
-    if isinstance(request.param, list) and len(request.param) == 1:
-        tank_level = request.param[0]
-        history_type = HistoryType.DECREASING
-    elif isinstance(request.param, list) and len(request.param) == 2:
-        tank_level = request.param[0]
-        history_type = request.param[1]
-    elif isinstance(request.param, list) and len(request.param) == 3:
-        tank_level = request.param[0]
-        history_type = request.param[1]
-        num_tanks = request.param[2]
-    else:
-        tank_level = MOCK_TANK_LEVEL
-        history_type = HistoryType.DECREASING
+    params = getattr(request, "param", {})
+    tank_level = params.get("tank_level", MOCK_TANK_LEVEL)
+    history_type = params.get("history_type", HistoryType.DECREASING)
+    num_tanks = params.get("num_tanks", 1)
+    exception = params.get("exception", None)
 
     # AsyncSensorClient is instantiated in different import contexts
     # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
@@ -281,9 +198,15 @@ def mock_sensor_client(request):
         patch("custom_components.kingspan_watchman_sensit.api.AsyncSensorClient") as ha_mock_client,
     ):
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            tank_level=tank_level, history_type=history_type, num_tanks=num_tanks
+            tank_level=tank_level,
+            history_type=history_type,
+            num_tanks=num_tanks,
+            exception=exception,
         )
         ha_mock_client.return_value.__aenter__.return_value = MockAsyncClient(
-            tank_level=tank_level, history_type=history_type, num_tanks=num_tanks
+            tank_level=tank_level,
+            history_type=history_type,
+            num_tanks=num_tanks,
+            exception=exception,
         )
         yield
