@@ -8,7 +8,7 @@ import pytest
 from connectsensor import KingspanAPIError
 from custom_components.kingspan_watchman_sensit.api import (
     SENSiTApiClient,
-    SENSiTAuthError,
+    SENSiTApiClientError,
     SENSiTConnectionError,
     TankData,
     filter_history,
@@ -49,7 +49,7 @@ async def test_api(mock_sensor_client, mocker, caplog):
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
     with pytest.raises(SENSiTConnectionError) as exc:
         _ = await api.async_get_data()
-    assert str(exc.value) == f"Timeout or connection error fetching data for {TEST_USERNAME}"
+    assert str(exc.value) == f"Timeout or connection error fetching data for {TEST_USERNAME}: "
 
 
 async def test_api_timeout(mocker):
@@ -61,7 +61,7 @@ async def test_api_timeout(mocker):
 
     with pytest.raises(SENSiTConnectionError) as exc:
         assert not await api.check_credentials()
-    assert str(exc.value) == f"Timeout logging in as {TEST_USERNAME}"
+    assert str(exc.value) == f"Timeout or connection error logging in for {TEST_USERNAME}: "
 
 
 async def test_api_error(mocker):
@@ -71,9 +71,9 @@ async def test_api_error(mocker):
     mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=KingspanAPIError)
     api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
 
-    with pytest.raises(SENSiTAuthError) as exc:
+    with pytest.raises(SENSiTApiClientError) as exc:
         assert not await api.check_credentials()
-    assert str(exc.value) == f"API error logging in as {TEST_USERNAME}"
+    assert str(exc.value) == f"API error logging in for {TEST_USERNAME}: unknown API error"
 
 
 async def test_api_generic_error(mocker):
@@ -84,7 +84,7 @@ async def test_api_generic_error(mocker):
     api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
     with pytest.raises(Exception) as exc:  # noqa: B017
         assert not await api.check_credentials()
-    assert str(exc.value) == f"Unhandled error logging in as {TEST_USERNAME}"
+    assert str(exc.value) == f"Unhandled error logging in for {TEST_USERNAME}"
 
 
 async def test_api_filtering(mock_sensor_client):
@@ -123,7 +123,10 @@ async def test_async_httpx_timeout(mocker, mock_sensor_client):
 
     with pytest.raises(SENSiTConnectionError) as exc:
         await api.async_get_data()
-    assert str(exc.value) == f"Timeout or connection error fetching data for {TEST_USERNAME}"
+    assert (
+        str(exc.value)
+        == f"Timeout or connection error fetching data for {TEST_USERNAME}: HTTPX timeout error"
+    )
 
 
 async def zeep_exception(*args, **kwargs):

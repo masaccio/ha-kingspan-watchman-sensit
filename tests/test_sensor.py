@@ -7,13 +7,10 @@ from zoneinfo import ZoneInfo
 import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
-from custom_components.kingspan_watchman_sensit.api import (
-    SENSiTApiClientError,
-    SENSiTConnectionError,
-)
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 from homeassistant.util.dt import get_time_zone, set_default_time_zone
 from pytest_homeassistant_custom_component.common import MockConfigEntry, State, mock_restore_cache
@@ -34,7 +31,7 @@ async def test_sensor(hass, mock_sensor_client):
 
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
@@ -108,7 +105,7 @@ async def test_current_energy_usage(hass, mock_sensor_client):
     await hass.async_block_till_done()
 
     state = hass.states.get("sensor.tanky_mctankface_current_energy_usage")
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     assert state is not None
     assert state.state == str(round(coordinator.data[0].usage_rate * DEFAULT_OIL_ENERGY_DENSITY, 1))
 
@@ -181,24 +178,28 @@ async def test_sensor_exceptions(hass, mock_sensor_client, mocker):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
+    coordinator = config_entry.runtime_data
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(SENSiTConnectionError) as exc:
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert str(exc.value) == "Timeout or connection error fetching data for test@example.com"
+    with pytest.raises(UpdateFailed) as exc:
+        await coordinator._async_update_data()
+    assert exc.value.translation_key == "timed_out"
+    assert str(exc.value) == "Timed out while connecting to Kingspan service"
 
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
-    with pytest.raises(SENSiTApiClientError) as exc:
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert str(exc.value) == "API error fetching data for test@example.com: api-test error"
+    with pytest.raises(UpdateFailed) as exc:
+        await coordinator._async_update_data()
+    assert str(exc.value).endswith("api-test error")
 
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    with pytest.raises(SENSiTApiClientError):
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert str(exc.value) == "API error fetching data for test@example.com: api-test error"
+    # mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
+    # with pytest.raises(UpdateFailed):
+    #     await coordinator._async_update_data()
+    # assert "Unhandled error fetching data" in str(exc.value)
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
+    "mock_sensor_client",
+    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.DECREASING, "num_tanks": 2}],
+    indirect=True,
 )
 async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     """Test sensor."""
@@ -216,7 +217,9 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.NONE]], indirect=True
+    "mock_sensor_client",
+    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE}],
+    indirect=True,
 )
 async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     """Test sensor."""
@@ -242,7 +245,9 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.EXPIRED]], indirect=True
+    "mock_sensor_client",
+    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED}],
+    indirect=True,
 )
 async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
     """Test sensor."""

@@ -3,8 +3,9 @@
 from logging import WARNING
 from unittest.mock import patch
 
+import pytest
 import pytest_asyncio
-from custom_components.kingspan_watchman_sensit import async_setup_entry
+from connectsensor.exceptions import KingspanInvalidCredentialsError
 from custom_components.kingspan_watchman_sensit.api import SENSiTAuthError
 from custom_components.kingspan_watchman_sensit.config_flow import SENSiTFlowHandler
 from custom_components.kingspan_watchman_sensit.const import (
@@ -37,7 +38,7 @@ def bypass_setup_fixture():
         yield
 
 
-async def test_successful_config_flow(hass, bypass_get_data):
+async def test_successful_config_flow(hass, mock_sensor_client):
     """Test a successful config flow."""
     # Initialize a config flow
     result = await hass.config_entries.flow.async_init(
@@ -68,9 +69,13 @@ def test_flow_matching_is_never_true():
     assert not flow.is_matching(SENSiTFlowHandler())
 
 
-async def test_failed_config_flow(hass, error_on_get_data):
+@pytest.mark.parametrize(
+    "mock_sensor_client",
+    [{"exception": KingspanInvalidCredentialsError("test bad auth")}],
+    indirect=True,
+)
+async def test_failed_config_flow(hass, mock_sensor_client):
     """Test a failed config flow due to credential validation failure."""
-
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
@@ -83,10 +88,10 @@ async def test_failed_config_flow(hass, error_on_get_data):
     )
 
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"] == {"base": "unknown_error"}
+    assert result["errors"] == {"base": "auth"}
 
 
-async def test_duplicate_config_flow_aborts(hass, bypass_get_data):
+async def test_duplicate_config_flow_aborts(hass, mock_sensor_client):
     """A second config flow for the same username should abort as already configured."""
     existing_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -135,7 +140,7 @@ async def test_options_default_flow(hass, caplog):
     }
 
 
-async def test_options_flow(hass, bypass_get_data):
+async def test_options_flow(hass, mock_sensor_client):
     """Test an options flow."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
@@ -147,8 +152,6 @@ async def test_options_flow(hass, bypass_get_data):
         result["flow_id"],
         user_input={"debug_kingspan": True, "update_interval": 4, "usage_window": 28},
     )
-
-    assert await async_setup_entry(hass, config_entry)
 
     assert config_entry.options == {
         "debug_kingspan": True,
@@ -208,7 +211,7 @@ async def test_reconfigure_credentials_invalid(hass):
     assert result["errors"] == {"base": "auth"}
 
 
-async def test_reconfigure_updates_entry_and_aborts(hass, bypass_get_data):
+async def test_reconfigure_updates_entry_and_aborts(hass, mock_sensor_client):
     """Reconfigure should update the entry data and finish the flow."""
     config_entry = MockConfigEntry(
         domain=DOMAIN, data=MOCK_CONFIG, entry_id="test", unique_id=MOCK_CONFIG[CONF_USERNAME]
@@ -237,7 +240,7 @@ async def test_reconfigure_updates_entry_and_aborts(hass, bypass_get_data):
     assert config_entry.data[CONF_PASSWORD] == "new-password"
 
 
-async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, bypass_get_data):
+async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, mock_sensor_client):
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
 
