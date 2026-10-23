@@ -7,7 +7,8 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-from collections.abc import Awaitable
+from collections.abc import AsyncGenerator, Awaitable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import TypedDict, cast
@@ -92,42 +93,43 @@ class SENSiTApiClient:
 
     async def async_get_data(self) -> list[TankData]:
         """Get tank data from the API."""
-        try:
-            async with asyncio.timeout(API_TIMEOUT):
-                return await self._get_tank_data()
-        except KingspanInvalidCredentialsError as err:
-            raise SENSiTAuthError(f"Invalid credentials for {self._username}: {err}") from err
-        except KingspanTimeoutError, TimeoutError, HttpxTimeoutException, HTTPError:
-            raise SENSiTConnectionError(
-                f"Timeout or connection error fetching data for {self._username}"
-            ) from None
-        except KingspanAPIError as err:
-            if "no level data" in str(err).lower():
-                raise SENSiTNoDataError(f"No level data available for {self._username}") from err
-            raise SENSiTApiClientError(
-                f"API error fetching data for {self._username}: {err}"
-            ) from err
-        except Exception:
-            _LOGGER.exception("Unhandled error fetching data for %s", self._username)
-            raise SENSiTApiClientError(
-                f"Unhandled error fetching data for {self._username}"
-            ) from None
+        async with self._handle_api_errors("fetching data"):
+            return await self._get_tank_data()
 
     async def check_credentials(self) -> bool:
         """Verify credentials with the Kingspan service."""
+        async with self._handle_api_errors("logging in"):
+            async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
+                await client.login(self._username, self._password)
+        return True
+
+    @asynccontextmanager
+    async def _handle_api_errors(self, action: str) -> AsyncGenerator[None]:
+        """Wrap API calls with unified timeout and exception handling."""
         try:
             async with asyncio.timeout(API_TIMEOUT):
-                async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
-                    await client.login(self._username, self._password)
-        except KingspanInvalidCredentialsError:
-            raise SENSiTAuthError(f"Invalid credentials for {self._username}") from None
+                yield
+        except KingspanInvalidCredentialsError as err:
+            msg = f"Invalid credentials for {self._username}: {err}"
+            _LOGGER.error(msg)
+            raise SENSiTAuthError(msg) from err
         except (KingspanTimeoutError, TimeoutError, HttpxTimeoutException, HTTPError) as err:
-            raise SENSiTConnectionError(f"Timeout logging in as {self._username}") from err
+            msg = f"Timeout or connection error {action} for {self._username}: {err}"
+            _LOGGER.error(msg)
+            raise SENSiTConnectionError(msg) from err
         except KingspanAPIError as err:
-            raise SENSiTAuthError(f"API error logging in as {self._username}") from err
-        except Exception as err:
-            raise SENSiTConnectionError(f"Unhandled error logging in as {self._username}") from err
-        return True
+            sub_err_str = str(err) or "unknown API error"
+            if "no level data" in sub_err_str.lower():
+                msg = f"No level data available for {self._username}"
+                _LOGGER.warning(msg)
+                raise SENSiTNoDataError(msg) from err
+            msg = f"API error {action} for {self._username}: {sub_err_str}"
+            _LOGGER.error(msg)
+            raise SENSiTApiClientError(msg) from err
+        except Exception:
+            msg = f"Unhandled error {action} for {self._username}"
+            _LOGGER.exception(msg)
+            raise SENSiTApiClientError(msg) from None
 
     async def _get_tank_data(self) -> list[TankData]:
         """Fetch and parse all tank data from the API."""
