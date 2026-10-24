@@ -69,7 +69,8 @@ files = ["custom_components/kingspan_watchman_sensit"]
 [[tool.mypy.overrides]]
 module = [
   "connectsensor.*",
-  "fabric.*"
+  "fabric.*",
+  "pytest_homeassistant_custom_component.common"
 ]
 ignore_missing_imports = true
 
