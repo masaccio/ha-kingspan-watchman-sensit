@@ -231,24 +231,26 @@ async def test_credential_update_success(  # noqa: PLR0913, PLR0917
 
 
 @pytest.mark.parametrize(
-    ("flow_source", "step_id"),
+    ("flow_source", "step_id", "pass_data"),
     [
-        (config_entries.SOURCE_RECONFIGURE, "reconfigure"),
-        (config_entries.SOURCE_REAUTH, "reauth_confirm"),
+        (config_entries.SOURCE_RECONFIGURE, "reconfigure", False),
+        (config_entries.SOURCE_REAUTH, "reauth_confirm", True),
     ],
 )
-async def test_credential_update_invalid_auth(hass, flow_source, step_id):
+async def test_credential_update_invalid_auth(
+    hass, mock_sensor_client, flow_source, step_id, pass_data
+):
     """Test reauth and reconfigure steps handle invalid credentials correctly."""
     config_entry = MockConfigEntry(
         domain=DOMAIN, data=MOCK_CONFIG, entry_id="test", unique_id=MOCK_CONFIG[CONF_USERNAME]
     )
     config_entry.add_to_hass(hass)
 
-    result1 = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": flow_source, "entry_id": config_entry.entry_id},
-        data=config_entry.data,
-    )
+    kwargs = {"context": {"source": flow_source, "entry_id": config_entry.entry_id}}
+    if pass_data:
+        kwargs["data"] = config_entry.data
+
+    result1 = await hass.config_entries.flow.async_init(DOMAIN, **kwargs)
     assert result1["type"] == data_entry_flow.FlowResultType.FORM
     assert result1["step_id"] == step_id
 
