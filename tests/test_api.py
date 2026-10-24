@@ -52,39 +52,32 @@ async def test_api(mock_sensor_client, mocker, caplog):
     assert str(exc.value) == f"Timeout or connection error fetching data for {TEST_USERNAME}: "
 
 
-async def test_api_timeout(mocker):
-    """Test API calls."""
+@pytest.mark.parametrize(
+    ("side_effect", "expected_exception", "expected_msg"),
+    [
+        (
+            asyncio.TimeoutError,
+            SENSiTConnectionError,
+            f"Timeout or connection error logging in for {TEST_USERNAME}: ",
+        ),
+        (
+            KingspanAPIError,
+            SENSiTApiClientError,
+            f"API error logging in for {TEST_USERNAME}: unknown API error",
+        ),
+        (Exception, Exception, f"Unhandled error logging in for {TEST_USERNAME}"),
+    ],
+)
+async def test_api_login_errors(mocker, side_effect, expected_exception, expected_msg):
+    """Test API login error handling."""
     set_default_time_zone(get_localzone())
 
-    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=asyncio.TimeoutError)
+    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=side_effect)
     api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
 
-    with pytest.raises(SENSiTConnectionError) as exc:
+    with pytest.raises(expected_exception) as exc:
         assert not await api.check_credentials()
-    assert str(exc.value) == f"Timeout or connection error logging in for {TEST_USERNAME}: "
-
-
-async def test_api_error(mocker):
-    """Test API calls."""
-    set_default_time_zone(get_localzone())
-
-    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=KingspanAPIError)
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
-
-    with pytest.raises(SENSiTApiClientError) as exc:
-        assert not await api.check_credentials()
-    assert str(exc.value) == f"API error logging in for {TEST_USERNAME}: unknown API error"
-
-
-async def test_api_generic_error(mocker):
-    """Test API calls."""
-    set_default_time_zone(get_localzone())
-
-    mocker.patch("connectsensor.client.AsyncSensorClient.login", side_effect=Exception)
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
-    with pytest.raises(Exception) as exc:  # noqa: B017
-        assert not await api.check_credentials()
-    assert str(exc.value) == f"Unhandled error logging in for {TEST_USERNAME}"
+    assert str(exc.value) == expected_msg
 
 
 async def test_api_filtering(mock_sensor_client):

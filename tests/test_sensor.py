@@ -59,7 +59,8 @@ async def test_sensor(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def run_sensor_test_with_timezone(hass, tz: str):
+@pytest.mark.parametrize("tz", ["Asia/Kolkata", "UTC"])
+async def test_sensor_timezones(hass, mock_sensor_client, tz):
     """Test sensor timezone compliance."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
@@ -81,14 +82,6 @@ async def run_sensor_test_with_timezone(hass, tz: str):
     assert state.state == reference_date
 
     assert await async_unload_entry(hass, config_entry)
-
-
-async def test_sensor_with_timezone(hass, mock_sensor_client):
-    await run_sensor_test_with_timezone(hass, "Asia/Kolkata")
-
-
-async def test_sensor_with_utc(hass, mock_sensor_client):
-    await run_sensor_test_with_timezone(hass, "UTC")
 
 
 async def test_current_energy_usage(hass, mock_sensor_client):
