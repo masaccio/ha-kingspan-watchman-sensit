@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import TypedDict, cast
 
+import httpx
 from connectsensor import __version__ as api_version
 from connectsensor.client import APIVersion, AsyncSensorClient
 from connectsensor.exceptions import (
@@ -77,12 +78,14 @@ class SENSiTApiClient:
         password: str,
         usage_window: int = DEFAULT_USAGE_WINDOW,
         debug: bool = False,
+        client: httpx.AsyncClient | None = None,
     ) -> None:
         """Initialize the API client."""
         _LOGGER.debug("API init as username=%s [API version %s]", username, api_version)
         self._username = username
         self._password = password
         self._usage_window = usage_window
+        self._client = client
 
         connectsensor_logger = logging.getLogger("connectsensor")
         if debug:
@@ -99,7 +102,9 @@ class SENSiTApiClient:
     async def check_credentials(self) -> bool:
         """Verify credentials with the Kingspan service."""
         async with self._handle_api_errors("logging in"):
-            async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
+            async with AsyncSensorClient(
+                version=APIVersion.KNECT_V1, client=self._client
+            ) as client:
                 await client.login(self._username, self._password)
         return True
 
@@ -134,7 +139,7 @@ class SENSiTApiClient:
     async def _get_tank_data(self) -> list[TankData]:
         """Fetch and parse all tank data from the API."""
         _LOGGER.debug("Fetching tank data with username=%s", self._username)
-        async with AsyncSensorClient(version=APIVersion.KNECT_V1) as client:
+        async with AsyncSensorClient(version=APIVersion.KNECT_V1, client=self._client) as client:
             await client.login(self._username, self._password)
             tanks = await client.tanks
             results: list[TankData] = []
@@ -142,7 +147,8 @@ class SENSiTApiClient:
             for tank in tanks:
                 raw_history = await tank.history()
                 filtered = filter_history(
-                    raw_history, self._usage_window  # pyright: ignore[reportArgumentType]
+                    raw_history,
+                    self._usage_window,  # pyright: ignore[reportArgumentType]
                 )
 
                 rate = self._calculate_usage_rate(filtered)

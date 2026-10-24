@@ -18,7 +18,7 @@ dependencies = [
   "homeassistant>=2026.10.1",
   "async-property>=0.2.1",
   "asyncio>=3.4.3",
-  "kingspan-connect-sensor==4.2.1",
+  "kingspan-connect-sensor==4.3.0",
   "mypy",
   "pylint",
 ]
@@ -70,6 +70,7 @@ files = ["custom_components/kingspan_watchman_sensit"]
 module = [
   "connectsensor.*",
   "fabric.*",
+  "pandas",
   "pytest_homeassistant_custom_component.common"
 ]
 ignore_missing_imports = true

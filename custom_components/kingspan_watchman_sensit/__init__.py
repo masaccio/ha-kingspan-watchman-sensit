@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.httpx_client import get_async_client
 
 from .api import SENSiTApiClient
 from .const import (
@@ -75,11 +76,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
             translation_key="credentials_not_set",
         )
 
+    httpx_client = get_async_client(hass)
     client = SENSiTApiClient(
         username=username,
         password=str(password),
         usage_window=usage_window,
         debug=kingspan_debug,
+        client=httpx_client,
     )
 
     coordinator = SENSiTDataUpdateCoordinator(

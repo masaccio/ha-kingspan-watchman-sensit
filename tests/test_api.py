@@ -2,10 +2,13 @@
 
 import asyncio
 from datetime import datetime
+from unittest.mock import patch
 
+import httpx
 import pandas as pd
 import pytest
 from connectsensor import KingspanAPIError
+from connectsensor.client import APIVersion
 from custom_components.kingspan_watchman_sensit.api import (
     SENSiTApiClient,
     SENSiTApiClientError,
@@ -17,6 +20,7 @@ from homeassistant.util.dt import as_local, set_default_time_zone
 from httpx import TimeoutException as httpxTimeoutException
 from tzlocal import get_localzone
 
+from .conftest import MockAsyncClient
 from .const import (
     MOCK_GET_DATA_METHOD,
     MOCK_TANK_CAPACITY,
@@ -138,3 +142,15 @@ async def test_api_debug_logging(caplog, mocker):
     _ = await api.check_credentials()
 
     assert "Init API with version=KNECT_V1" in caplog.text
+
+
+async def test_api_client_injection(mocker):
+    """Test that the injected httpx client is passed through to connectsensor."""
+    mock_httpx = httpx.AsyncClient()
+    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14, client=mock_httpx)
+
+    with patch("custom_components.kingspan_watchman_sensit.api.AsyncSensorClient") as mock_client:
+        mock_client.return_value.__aenter__.return_value = MockAsyncClient()
+        await api.async_get_data()
+
+        mock_client.assert_called_with(version=APIVersion.KNECT_V1, client=mock_httpx)
