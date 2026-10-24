@@ -6,7 +6,12 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 10
-    
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"

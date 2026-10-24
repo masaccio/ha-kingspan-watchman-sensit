@@ -7,7 +7,7 @@ import re
 from io import StringIO
 from pathlib import Path
 
-from fabric import Connection  # type: ignore[import-untyped]
+from fabric import Connection
 
 # Configuration
 REMOTE_HOST = "hass"

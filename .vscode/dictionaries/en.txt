@@ -6,6 +6,7 @@ autouse
 caplog
 connectsensor
 Connell
+delenv
 HACS
 hass
 homeassistant
@@ -27,6 +28,7 @@ Pyflakes
 pygithub
 Pylama
 pylint
+pyproject
 pytest
 pyupgrade
 rcfile

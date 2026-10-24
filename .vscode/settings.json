@@ -3,23 +3,22 @@
         "editor.formatOnSave": true,
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 100,
-        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.codeActionsOnSave": {
-            "source.fixAll": "explicit",
-            "source.organizeImports": "explicit"
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
         }
     },
-    "black-formatter.args": [
-        "--line-length",
-        "100"
-    ],
     "python.testing.pytestArgs": [
         "tests",
         "--no-cov"
     ],
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.analysis.typeCheckingMode": "basic",
+    "mypy-type-checker.args": [
+        "--config-file",
+        "pyproject.toml"
+    ],
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [],
     "cSpell.language": "en",
@@ -35,6 +34,11 @@
         {
             "name": "Project German Dictionary",
             "path": "./.vscode/dictionaries/de.txt",
+            "addWords": true
+        },
+        {
+            "name": "Project French Dictionary",
+            "path": "./.vscode/dictionaries/fr.txt",
             "addWords": true
         },
     ],
