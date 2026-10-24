@@ -135,18 +135,30 @@ async def async_setup_entry(
     config_entry: SENSiTConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up the sensor platform and listen for new dynamically added tanks."""
     coordinator = config_entry.runtime_data
-    entities: list[SensorEntity] = []
-    for idx in range(len(coordinator.data)):
-        entities.extend(
-            SENSiTSensor(coordinator, config_entry, idx, description)
-            for description in SENSOR_DESCRIPTIONS
-        )
-        entities.append(
-            OilConsumptionSensor(coordinator, config_entry, idx, OIL_CONSUMPTION_DESCRIPTION)
-        )
-    async_add_entities(entities)
+    added_tanks: set[str] = set()
+
+    @callback
+    def async_add_new_tanks() -> None:
+        new_entities: list[SENSiTEntity] = []
+        for tank in coordinator.data:
+            if tank.serial_number not in added_tanks:
+                added_tanks.add(tank.serial_number)
+                new_entities.extend(
+                    SENSiTSensor(coordinator, config_entry, tank.serial_number, description)
+                    for description in SENSOR_DESCRIPTIONS
+                )
+                new_entities.append(
+                    OilConsumptionSensor(
+                        coordinator, config_entry, tank.serial_number, OIL_CONSUMPTION_DESCRIPTION
+                    )
+                )
+        if new_entities:
+            async_add_entities(new_entities)
+
+    async_add_new_tanks()
+    config_entry.async_on_unload(coordinator.async_add_listener(async_add_new_tanks))
 
 
 class SENSiTSensor(SENSiTEntity, SensorEntity):
@@ -167,11 +179,11 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         self,
         coordinator: SENSiTDataUpdateCoordinator,
         config_entry: SENSiTConfigEntry,
-        idx: int,
+        serial_number: str,
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the cumulative oil consumption sensor."""
-        super().__init__(coordinator, config_entry, idx, entity_description)
+        super().__init__(coordinator, config_entry, serial_number, entity_description)
         self._consumption_total: float | None = None
         self._consumption_last_read: datetime | None = None
 

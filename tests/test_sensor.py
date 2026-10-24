@@ -272,3 +272,38 @@ async def test_sensor_zero_usage_history(hass, mock_sensor_client, caplog, expec
     assert state.state == "0"
 
     assert await async_unload_entry(hass, config_entry)
+
+
+async def test_dynamic_device_addition(hass, mock_sensor_client, mocker):
+    """Test sensors are dynamically added when a new tank appears in the API."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Ensure only the first tank is loaded
+    assert hass.states.get("sensor.tanky_mctankface_oil_level") is not None
+    assert hass.states.get("sensor.tanky_mctankface_2_oil_level") is None
+
+    # Mock a second tank appearing in a subsequent coordinator refresh
+    coordinator = config_entry.runtime_data
+    new_tank_1 = coordinator.data[0]
+    new_tank_2 = TankData(
+        level=500.0,
+        capacity=MOCK_TANK_CAPACITY,
+        serial_number="20009999",
+        name="Tanky McTankFace 2",
+    )
+
+    mocker.patch.object(
+        coordinator.api,
+        "async_get_data",
+        new_callable=AsyncMock,
+        return_value=[new_tank_1, new_tank_2],
+    )
+
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    # Verify the new tank entities were dynamically added without a restart
+    assert hass.states.get("sensor.tanky_mctankface_2_oil_level") is not None
