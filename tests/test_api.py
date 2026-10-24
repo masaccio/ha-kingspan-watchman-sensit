@@ -100,7 +100,7 @@ async def test_api_filtering(mock_sensor_client):
 
 def test_api_no_history_zero_usage():
     """Exercise the no-history and zero-usage edge cases for coverage."""
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD)
+    _ = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD)
 
     assert filter_history(None, 14) == []
 
