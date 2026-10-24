@@ -194,24 +194,31 @@ async def test_oil_consumption_restore(hass, mock_sensor_client, mocker):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_sensor_exceptions(hass, mock_sensor_client, mocker):
+@pytest.mark.parametrize(
+    ("side_effect", "expected_msg", "translation_key"),
+    [
+        (asyncio.TimeoutError, "Timed out while connecting to the Kingspan service", "timed_out"),
+        (KingspanAPIError("api-test error"), "api-test error", None),
+    ],
+)
+async def test_sensor_exceptions(  # noqa: PLR0913, PLR0917
+    hass, mock_sensor_client, mocker, side_effect, expected_msg, translation_key
+):
+    """Test coordinator handles update exceptions cleanly."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
     coordinator = config_entry.runtime_data
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(UpdateFailed) as exc:
-        await coordinator._async_update_data()
-    assert exc.value.translation_key == "timed_out"
-    assert str(exc.value) == "Timed out while connecting to the Kingspan service"
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=side_effect)
 
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
     with pytest.raises(UpdateFailed) as exc:
         await coordinator._async_update_data()
-    assert str(exc.value).endswith("api-test error")
+
+    assert str(exc.value).endswith(expected_msg)
+    if translation_key:
+        assert exc.value.translation_key == translation_key
 
 
 @pytest.mark.parametrize(

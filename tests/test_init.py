@@ -65,83 +65,77 @@ async def test_auth_missing(hass, mock_sensor_client):
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"exception": KingspanInvalidCredentialsError("test bad auth")}],
-    indirect=True,
+    (
+        "mock_sensor_client",
+        "log_level",
+        "expected_state",
+        "expected_log",
+        "attr_name",
+        "attr_value",
+        "expect_repair_issue",
+    ),
+    [
+        (
+            {"exception": KingspanInvalidCredentialsError("test bad auth")},
+            logging.ERROR,
+            ConfigEntryState.SETUP_ERROR,
+            "Invalid credentials for test@example.com: test bad auth",
+            "error_reason_translation_key",
+            "credentials_invalid",
+            True,
+        ),
+        (
+            {"exception": KingspanTimeoutError("test timeout")},
+            logging.ERROR,
+            ConfigEntryState.SETUP_RETRY,
+            "Timeout or connection error fetching data for test@example.com: test timeout",
+            "reason",
+            "Timed out while connecting to the Kingspan service",
+            False,
+        ),
+        (
+            {"exception": KingspanAPIError("no level data")},
+            logging.WARNING,
+            ConfigEntryState.SETUP_ERROR,
+            "No data available for username 'test@example.com",
+            None,
+            None,
+            False,
+        ),
+    ],
+    indirect=["mock_sensor_client"],
 )
-async def test_auth_bad_credentials(hass, mock_sensor_client, caplog):
-    """Test entry setup and unload."""
+async def test_setup_auth_failures(  # noqa: PLR0913, PLR0917
+    hass,
+    mock_sensor_client,
+    caplog,
+    log_level,
+    expected_state,
+    expected_log,
+    attr_name,
+    attr_value,
+    expect_repair_issue,
+):
+    """Test entry setup handles authentication and connection failures cleanly."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
 
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(log_level):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-    assert config_entry.state == ConfigEntryState.SETUP_ERROR
+    assert config_entry.state == expected_state
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
-    assert config_entry.error_reason_translation_key == "credentials_invalid"
-    assert "Invalid credentials for test@example.com: test bad auth" in caplog.text
+    assert expected_log in caplog.text
 
+    if attr_name:
+        assert getattr(config_entry, attr_name) == attr_value
 
-@pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"exception": KingspanInvalidCredentialsError("test bad auth")}],
-    indirect=True,
-)
-async def test_auth_repair_issue_created(hass, mock_sensor_client):
-    """Authentication failures should create a repair issue for the user."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    issue_registry = ir.async_get(hass)
-    issue = issue_registry.async_get_issue(DOMAIN, f"credentials_{config_entry.entry_id}")
-    assert issue is not None
-    assert issue.is_fixable is True
-
-
-@pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"exception": KingspanTimeoutError("test timeout")}],
-    indirect=True,
-)
-async def test_auth_timeout(hass, mock_sensor_client, caplog):
-    """Test entry setup and unload."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    config_entry.add_to_hass(hass)
-
-    with caplog.at_level(logging.ERROR):
-        await hass.config_entries.async_setup(config_entry.entry_id)
-        await hass.async_block_till_done()
-
-    assert config_entry.state == ConfigEntryState.SETUP_RETRY
-    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
-    assert config_entry.reason == "Timed out while connecting to the Kingspan service"
-    assert (
-        "Timeout or connection error fetching data for test@example.com: test timeout"
-        in caplog.text
-    )
-
-
-@pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"exception": KingspanAPIError("no level data")}],
-    indirect=True,
-)
-async def test_auth_no_tank_data(hass, mock_sensor_client, caplog):
-    """Test entry setup and unload."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-    config_entry.add_to_hass(hass)
-
-    with caplog.at_level(logging.WARNING):
-        await hass.config_entries.async_setup(config_entry.entry_id)
-        await hass.async_block_till_done()
-
-    assert config_entry.state == ConfigEntryState.SETUP_ERROR
-    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
-    assert "No data available for username 'test@example.com" in caplog.text
+    if expect_repair_issue:
+        issue_registry = ir.async_get(hass)
+        issue = issue_registry.async_get_issue(DOMAIN, f"credentials_{config_entry.entry_id}")
+        assert issue is not None
+        assert issue.is_fixable is True
 
 
 @pytest.mark.parametrize("mock_sensor_client", [{"num_tanks": 0}], indirect=True)
