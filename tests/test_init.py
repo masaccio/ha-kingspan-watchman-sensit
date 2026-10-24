@@ -170,7 +170,21 @@ async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
 
 
-async def test_coordinator_logs_available_again(hass, mock_sensor_client, mocker, caplog):
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTConnectionError,
+)
+
+
+@pytest.mark.parametrize(
+    "exception",
+    [
+        SENSiTApiClientError("api-test error"),
+        SENSiTConnectionError("connection timeout"),
+    ],
+)
+async def test_coordinator_logs_available_again(
+    hass, mock_sensor_client, mocker, caplog, exception
+):
     """Coordinator should log a recovery message after a previously failed refresh."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
@@ -180,15 +194,27 @@ async def test_coordinator_logs_available_again(hass, mock_sensor_client, mocker
 
     coordinator = config_entry.runtime_data
     caplog.set_level(logging.INFO)
+    caplog.clear()
 
-    # Inject an error into the internal data fetch routine
     mocker.patch.object(
         coordinator.api,
         "async_get_data",
-        AsyncMock(side_effect=SENSiTApiClientError("api-test error")),
+        AsyncMock(side_effect=exception),
     )
+
+    # Trigger twice to check it's logged just once
     with pytest.raises(Exception):  # noqa: B017
         await coordinator._async_update_data()
+    with pytest.raises(Exception):  # noqa: B017
+        await coordinator._async_update_data()
+
+    warnings = [
+        record
+        for record in caplog.records
+        if "Error communicating with Kingspan API" in record.message
+    ]
+    assert len(warnings) == 1
+    assert coordinator._unavailable_logged is True
 
     # Restore the working response
     mocker.patch.object(
@@ -199,6 +225,7 @@ async def test_coordinator_logs_available_again(hass, mock_sensor_client, mocker
     await coordinator._async_update_data()
 
     assert "Kingspan service is available again" in caplog.text
+    assert coordinator._unavailable_logged is False
 
 
 @pytest.mark.parametrize(

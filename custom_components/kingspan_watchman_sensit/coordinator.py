@@ -60,19 +60,18 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
             username = self.config_entry.data.get(CONF_USERNAME)
             _LOGGER.warning("No data available for username '%s'", username)
             return []
-        except SENSiTConnectionError as err:
+        except (SENSiTConnectionError, SENSiTApiClientError) as err:
             if not self._unavailable_logged:
                 _LOGGER.warning("Error communicating with Kingspan API: %s", err)
                 self._unavailable_logged = True
-            raise UpdateFailed(
-                "Timed out while connecting to the Kingspan service",
-                translation_domain=DOMAIN,
-                translation_key="timed_out",
-            ) from err
-        except SENSiTApiClientError as err:
-            if not self._unavailable_logged:
-                _LOGGER.warning("Error communicating with Kingspan API: %s", err)
-                self._unavailable_logged = True
+
+            if isinstance(err, SENSiTConnectionError):
+                raise UpdateFailed(
+                    "Timed out while connecting to the Kingspan service",
+                    translation_domain=DOMAIN,
+                    translation_key="timed_out",
+                ) from err
+
             raise UpdateFailed(f"Failed to fetch data from API: {err}") from err
 
         if self._unavailable_logged:
