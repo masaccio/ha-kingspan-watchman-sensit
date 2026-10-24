@@ -236,12 +236,15 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE}],
-    indirect=True,
+    ("mock_sensor_client", "expect_log"),
+    [
+        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE}, True),
+        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED}, False),
+    ],
+    indirect=["mock_sensor_client"],
 )
-async def test_sensor_no_history(hass, mock_sensor_client, caplog):
-    """Test sensor."""
+async def test_sensor_zero_usage_history(hass, mock_sensor_client, caplog, expect_log):
+    """Test sensor fallback values when history is missing or expired."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
     caplog.clear()
@@ -249,33 +252,9 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
-    assert len(history_log) == 1
-
-    state = hass.states.get("sensor.tanky_mctankface_current_usage")
-    assert state
-    assert state.state == "0.0"
-
-    state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
-    assert state
-    assert state.state == "0"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED}],
-    indirect=True,
-)
-async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    caplog.clear()
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
+    if expect_log:
+        history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
+        assert len(history_log) == 1
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state
