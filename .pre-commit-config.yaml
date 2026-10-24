@@ -12,7 +12,7 @@ repos:
       - id: pylint
         args: [ --rcfile, pyproject.toml ]
         files: ^(custom_components|maintenance)/
-        additional_dependencies: [ homeassistant==2026.10.0, kingspan-connect-sensor, fabric, toml ]
+        additional_dependencies: [ homeassistant==2026.10.2, kingspan-connect-sensor, fabric, toml ]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.4.0
@@ -20,4 +20,4 @@ repos:
       - id: mypy
         args: [ --config-file, pyproject.toml ]
         files: ^(custom_components|maintenance)/
-        additional_dependencies: [ homeassistant==2026.10.0, kingspan-connect-sensor, fabric, toml, types-toml ]
+        additional_dependencies: [ homeassistant==2026.10.2, kingspan-connect-sensor, fabric, toml, types-toml ]
