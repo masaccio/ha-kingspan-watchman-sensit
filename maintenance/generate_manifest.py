@@ -1,4 +1,6 @@
 #! /usr/bin/env uv run python3
+"""Script to generate a new manifest.json with up-to-date integration version."""
+
 import json
 from importlib.metadata import version
 
@@ -16,18 +18,14 @@ manifest = {
     "name": "Kingspan Watchman SENSiT",
     "codeowners": ["@masaccio"],
     "config_flow": True,
-    "dependencies": [
-      "diagnostics"
-    ],
     "documentation": "https://github.com/masaccio/ha-kingspan-watchman-sensit",
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
     "requirements": [
         f"kingspan-connect-sensor>={connectsensor_version}",
-        f"httpx>={httpx_version}",
     ],
     "version": pyproject["project"]["version"],
 }
 
-with open(MANIFEST, "w") as fh:
+with open(MANIFEST, "w", encoding="ascii") as fh:
     json.dump(manifest, fh, indent=2)

@@ -1,153 +1,153 @@
 """Test Kingspan Watchman SENSiT setup process."""
 
 import logging
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
-from connectsensor.exceptions import KingspanAPIError
+from connectsensor.exceptions import (
+    KingspanAPIError,
+    KingspanInvalidCredentialsError,
+    KingspanTimeoutError,
+)
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
-    async_get_config_entry_diagnostics,
-    async_reload_entry,
-    async_setup_entry,
-    async_unload_entry,
+)
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTApiClientError,
+    SENSiTConnectionError,
 )
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from custom_components.kingspan_watchman_sensit.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
 
 
-async def test_refresh_data(hass, mock_sensor_client, caplog):
-    """Test state refresh through the API"""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
+async def test_setup_unload_and_reload_entry(hass, mock_sensor_client):
+    """Test entry setup and unload state transitions."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
+
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
+    assert config_entry.state == ConfigEntryState.LOADED
+    assert isinstance(config_entry.runtime_data, SENSiTDataUpdateCoordinator)
 
-    # Check that the API is called to update data twice for two calls
-    # to HASS's data update method
-    caplog.clear()
-    await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
-    await hass.data[DOMAIN][config_entry.entry_id]._async_update_data()
-    update_logs = [log[2] for log in caplog.record_tuples if "Fetching tank data" in log[2]]
-    assert len(update_logs) == 2
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-async def test_setup_unload_and_reload_entry(hass, bypass_get_data):
-    """Test entry setup and unload."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
+    # Reload the entry and assert it remains loaded
+    await hass.config_entries.async_reload(config_entry.entry_id)
     await hass.async_block_till_done()
+    assert config_entry.state == ConfigEntryState.LOADED
 
-    assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
-
-    # Reload the entry and assert that the data from above is still there
-    assert await async_reload_entry(hass, config_entry) is None
-    assert DOMAIN in hass.data and config_entry.entry_id in hass.data[DOMAIN]
-    assert isinstance(hass.data[DOMAIN][config_entry.entry_id], SENSiTDataUpdateCoordinator)
-
-    # Unload the entry and verify that the data has been removed
-    assert await async_unload_entry(hass, config_entry)
-    assert config_entry.entry_id not in hass.data[DOMAIN]
+    # Unload the entry via the core HA manager to properly alter the state
+    await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state == ConfigEntryState.NOT_LOADED
 
 
-async def test_setup_entry_exception(hass, error_on_get_data):
-    """Test ConfigEntryNotReady when API raises an exception during entry setup."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-
-    # In this case we are testing the condition where async_setup_entry raises
-    # ConfigEntryNotReady using the `error_on_get_data` fixture which simulates
-    # an error.
-    with pytest.raises(ConfigEntryNotReady):
-        assert await async_setup_entry(hass, config_entry)
-
-
-async def test_auth_errors(hass, bypass_get_data):
+async def test_auth_missing(hass, mock_sensor_client):
     """Test entry setup and unload."""
     # Create a mock entry so we don't have to go through config flow
     config_entry = MockConfigEntry(domain=DOMAIN, data={"username": None}, entry_id="test")
-
-    with pytest.raises(ConfigEntryAuthFailed) as e:
-        assert await async_setup_entry(hass, config_entry)
-
-    assert e.value.translation_domain == DOMAIN
-    assert e.value.translation_key == "credentials_not_set"
-    assert DOMAIN in hass.data and config_entry.entry_id not in hass.data[DOMAIN]
-
-
-async def test_auth_exception(hass, error_sensor_client):
-    """Test entry setup and unload."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-
-    with pytest.raises(ConfigEntryAuthFailed) as e:
-        assert await async_setup_entry(hass, config_entry)
-    assert "Credentials invalid" in str(e)
-    assert e.value.translation_domain == DOMAIN
-    assert e.value.translation_key == "credentials_invalid"
-
-
-async def test_auth_exception_creates_repair_issue(hass, error_sensor_client):
-    """Authentication failures should create a repair issue for the user."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-
-    with pytest.raises(ConfigEntryAuthFailed):
-        await async_setup_entry(hass, config_entry)
-
-    issue_registry = ir.async_get(hass)
-    issue = issue_registry.async_get_issue(DOMAIN, f"credentials_{config_entry.entry_id}")
-    assert issue is not None
-    assert issue.is_fixable is True
-
-
-async def test_auth_timeout(hass, timeout_sensor_client):
-    """Test entry setup and unload."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
-
-    with pytest.raises(ConfigEntryNotReady) as e:
-        assert await async_setup_entry(hass, config_entry)
-    assert "Timed out while connecting to Kingspan service" in str(e)
-    assert e.value.translation_domain == DOMAIN
-    assert e.value.translation_key == "timed_out"
-
-
-async def test_auth_no_tank_data(hass, error_no_tank_data, caplog):
-    """Test entry setup and unload."""
-
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    caplog.clear()
     config_entry.add_to_hass(hass)
+
     await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
 
-    level_warnings = [
-        log[2]
-        for log in caplog.record_tuples
-        if "No data available for username 'test@example.com'" in log[2]
-    ]
-    assert len(level_warnings) == 1
+    assert config_entry.state == ConfigEntryState.SETUP_ERROR
+    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
+    assert config_entry.error_reason_translation_key == "credentials_not_set"
+    assert DOMAIN not in hass.data
 
 
-async def test_setup_entry_no_data_return_false(hass):
-    """Test setup exits cleanly when a valid login finds no tank data."""
+@pytest.mark.parametrize(
+    (
+        "mock_sensor_client",
+        "log_level",
+        "expected_state",
+        "expected_log",
+        "attr_name",
+        "attr_value",
+        "expect_repair_issue",
+    ),
+    [
+        (
+            {"exception": KingspanInvalidCredentialsError("test bad auth")},
+            logging.ERROR,
+            ConfigEntryState.SETUP_ERROR,
+            "Invalid credentials for test@example.com: test bad auth",
+            "error_reason_translation_key",
+            "credentials_invalid",
+            True,
+        ),
+        (
+            {"exception": KingspanTimeoutError("test timeout")},
+            logging.ERROR,
+            ConfigEntryState.SETUP_RETRY,
+            "Timeout or connection error fetching data for test@example.com: test timeout",
+            "reason",
+            "Timed out while connecting to the Kingspan service",
+            False,
+        ),
+        (
+            {"exception": KingspanAPIError("no level data")},
+            logging.WARNING,
+            ConfigEntryState.SETUP_ERROR,
+            "No data available for username 'test@example.com",
+            None,
+            None,
+            False,
+        ),
+    ],
+    indirect=["mock_sensor_client"],
+)
+async def test_setup_auth_failures(  # noqa: PLR0913, PLR0917
+    hass,
+    mock_sensor_client,
+    caplog,
+    log_level,
+    expected_state,
+    expected_log,
+    attr_name,
+    attr_value,
+    expect_repair_issue,
+):
+    """Test entry setup handles authentication and connection failures cleanly."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.kingspan_watchman_sensit.SENSiTApiClient.check_credentials",
-        AsyncMock(return_value=False),
-    ):
-        assert await async_setup_entry(hass, config_entry) is False
+    with caplog.at_level(log_level):
+        await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
 
+    assert config_entry.state == expected_state
+    assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
+    assert expected_log in caplog.text
+
+    if attr_name:
+        assert getattr(config_entry, attr_name) == attr_value
+
+    if expect_repair_issue:
+        issue_registry = ir.async_get(hass)
+        issue = issue_registry.async_get_issue(DOMAIN, f"credentials_{config_entry.entry_id}")
+        assert issue is not None
+        assert issue.is_fixable is True
+
+
+@pytest.mark.parametrize("mock_sensor_client", [{"num_tanks": 0}], indirect=True)
+async def test_setup_entry_no_data_return_false(hass, mock_sensor_client):
+    """Test setup exits cleanly when a valid login finds an empty tank list."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert config_entry.state == ConfigEntryState.SETUP_ERROR
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
 
 
@@ -160,57 +160,76 @@ async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
 
     diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
     assert diagnostics["tank_count"] == 1
-    assert config_entry.runtime_data is hass.data[DOMAIN][config_entry.entry_id]
+    assert config_entry.runtime_data is not None
 
-    del config_entry.runtime_data
-    diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
-    assert diagnostics["tank_count"] == 1
-
-    assert await async_unload_entry(hass, config_entry)
+    await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
 
 
-async def test_coordinator_logs_available_again(hass, mock_sensor_client, mocker, caplog):
+@pytest.mark.parametrize(
+    "exception",
+    [
+        SENSiTApiClientError("api-test error"),
+        SENSiTConnectionError("connection timeout"),
+    ],
+)
+async def test_coordinator_logs_available_again(
+    hass, mock_sensor_client, mocker, caplog, exception
+):
     """Coordinator should log a recovery message after a previously failed refresh."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
+
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
     coordinator = config_entry.runtime_data
     caplog.set_level(logging.INFO)
+    caplog.clear()
 
     mocker.patch.object(
         coordinator.api,
         "async_get_data",
-        AsyncMock(side_effect=KingspanAPIError("api-test error")),
+        AsyncMock(side_effect=exception),
     )
-    with pytest.raises(Exception):
-        await coordinator.update()
 
+    # Trigger twice to check it's logged just once
+    with pytest.raises(Exception):  # noqa: B017
+        await coordinator._async_update_data()
+    with pytest.raises(Exception):  # noqa: B017
+        await coordinator._async_update_data()
+
+    warnings = [
+        record
+        for record in caplog.records
+        if "Error communicating with Kingspan API" in record.message
+    ]
+    assert len(warnings) == 1
+    assert coordinator._unavailable_logged is True
+
+    # Restore the working response
     mocker.patch.object(
         coordinator.api,
         "async_get_data",
         AsyncMock(return_value=coordinator.data),
     )
-    await coordinator.update()
+    await coordinator._async_update_data()
 
     assert "Kingspan service is available again" in caplog.text
+    assert coordinator._unavailable_logged is False
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
+    "mock_sensor_client",
+    [{"tank_level": MOCK_TANK_LEVEL, "history_type": HistoryType.DECREASING, "num_tanks": 2}],
+    indirect=True,
 )
 async def test_diagnostics(hass, mock_sensor_client):
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    await coordinator.async_refresh()
     await hass.async_block_till_done()
-
-    # _ = hass.states.get("sensor.oil_level")
 
     diagnostics = await async_get_config_entry_diagnostics(hass, config_entry)
 
@@ -219,5 +238,5 @@ async def test_diagnostics(hass, mock_sensor_client):
     assert diagnostics["tank_count"] == 2
     assert len(diagnostics["tanks"]) == 2
     assert diagnostics["last_update_success"]
-    assert diagnostics["tanks"][0]["serial_number"] == "20001234-1"
+    assert diagnostics["tanks"][0]["serial_number"] == "**REDACTED**"
     assert diagnostics["tanks"][0]["level"] == 1000

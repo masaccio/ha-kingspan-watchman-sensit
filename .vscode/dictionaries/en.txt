@@ -6,6 +6,7 @@ autouse
 caplog
 connectsensor
 Connell
+delenv
 HACS
 hass
 homeassistant
@@ -16,15 +17,18 @@ KNECT
 Kolkata
 localzone
 Logfile
+maxcov
 mctankface
 minversion
 mypy
 pathlib
+probatio
 Pycodestyle
 Pyflakes
 pygithub
 Pylama
 pylint
+pyproject
 pytest
 pyupgrade
 rcfile

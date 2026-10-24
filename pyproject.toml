@@ -16,13 +16,13 @@ classifiers = [
 version = "2.0.2"
 dependencies = [
   "async-timeout>=4.0.2",
-  "voluptuous>=0.15.2",
-  "homeassistant>=2026.6.4",
+  "probatio",
+  "homeassistant>=2026.10.1",
   "async-property>=0.2.1",
   "asyncio>=3.4.3",
   "kingspan-connect-sensor==4.2.1",
-  "mypy>=2.3.0",
-  "pylint>=4.0.6",
+  "mypy",
+  "pylint",
 ]
 
 [project.urls]
@@ -39,6 +39,12 @@ dev = [
   "pandas>=2.3.3",
   "ruff>=0.16.1",
   "tzlocal>=5.4.4",
+  "types-toml>=0.10.8.20260518",
+  "fabric>=3.2.3",
+  "pre-commit>=4.7.0",
+]
+maxcov = [
+  "pytest-maxcov"
 ]
 
 [tool.coverage.run]
@@ -48,7 +54,7 @@ branch = true
 directory = "coverage_html_report"
 
 [tool.pytest.ini_options]
-addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov-context=test --cov=custom_components/kingspan_watchman_sensit --disable-socket --allow-unix-socket"
+addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov=custom_components/kingspan_watchman_sensit --disable-socket --allow-unix-socket"
 minversion = 6.0
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -63,7 +69,10 @@ show_error_codes = true
 files = ["custom_components/kingspan_watchman_sensit"]
 
 [[tool.mypy.overrides]]
-module = ["connectsensor.*"]
+module = [
+  "connectsensor.*",
+  "fabric.*"
+]
 ignore_missing_imports = true
 
 [tool.isort]
@@ -78,7 +87,6 @@ fix = true
 lint.ignore = [
   "PLR2004", # Allow constant values
 ]
-line-length = 100
 lint.select = [
   # Pyflakes including bugbears
   "F",
@@ -90,11 +98,12 @@ lint.select = [
   "UP", # Pylama
   "PL",
 ]
-src = ["src", "tests"]
-target-version = "py312"
 lint.unfixable = [
   "ERA", # do not autoremove commented out code
 ]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py314"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]

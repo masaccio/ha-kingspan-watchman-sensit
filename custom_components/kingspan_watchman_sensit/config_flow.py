@@ -1,14 +1,22 @@
-"""Adds config flow for Kingspan Watchman SENSiT."""
+"""Config flow for Kingspan Watchman SENSiT."""
+
+from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
+import probatio as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 
-from .api import SENSiTApiClient
+from .api import (
+    SENSiTApiClient,
+    SENSiTAuthError,
+    SENSiTConnectionError,
+    SENSiTNoDataError,
+)
 from .const import (
     CONF_KINGSPAN_DEBUG,
     CONF_NAME,
@@ -31,13 +39,10 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for kingspan_watchman_sensit."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-    reauth_entry: config_entries.ConfigEntry | None = None
-    reconfigure_entry: config_entries.ConfigEntry | None = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize."""
-        self._errors = {}
+        self._errors: dict[str, str] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -47,104 +52,116 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             username = user_input[CONF_USERNAME]
-            if self.source not in {config_entries.SOURCE_REAUTH, config_entries.SOURCE_RECONFIGURE}:
-                await self.async_set_unique_id(username.casefold())
-                self._abort_if_unique_id_configured()
-
             password = user_input[CONF_PASSWORD]
-            valid = await self._test_credentials(username, password)
-            if not valid:
-                _LOGGER.debug("login failed for username '%s'", username)
-                self._errors["base"] = "auth"
-            else:
-                if self.source == config_entries.SOURCE_REAUTH:
-                    _LOGGER.debug("reauthorized username '%s'", username)
-                    entry = self._get_reauth_entry()
-                    return self.async_update_reload_and_abort(
-                        entry,
-                        data_updates={
-                            **entry.data,
-                            CONF_USERNAME: username,
-                            CONF_PASSWORD: password,
-                        },
-                    )
 
-                # Normal first-time setup
+            await self.async_set_unique_id(username.casefold())
+            self._abort_if_unique_id_configured()
+
+            error = await self._test_credentials(username, password)
+            if error is None:
                 return self.async_create_entry(title=username, data=user_input)
 
-        return await self._show_config_form(user_input)
+            self._errors["base"] = error
+
+        return await self._show_config_form(
+            step_id="user",
+            defaults=user_input,
+        )
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle reconfiguration of an existing entry."""
         self._errors = {}
-        self.reconfigure_entry = self._get_reconfigure_entry()
+        reconfigure_entry = self._get_reconfigure_entry()
 
         if user_input is not None:
             username = user_input[CONF_USERNAME]
             password = user_input[CONF_PASSWORD]
-            valid = await self._test_credentials(username, password)
-            if not valid:
-                _LOGGER.debug("login failed for username '%s'", username)
-                self._errors["base"] = "auth"
-            else:
-                _LOGGER.debug("reconfigured username '%s'", username)
+
+            await self.async_set_unique_id(username.casefold())
+            self._abort_if_unique_id_mismatch()
+
+            error = await self._test_credentials(username, password)
+            if error is None:
                 return self.async_update_reload_and_abort(
-                    self.reconfigure_entry,
+                    reconfigure_entry,
                     title=username,
                     data_updates={
-                        **self.reconfigure_entry.data,
+                        **reconfigure_entry.data,
                         CONF_USERNAME: username,
                         CONF_PASSWORD: password,
                         CONF_NAME: user_input.get(
                             CONF_NAME,
-                            self.reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
+                            reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
                         ),
                     },
                 )
 
+            self._errors["base"] = error
+
         defaults = {
-            CONF_USERNAME: self.reconfigure_entry.data.get(CONF_USERNAME, ""),
-            CONF_PASSWORD: self.reconfigure_entry.data.get(CONF_PASSWORD, ""),
-            CONF_NAME: self.reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
+            CONF_USERNAME: reconfigure_entry.data.get(CONF_USERNAME, ""),
+            CONF_PASSWORD: reconfigure_entry.data.get(CONF_PASSWORD, ""),
+            CONF_NAME: reconfigure_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
         }
         return await self._show_config_form(
-            user_input,
             step_id="reconfigure",
-            defaults=defaults,
+            defaults=user_input or defaults,
         )
 
     async def async_step_reauth(
-        self, _user_input: dict[str, Any] | None = None
+        self, _entry_data: Mapping[str, Any]
     ) -> config_entries.ConfigFlowResult:
         """Perform reauth upon an API authentication error."""
-        self.reauth_entry = self._get_reauth_entry()
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Confirm the re-authentication flow."""
-        _LOGGER.debug("reauth flow started")
+        """Confirm and handle the re-authentication flow."""
+        self._errors = {}
+        reauth_entry = self._get_reauth_entry()
+
         if user_input is not None:
-            return await self.async_step_user()
+            username = user_input[CONF_USERNAME]
+            password = user_input[CONF_PASSWORD]
+            error = await self._test_credentials(username, password)
+            if error is None:
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data_updates={
+                        **reauth_entry.data,
+                        CONF_USERNAME: username,
+                        CONF_PASSWORD: password,
+                    },
+                )
+            self._errors["base"] = error
 
-        return self.async_show_form(step_id="reauth_confirm", data_schema=vol.Schema({}))
+        defaults = {
+            CONF_USERNAME: reauth_entry.data.get(CONF_USERNAME, ""),
+            CONF_PASSWORD: "",
+            CONF_NAME: reauth_entry.data.get(CONF_NAME, DEFAULT_TANK_NAME),
+        }
+        return await self._show_config_form(
+            step_id="reauth_confirm",
+            defaults=user_input or defaults,
+        )
 
-    @callback
     @staticmethod
-    def async_get_options_flow(config_entry):
+    @callback
+    def async_get_options_flow(
+        _config_entry: config_entries.ConfigEntry,
+    ) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
         return OptionsFlowHandler()
 
     async def _show_config_form(
         self,
-        _user_input: dict[str, Any] | None,
         step_id: str = "user",
         defaults: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Show the configuration form to edit location data."""
+        """Show the configuration form."""
         defaults = defaults or {}
         return self.async_show_form(
             step_id=step_id,
@@ -161,18 +178,24 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    def is_matching(self, other_flow: object) -> bool:
-        """Return whether this flow matches another flow."""
-        return False
-
-    async def _test_credentials(self, username: str, password: str) -> bool:
-        """Return true if credentials is valid."""
+    async def _test_credentials(self, username: str, password: str) -> str | None:
+        """Return None if credentials are valid, or an error key string."""
         try:
             client = SENSiTApiClient(username, password)
-            _ = await client.async_get_data()
-            return True
+            await client.async_get_data()
+        except SENSiTAuthError:
+            return "auth"
+        except SENSiTConnectionError:
+            return "cannot_connect"
+        except SENSiTNoDataError:
+            return "no_data"
         except Exception:  # pylint: disable=broad-except
-            pass
+            _LOGGER.exception("Unexpected exception testing credentials")
+            return "unknown_error"
+        return None
+
+    def is_matching(self, other_flow: object) -> bool:
+        """Return whether this flow matches another flow."""
         return False
 
 
@@ -180,15 +203,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
 
     async def async_step_init(
-        self, user_input: dict | None = None
+        self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Initialise the options flow"""
+        """Initialize the options flow."""
         if user_input is not None:
             _LOGGER.debug(
                 "Config options: %s",
                 ", ".join([f"{k}='{v}'" for k, v in user_input.items()]),
             )
-            return self.async_create_entry(title=self.config_entry.title, data=user_input)
+            return self.async_create_entry(title="", data=user_input)
 
         options = {
             vol.Optional(

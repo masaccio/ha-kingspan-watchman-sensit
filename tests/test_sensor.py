@@ -2,13 +2,14 @@
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock
 from zoneinfo import ZoneInfo
 
 import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
+from custom_components.kingspan_watchman_sensit.api import TankData
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
-from homeassistant.const import ATTR_ICON
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -22,6 +23,7 @@ from .const import (
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_NAME,
+    MOCK_TANK_SERIAL_NUMBER,
     HistoryType,
 )
 
@@ -32,37 +34,33 @@ async def test_sensor(hass, mock_sensor_client):
 
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
     state = hass.states.get("sensor.tanky_mctankface_oil_level")
     assert state
-    assert state.state == str(MOCK_TANK_LEVEL)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
+    assert float(state.state) == float(MOCK_TANK_LEVEL)
 
     state = hass.states.get("sensor.tanky_mctankface_tank_capacity")
     assert state
-    assert state.state == str(MOCK_TANK_CAPACITY)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
+    assert float(state.state) == float(MOCK_TANK_CAPACITY)
 
     state = hass.states.get("sensor.tanky_mctankface_tank_percentage_full")
     assert state
-    assert state.state == str(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge"
+    assert float(state.state) == float(100 * (MOCK_TANK_LEVEL / MOCK_TANK_CAPACITY))
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state.state == "96.7"
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
 
     state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
     assert state.state == "10"
-    assert state.attributes.get(ATTR_ICON) == "mdi:calendar"
 
     assert await async_unload_entry(hass, config_entry)
 
 
-async def run_sensor_test_with_timezone(hass, tz: str):
+@pytest.mark.parametrize("tz", ["Asia/Kolkata", "UTC"])
+async def test_sensor_timezones(hass, mock_sensor_client, tz):
     """Test sensor timezone compliance."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
@@ -81,18 +79,9 @@ async def run_sensor_test_with_timezone(hass, tz: str):
 
     state = hass.states.get("sensor.tanky_mctankface_last_reading_date")
     assert state
-    assert state.attributes.get(ATTR_ICON) == "mdi:clock-outline"
     assert state.state == reference_date
 
     assert await async_unload_entry(hass, config_entry)
-
-
-async def test_sensor_with_timezone(hass, mock_sensor_client):
-    await run_sensor_test_with_timezone(hass, "Asia/Kolkata")
-
-
-async def test_sensor_with_utc(hass, mock_sensor_client):
-    await run_sensor_test_with_timezone(hass, "UTC")
 
 
 async def test_current_energy_usage(hass, mock_sensor_client):
@@ -112,10 +101,9 @@ async def test_current_energy_usage(hass, mock_sensor_client):
     await hass.async_block_till_done()
 
     state = hass.states.get("sensor.tanky_mctankface_current_energy_usage")
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     assert state is not None
     assert state.state == str(round(coordinator.data[0].usage_rate * DEFAULT_OIL_ENERGY_DENSITY, 1))
-    assert state.attributes.get(ATTR_ICON) == "mdi:fire"
 
     assert await async_unload_entry(hass, config_entry)
 
@@ -143,8 +131,8 @@ async def test_oil_consumption(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_oil_consumption_restore(hass, mock_sensor_client):
-    """Test sensor saved state."""
+async def test_oil_consumption_restore(hass, mock_sensor_client, mocker):
+    """Test sensor saved state and cumulative update processing."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
 
@@ -176,45 +164,67 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     assert state is not None
     assert state.state == str(consumption_total)
 
+    # Mock a new API response to simulate a data update with a new reading date
+    coordinator = config_entry.runtime_data
+    new_tank_data = TankData(
+        level=800.0,
+        capacity=MOCK_TANK_CAPACITY,
+        name=MOCK_TANK_NAME,
+        serial_number=MOCK_TANK_SERIAL_NUMBER,
+        last_read=dt_util.utcnow(),
+        usage_rate=5.0,
+    )
+
+    mocker.patch.object(
+        coordinator.api, "async_get_data", new_callable=AsyncMock, return_value=[new_tank_data]
+    )
+
+    # Verify the sensor processed the update and correctly added the new usage
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    expected_new_total = round(consumption_total + (5.0 * DEFAULT_OIL_ENERGY_DENSITY), 1)
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state.state == str(expected_new_total)
+
+    # Trigger a refresh with the SAME data to test totals are not re-computed
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state.state == str(expected_new_total)
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_sensor_exceptions(hass, mock_sensor_client, mocker, caplog):
+@pytest.mark.parametrize(
+    ("side_effect", "expected_msg", "translation_key"),
+    [
+        (asyncio.TimeoutError, "Timed out while connecting to the Kingspan service", "timed_out"),
+        (KingspanAPIError("api-test error"), "api-test error", None),
+    ],
+)
+async def test_sensor_exceptions(  # noqa: PLR0913, PLR0917
+    hass, mock_sensor_client, mocker, side_effect, expected_msg, translation_key
+):
+    """Test coordinator handles update exceptions cleanly."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(UpdateFailed):
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "Timeout error fetching data" in caplog.record_tuples[0][2]
-    assert (
-        "KingspanAPIError during update: Timeout error fetching data" in caplog.record_tuples[1][2]
-    )
+    coordinator = config_entry.runtime_data
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=side_effect)
 
-    caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=KingspanAPIError("api-test error"))
-    with pytest.raises(UpdateFailed):
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "API error fetching data for test@example.com" in caplog.record_tuples[0][2]
-    assert "KingspanAPIError during update: API error fetching data" in caplog.record_tuples[1][2]
+    with pytest.raises(UpdateFailed) as exc:
+        await coordinator._async_update_data()
 
-    caplog.clear()
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=Exception())
-    with pytest.raises(UpdateFailed):
-        await hass.data[DOMAIN][config_entry.entry_id].update()
-    assert len(caplog.record_tuples) == 2
-    assert "Unhandled error" in caplog.record_tuples[0][2]
-    assert "KingspanAPIError during update: Unhandled error" in caplog.record_tuples[1][2]
+    assert str(exc.value).endswith(expected_msg)
+    if translation_key:
+        assert exc.value.translation_key == translation_key
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_LEVEL, HistoryType.DECREASING, 2]], indirect=True
+    "mock_sensor_client",
+    [{"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.DECREASING, "num_tanks": 2}],
+    indirect=True,
 )
 async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     """Test sensor."""
@@ -224,69 +234,24 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    device_entries = dr.async_get(hass).devices.values()
-    assert list(device_entries)[0].name == MOCK_TANK_NAME + " #1"
-    assert list(device_entries)[1].name == MOCK_TANK_NAME + " #2"
+    device_registry = dr.async_get(hass)
+    device_entries = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
 
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY]], indirect=True)
-async def test_sensor_icon_full(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(MOCK_TANK_CAPACITY)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-full"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[100]], indirect=True)
-async def test_sensor_icon_empty(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(100)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-empty"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize("mock_sensor_client", [[MOCK_TANK_CAPACITY * 0.3]], indirect=True)
-async def test_sensor_icon_low(hass, mock_sensor_client):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    state = hass.states.get("sensor.tanky_mctankface_oil_level")
-    assert state
-    assert state.state == str(MOCK_TANK_CAPACITY * 0.3)
-    assert state.attributes.get(ATTR_ICON) == "mdi:gauge-low"
-
+    assert device_entries[0].name == MOCK_TANK_NAME + " #1"
+    assert device_entries[1].name == MOCK_TANK_NAME + " #2"
     assert await async_unload_entry(hass, config_entry)
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.NONE]], indirect=True
+    ("mock_sensor_client", "expect_log"),
+    [
+        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE}, True),
+        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED}, False),
+    ],
+    indirect=["mock_sensor_client"],
 )
-async def test_sensor_no_history(hass, mock_sensor_client, caplog):
-    """Test sensor."""
+async def test_sensor_zero_usage_history(hass, mock_sensor_client, caplog, expect_log):
+    """Test sensor fallback values when history is missing or expired."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
     caplog.clear()
@@ -294,31 +259,9 @@ async def test_sensor_no_history(hass, mock_sensor_client, caplog):
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
-    assert len(history_log) == 1
-
-    state = hass.states.get("sensor.tanky_mctankface_current_usage")
-    assert state
-    assert state.state == "0.0"
-
-    state = hass.states.get("sensor.tanky_mctankface_forecast_empty")
-    assert state
-    assert state.state == "0"
-
-    assert await async_unload_entry(hass, config_entry)
-
-
-@pytest.mark.parametrize(
-    "mock_sensor_client", [[MOCK_TANK_CAPACITY, HistoryType.EXPIRED]], indirect=True
-)
-async def test_sensor_expired_history(hass, mock_sensor_client, caplog):
-    """Test sensor."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
-
-    caplog.clear()
-    config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
+    if expect_log:
+        history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
+        assert len(history_log) == 1
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state
