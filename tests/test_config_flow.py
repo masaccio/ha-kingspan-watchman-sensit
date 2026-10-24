@@ -5,8 +5,14 @@ from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
-from connectsensor.exceptions import KingspanInvalidCredentialsError
-from custom_components.kingspan_watchman_sensit.api import SENSiTAuthError
+from connectsensor.exceptions import (
+    KingspanAPIError,
+    KingspanInvalidCredentialsError,
+    KingspanTimeoutError,
+)
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTAuthError,
+)
 from custom_components.kingspan_watchman_sensit.config_flow import SENSiTFlowHandler
 from custom_components.kingspan_watchman_sensit.const import (
     CONF_PASSWORD,
@@ -70,11 +76,16 @@ def test_flow_matching_is_never_true():
 
 
 @pytest.mark.parametrize(
-    "mock_sensor_client",
-    [{"exception": KingspanInvalidCredentialsError("test bad auth")}],
-    indirect=True,
+    ("mock_sensor_client", "expected_error"),
+    [
+        ({"exception": KingspanInvalidCredentialsError("test bad auth")}, "auth"),
+        ({"exception": KingspanTimeoutError("timeout")}, "cannot_connect"),
+        ({"exception": KingspanAPIError("no level data")}, "no_data"),
+        ({"exception": Exception("unknown")}, "unknown_error"),
+    ],
+    indirect=["mock_sensor_client"],
 )
-async def test_failed_config_flow(hass, mock_sensor_client):
+async def test_failed_config_flow(hass, mock_sensor_client, expected_error):
     """Test a failed config flow due to credential validation failure."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -88,7 +99,7 @@ async def test_failed_config_flow(hass, mock_sensor_client):
     )
 
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"] == {"base": "auth"}
+    assert result["errors"] == {"base": expected_error}
 
 
 async def test_duplicate_config_flow_aborts(hass, mock_sensor_client):
@@ -240,7 +251,8 @@ async def test_reconfigure_updates_entry_and_aborts(hass, mock_sensor_client):
     assert config_entry.data[CONF_PASSWORD] == "new-password"
 
 
-async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, mock_sensor_client):
+async def test_reauth_updates_entry_and_aborts(hass, mock_sensor_client):
+    """Test reauth updates the password and aborts."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
     config_entry.add_to_hass(hass)
 
@@ -255,6 +267,7 @@ async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, mock_s
     result2 = await hass.config_entries.flow.async_configure(
         result1["flow_id"],
         user_input={
+            CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME],
             CONF_PASSWORD: "new-password",
         },
     )
@@ -262,3 +275,32 @@ async def test_reauth_updates_entry_and_aborts(hass, mock_password_check, mock_s
     assert result2["type"] == data_entry_flow.FlowResultType.ABORT
     assert result2["reason"] == "reauth_successful"
     assert config_entry.data[CONF_PASSWORD] == "new-password"
+
+
+async def test_reauth_confirm_invalid_credentials(hass, mock_sensor_client):
+    """Test reauth confirm step when new credentials fail validation."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG, entry_id="test")
+    config_entry.add_to_hass(hass)
+
+    result1 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_REAUTH, "entry_id": config_entry.entry_id},
+        data=config_entry.data,
+    )
+    assert result1["type"] == data_entry_flow.FlowResultType.FORM
+    assert result1["step_id"] == "reauth_confirm"
+
+    # Mock the API client to throw an auth error so _test_credentials returns "auth"
+    with patch(
+        "custom_components.kingspan_watchman_sensit.config_flow.SENSiTApiClient.async_get_data",
+        side_effect=SENSiTAuthError,
+    ):
+        result2 = await hass.config_entries.flow.async_configure(
+            result1["flow_id"],
+            user_input={CONF_USERNAME: MOCK_CONFIG[CONF_USERNAME], CONF_PASSWORD: "bad-password"},
+        )
+
+    # Assert the flow fails and returns to the form with the base error
+    assert result2["type"] == data_entry_flow.FlowResultType.FORM
+    assert result2["step_id"] == "reauth_confirm"
+    assert result2["errors"] == {"base": "auth"}
