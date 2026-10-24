@@ -2,11 +2,13 @@
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock
 from zoneinfo import ZoneInfo
 
 import pytest
 from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
+from custom_components.kingspan_watchman_sensit.api import TankData
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -21,6 +23,7 @@ from .const import (
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_NAME,
+    MOCK_TANK_SERIAL_NUMBER,
     HistoryType,
 )
 
@@ -135,8 +138,8 @@ async def test_oil_consumption(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_oil_consumption_restore(hass, mock_sensor_client):
-    """Test sensor saved state."""
+async def test_oil_consumption_restore(hass, mock_sensor_client, mocker):
+    """Test sensor saved state and cumulative update processing."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
 
@@ -168,6 +171,33 @@ async def test_oil_consumption_restore(hass, mock_sensor_client):
     assert state is not None
     assert state.state == str(consumption_total)
 
+    # Mock a new API response to simulate a data update with a new reading date
+    coordinator = config_entry.runtime_data
+    new_tank_data = TankData(
+        level=800.0,
+        capacity=MOCK_TANK_CAPACITY,
+        name=MOCK_TANK_NAME,
+        serial_number=MOCK_TANK_SERIAL_NUMBER,
+        last_read=dt_util.utcnow(),
+        usage_rate=5.0,
+    )
+
+    mocker.patch.object(
+        coordinator.api, "async_get_data", new_callable=AsyncMock, return_value=[new_tank_data]
+    )
+
+    # Verify the sensor processed the update and correctly added the new usage
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    expected_new_total = round(consumption_total + (5.0 * DEFAULT_OIL_ENERGY_DENSITY), 1)
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state.state == str(expected_new_total)
+
+    # Trigger a refresh with the SAME data to test totals are not re-computed
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
+    assert state.state == str(expected_new_total)
     assert await async_unload_entry(hass, config_entry)
 
 
