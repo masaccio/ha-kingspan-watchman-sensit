@@ -46,11 +46,6 @@ async def test_api(mock_sensor_client, mocker, caplog):
     assert round(tank_data[0].usage_rate, 2) == 96.67
     assert tank_data[0].forecast_empty == 10
 
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=asyncio.TimeoutError)
-    with pytest.raises(SENSiTConnectionError) as exc:
-        _ = await api.async_get_data()
-    assert str(exc.value) == f"Timeout or connection error fetching data for {TEST_USERNAME}: "
-
 
 @pytest.mark.parametrize(
     ("side_effect", "expected_exception", "expected_msg"),
@@ -80,15 +75,22 @@ async def test_api_login_errors(mocker, side_effect, expected_exception, expecte
     assert str(exc.value) == expected_msg
 
 
-async def test_api_filtering(mock_sensor_client):
-    """Test API calls."""
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD)
-    tank_data = await api.async_get_data()
-    assert round(tank_data[0].usage_rate, 2) == 96.67
+@pytest.mark.parametrize(
+    ("usage_window", "expected_rate"),
+    [
+        (None, 96.67),  # Tests default fallback
+        (5, 100.0),  # Tests explicitly shortened window
+    ],
+)
+async def test_api_filtering(mock_sensor_client, usage_window, expected_rate):
+    """Test API history filtering calculates usage correctly."""
+    kwargs = {}
+    if usage_window is not None:
+        kwargs["usage_window"] = usage_window
 
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 5)
+    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, **kwargs)
     tank_data = await api.async_get_data()
-    assert int(tank_data[0].usage_rate) == 100.0
+    assert round(tank_data[0].usage_rate, 2) == expected_rate
 
 
 def test_api_no_history_zero_usage():
@@ -109,17 +111,24 @@ def test_api_no_history_zero_usage():
     assert tank_data.forecast_empty == 0
 
 
-@pytest.mark.asyncio
-async def test_async_httpx_timeout(mocker, mock_sensor_client):
-    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD)
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=httpxTimeoutException("HTTPX timeout error"))
+@pytest.mark.parametrize(
+    ("side_effect", "expected_msg"),
+    [
+        (asyncio.TimeoutError, f"Timeout or connection error fetching data for {TEST_USERNAME}: "),
+        (
+            httpxTimeoutException("HTTPX timeout error"),
+            f"Timeout or connection error fetching data for {TEST_USERNAME}: HTTPX timeout error",
+        ),
+    ],
+)
+async def test_api_get_data_timeouts(mock_sensor_client, mocker, side_effect, expected_msg):
+    """Test API data fetching timeout handling."""
+    api = SENSiTApiClient(TEST_USERNAME, TEST_PASSWORD, 14)
+    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=side_effect)
 
     with pytest.raises(SENSiTConnectionError) as exc:
         await api.async_get_data()
-    assert (
-        str(exc.value)
-        == f"Timeout or connection error fetching data for {TEST_USERNAME}: HTTPX timeout error"
-    )
+    assert str(exc.value) == expected_msg
 
 
 async def test_api_debug_logging(caplog, mocker):
