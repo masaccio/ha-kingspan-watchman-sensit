@@ -12,7 +12,10 @@ from connectsensor.exceptions import (
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
 )
-from custom_components.kingspan_watchman_sensit.api import SENSiTApiClientError
+from custom_components.kingspan_watchman_sensit.api import (
+    SENSiTApiClientError,
+    SENSiTConnectionError,
+)
 from custom_components.kingspan_watchman_sensit.const import DOMAIN
 from custom_components.kingspan_watchman_sensit.diagnostics import (
     async_get_config_entry_diagnostics,
@@ -168,11 +171,6 @@ async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
     await hass.config_entries.async_unload(config_entry.entry_id)
     await hass.async_block_till_done()
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
-
-
-from custom_components.kingspan_watchman_sensit.api import (
-    SENSiTConnectionError,
-)
 
 
 @pytest.mark.parametrize(
