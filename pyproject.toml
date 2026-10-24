@@ -54,7 +54,7 @@ branch = true
 directory = "coverage_html_report"
 
 [tool.pytest.ini_options]
-addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov-context=test --cov=custom_components/kingspan_watchman_sensit --disable-socket --allow-unix-socket"
+addopts = "-W ignore::DeprecationWarning --cov-report=html --cov-report=term-missing:skip-covered --cov=custom_components/kingspan_watchman_sensit --disable-socket --allow-unix-socket"
 minversion = 6.0
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
