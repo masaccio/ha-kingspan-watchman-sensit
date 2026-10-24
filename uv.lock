@@ -1207,7 +1207,7 @@ requires-dist = [
     { name = "async-property", specifier = ">=0.2.1" },
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
-    { name = "homeassistant", specifier = ">=2026.6.4" },
+    { name = "homeassistant", specifier = ">=2026.10.1" },
     { name = "kingspan-connect-sensor", specifier = "==4.2.1" },
     { name = "mypy" },
     { name = "probatio" },

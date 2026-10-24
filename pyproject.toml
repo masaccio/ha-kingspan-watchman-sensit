@@ -17,7 +17,7 @@ version = "2.0.2"
 dependencies = [
   "async-timeout>=4.0.2",
   "probatio",
-  "homeassistant>=2026.6.4",
+  "homeassistant>=2026.10.1",
   "async-property>=0.2.1",
   "asyncio>=3.4.3",
   "kingspan-connect-sensor==4.2.1",
