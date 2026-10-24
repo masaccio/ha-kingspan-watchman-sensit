@@ -71,7 +71,5 @@ rules:
   # Platinum
   async-dependency: done
   inject-websession:
-    status: exempt
-    comment: |
-      The integration uses the connectsensor library, which manages its own HTTP client and does not expose a Home Assistant websession injection point.
+    status: todo
   strict-typing: done
