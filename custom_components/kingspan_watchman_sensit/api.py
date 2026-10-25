@@ -198,8 +198,8 @@ class SENSiTApiClient:
             current_level = row["level_litres"]
 
         if not delta_levels:  # pragma: no cover
-            # Corner case that should never happen in reality: two data
-            # points and one is a refill
+            # Coverage mote: a corner case that should never happen in reality:
+            # two data history data points and one is a refill
             return 0.0
 
         return sum(delta_levels) / len(delta_levels)
