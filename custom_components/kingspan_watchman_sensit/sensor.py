@@ -135,18 +135,30 @@ async def async_setup_entry(
     config_entry: SENSiTConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up the sensor platform and listen for new dynamically added tanks."""
     coordinator = config_entry.runtime_data
-    entities: list[SensorEntity] = []
-    for idx in range(len(coordinator.data)):
-        entities.extend(
-            SENSiTSensor(coordinator, config_entry, idx, description)
-            for description in SENSOR_DESCRIPTIONS
-        )
-        entities.append(
-            OilConsumptionSensor(coordinator, config_entry, idx, OIL_CONSUMPTION_DESCRIPTION)
-        )
-    async_add_entities(entities)
+    added_tanks: set[str] = set()
+
+    @callback
+    def async_add_new_tanks() -> None:
+        new_entities: list[SENSiTEntity] = []
+        for tank in coordinator.data:
+            if tank.serial_number not in added_tanks:
+                added_tanks.add(tank.serial_number)
+                new_entities.extend(
+                    SENSiTSensor(coordinator, config_entry, tank.serial_number, description)
+                    for description in SENSOR_DESCRIPTIONS
+                )
+                new_entities.append(
+                    OilConsumptionSensor(
+                        coordinator, config_entry, tank.serial_number, OIL_CONSUMPTION_DESCRIPTION
+                    )
+                )
+        if new_entities:
+            async_add_entities(new_entities)
+
+    async_add_new_tanks()
+    config_entry.async_on_unload(coordinator.async_add_listener(async_add_new_tanks))
 
 
 class SENSiTSensor(SENSiTEntity, SensorEntity):
@@ -167,11 +179,11 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         self,
         coordinator: SENSiTDataUpdateCoordinator,
         config_entry: SENSiTConfigEntry,
-        idx: int,
+        serial_number: str,
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the cumulative oil consumption sensor."""
-        super().__init__(coordinator, config_entry, idx, entity_description)
+        super().__init__(coordinator, config_entry, serial_number, entity_description)
         self._consumption_total: float | None = None
         self._consumption_last_read: datetime | None = None
 
@@ -180,17 +192,16 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         await super().async_added_to_hass()
         if (old_state := await self.async_get_last_state()) is not None:
             raw_last_read = old_state.attributes.get("consumption_last_read")
-            if raw_last_read is not None:  # pragma: no branch
+            if raw_last_read is not None:
                 self._consumption_last_read = dt_util.parse_datetime(str(raw_last_read))
             raw_total = old_state.attributes.get("consumption_total")
-            if raw_total is not None:  # pragma: no branch
+            if raw_total is not None:
                 self._consumption_total = round(float(raw_total), 1)
             _LOGGER.debug(
                 "Restoring consumption: %s kWh at %s",
                 self._consumption_total,
                 self._consumption_last_read,
             )
-
         self._update_consumption()
 
     @callback
@@ -204,6 +215,7 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         last_read = self.tank_data.last_read
         if self._consumption_last_read is None:
             self._consumption_last_read = last_read
+            self._consumption_total = 0.0
             return
 
         if last_read is not None and self._consumption_last_read != last_read:
@@ -226,6 +238,4 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
     @property
     def native_value(self) -> Decimal | None:
         """Return the cumulative energy consumption value."""
-        if self._consumption_total is None:
-            return None
         return Decimal(f"{self._consumption_total:.1f}")

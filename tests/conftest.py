@@ -157,7 +157,11 @@ class MockAsyncClient(AsyncMock):
     """Mock SENSiT client with options for different tank level/history data"""
 
     def __init__(self, *args, **kwargs):
+        injected_client = kwargs.pop("client", None)
+
         super().__init__(*args, **kwargs)
+
+        self._injected_client = injected_client
         self._level = kwargs.get("tank_level", MOCK_TANK_LEVEL)
         self._history_type = kwargs.get("history_type", HistoryType.DECREASING)
         self._num_tanks = kwargs.get("num_tanks", 1)

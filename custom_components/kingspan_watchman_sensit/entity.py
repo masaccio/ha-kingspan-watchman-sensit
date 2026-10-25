@@ -23,39 +23,43 @@ class SENSiTEntity(CoordinatorEntity[SENSiTDataUpdateCoordinator]):
         self,
         coordinator: SENSiTDataUpdateCoordinator,
         config_entry: SENSiTConfigEntry,
-        idx: int,
+        serial_number: str,
         entity_description: EntityDescription,
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = entity_description
         self.config_entry = config_entry
-        self.idx = idx
+        self.serial_number = serial_number
 
         tank = self.tank_data
-        serial_no = tank.serial_number
         tank_name = (
             tank.name
             if tank.name and tank.name != "Unknown"
             else config_entry.data.get(CONF_NAME) or config_entry.title or DEFAULT_TANK_NAME
         )
-        self._attr_unique_id = f"sensit-{serial_no}-{entity_description.key}"
+        self._attr_unique_id = f"sensit-{self.serial_number}-{entity_description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, serial_no)},
-            serial_number=serial_no,
+            identifiers={(DOMAIN, self.serial_number)},
+            serial_number=self.serial_number,
             model=MODEL,
             name=tank_name,
             manufacturer=MANUFACTURER,
         )
         self._attr_extra_state_attributes = {
             "attribution": ATTRIBUTION,
-            "id": serial_no,
+            "id": self.serial_number,
             "integration": DOMAIN,
         }
 
     @property
     def tank_data(self) -> TankData:
-        """Return the TankData object for this entity."""
-        return self.coordinator.data[self.idx]
+        """Dynamically fetch data by serial number."""
+        # Coverage note: we should always find a tank matching the serial number
+        # but we defend against this not being initialized yet
+        for tank in self.coordinator.data:  # pragma: no branch
+            if tank.serial_number == self.serial_number:
+                return tank
+        return TankData(serial_number=self.serial_number)  # pragma: no cover
 
     @property
     def last_reset(self) -> None:
@@ -64,4 +68,6 @@ class SENSiTEntity(CoordinatorEntity[SENSiTDataUpdateCoordinator]):
 
     @property
     def available(self) -> bool:
-        return super().available and self.idx < len(self.coordinator.data)
+        return super().available and any(
+            tank.serial_number == self.serial_number for tank in self.coordinator.data
+        )

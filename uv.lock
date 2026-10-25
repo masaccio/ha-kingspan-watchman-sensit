@@ -1236,7 +1236,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.10.1" },
-    { name = "kingspan-connect-sensor", specifier = "==4.2.1" },
+    { name = "kingspan-connect-sensor", specifier = "==4.3.0" },
     { name = "mypy" },
     { name = "probatio" },
     { name = "pylint" },
@@ -1539,7 +1539,7 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.2.1"
+version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
@@ -1547,13 +1547,12 @@ dependencies = [
     { name = "datetime" },
     { name = "httpx" },
     { name = "lxml" },
-    { name = "pytest-socket" },
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/24/f4/68bccdd2709a65320f9f85e02a9adade3987581de93dca956f76fafa8294/kingspan_connect_sensor-4.2.1.tar.gz", hash = "sha256:3b5f2b44354b500a3b3b92d20bc1f0188e7420ce7b202d73bd2af0c894bb0f89", size = 14984, upload-time = "2026-08-18T11:16:48.66Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/24/5b3563a5e979863f99046c7ca8efdad58f79dd1b12d46eebeb14aa1b8660/kingspan_connect_sensor-4.3.0.tar.gz", hash = "sha256:567a5d90376ef6482de25c8846cdda855d13058c1586b091b6ee4ee09b819fc1", size = 15995, upload-time = "2026-10-24T16:05:00.403Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/65/ef94c835e3016272027057054d6e0e03a6ed05e24d3516f88b032e840d00/kingspan_connect_sensor-4.2.1-py3-none-any.whl", hash = "sha256:ccc5580c07063c681a90d89c977a954fb8d09073b47e2b75aa7c55e0551a6fad", size = 12420, upload-time = "2026-08-18T11:16:47.502Z" },
+    { url = "https://files.pythonhosted.org/packages/12/8c/9ff1b834b1a3c33ab8bf7fcf8c606ce0970f815ae5336b307103378a11b9/kingspan_connect_sensor-4.3.0-py3-none-any.whl", hash = "sha256:941fb963d5890edeb4ffc91ddec08cd7184cc4f43134390095468ba26f6c5f4c", size = 13193, upload-time = "2026-10-24T16:04:59.411Z" },
 ]
 
 [[package]]

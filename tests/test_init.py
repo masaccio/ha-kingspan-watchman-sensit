@@ -1,7 +1,7 @@
 """Test Kingspan Watchman SENSiT setup process."""
 
 import logging
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from connectsensor.exceptions import (
@@ -11,20 +11,22 @@ from connectsensor.exceptions import (
 )
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
+    async_remove_config_entry_device,
 )
 from custom_components.kingspan_watchman_sensit.api import (
     SENSiTApiClientError,
     SENSiTConnectionError,
 )
-from custom_components.kingspan_watchman_sensit.const import DOMAIN
+from custom_components.kingspan_watchman_sensit.const import CONF_USAGE_WINDOW, DOMAIN
 from custom_components.kingspan_watchman_sensit.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, HistoryType
+from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, MOCK_TANK_SERIAL_NUMBER, HistoryType
 
 
 async def test_setup_unload_and_reload_entry(hass, mock_sensor_client):
@@ -47,6 +49,22 @@ async def test_setup_unload_and_reload_entry(hass, mock_sensor_client):
     await hass.config_entries.async_unload(config_entry.entry_id)
     await hass.async_block_till_done()
     assert config_entry.state == ConfigEntryState.NOT_LOADED
+
+
+async def test_options_update_triggers_reload(hass, mock_sensor_client):
+    """Test that changing integration options reloads the entry."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Patch the underlying reload call to verify the listener fired it
+    with patch("homeassistant.config_entries.ConfigEntries.async_reload") as mock_async_reload:
+        hass.config_entries.async_update_entry(config_entry, options={CONF_USAGE_WINDOW: 30})
+        await hass.async_block_till_done()
+
+        mock_async_reload.assert_called_once_with(config_entry.entry_id)
 
 
 async def test_auth_missing(hass, mock_sensor_client):
@@ -240,3 +258,27 @@ async def test_diagnostics(hass, mock_sensor_client):
     assert diagnostics["last_update_success"]
     assert diagnostics["tanks"][0]["serial_number"] == "**REDACTED**"
     assert diagnostics["tanks"][0]["level"] == 1000
+
+
+async def test_remove_stale_device(hass, mock_sensor_client):
+    """Test removing a stale device is allowed, but active devices are rejected."""
+    config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    device_registry = dr.async_get(hass)
+
+    # Create a mock stale device manually in the registry
+    stale_device = device_registry.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        identifiers={(DOMAIN, "old_stale_serial")},
+    )
+    assert await async_remove_config_entry_device(hass, config_entry, stale_device) is True
+
+    # Attempt to remove the actively polling mocked device
+    active_device = device_registry.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        identifiers={(DOMAIN, MOCK_TANK_SERIAL_NUMBER)},
+    )
+    assert await async_remove_config_entry_device(hass, config_entry, active_device) is False

@@ -9,7 +9,9 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.httpx_client import get_async_client
 
 from .api import SENSiTApiClient
 from .const import (
@@ -75,11 +77,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
             translation_key="credentials_not_set",
         )
 
+    httpx_client = get_async_client(hass)
     client = SENSiTApiClient(
         username=username,
         password=str(password),
         usage_window=usage_window,
         debug=kingspan_debug,
+        client=httpx_client,
     )
 
     coordinator = SENSiTDataUpdateCoordinator(
@@ -111,8 +115,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> bool:
     """Handle removal of an entry."""
-    unloaded = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
-    if unloaded:
+    if unloaded := await hass.config_entries.async_unload_platforms(
+        config_entry, PLATFORMS
+    ):  # pragma: no branch
         _async_delete_repair_issue(hass, config_entry)
     return unloaded
 
@@ -120,3 +125,20 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntr
 async def async_reload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
     """Reload config entry."""
     await hass.config_entries.async_reload(config_entry.entry_id)
+
+
+async def async_remove_config_entry_device(
+    _hass: HomeAssistant,
+    config_entry: SENSiTConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow manual removal of stale devices via the UI."""
+    coordinator = config_entry.runtime_data
+    active_serials = {tank.serial_number for tank in coordinator.data}
+
+    for identifier in device_entry.identifiers:
+        if identifier[0] == DOMAIN and identifier[1] in active_serials:
+            # Device is still active on Kingspan, reject removal
+            return False
+
+    return True
