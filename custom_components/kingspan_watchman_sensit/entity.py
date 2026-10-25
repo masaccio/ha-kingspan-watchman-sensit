@@ -54,10 +54,11 @@ class SENSiTEntity(CoordinatorEntity[SENSiTDataUpdateCoordinator]):
     @property
     def tank_data(self) -> TankData:
         """Dynamically fetch data by serial number."""
+        # Coverage note: we should always find a tank matching the serial number
+        # but we defend against this not being initialized yet
         for tank in self.coordinator.data:  # pragma: no branch
             if tank.serial_number == self.serial_number:
                 return tank
-        # Should never be reached, defaults to zero values
         return TankData(serial_number=self.serial_number)  # pragma: no cover
 
     @property
