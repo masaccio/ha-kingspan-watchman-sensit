@@ -10,12 +10,13 @@ from connectsensor.exceptions import KingspanAPIError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
 from custom_components.kingspan_watchman_sensit.api import TankData
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
+from homeassistant.core import State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 from homeassistant.util.dt import get_time_zone, set_default_time_zone
-from pytest_homeassistant_custom_component.common import MockConfigEntry, State, mock_restore_cache
+from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_restore_cache
 
 from .const import (
     MOCK_CONFIG,
@@ -59,7 +60,7 @@ async def test_sensor(hass, mock_sensor_client):
     assert await async_unload_entry(hass, config_entry)
 
 
-@pytest.mark.parametrize("tz", ["Asia/Kolkata", "UTC"])
+@pytest.mark.parametrize("tz", ["America/New_York", "UTC", "Europe/Budapest"])
 async def test_sensor_timezones(hass, mock_sensor_client, tz):
     """Test sensor timezone compliance."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
@@ -126,25 +127,31 @@ async def test_oil_consumption(hass, mock_sensor_client):
 
     state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
     assert state is not None
-    assert state.state == "unknown"
+    assert state.state == "0.0"
 
     assert await async_unload_entry(hass, config_entry)
 
 
-async def test_oil_consumption_restore(hass, mock_sensor_client, mocker):
+@pytest.mark.parametrize(("cached_consumption_total"), [("20000.0"), (None)])
+async def test_oil_consumption_restore(hass, cached_consumption_total, mock_sensor_client, mocker):
     """Test sensor saved state and cumulative update processing."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
 
-    consumption_total = 20000.0
-    restore_state = State(
-        "sensor.tanky_mctankface_oil_consumption",
-        str(consumption_total),
-        {
-            "consumption_total": str(consumption_total),
-            "consumption_last_read": str(dt_util.utcnow() - timedelta(hours=24)),
-        },
-    )
+    if cached_consumption_total is not None:
+        restore_state = State(
+            "sensor.tanky_mctankface_oil_consumption",
+            cached_consumption_total,
+            {
+                "consumption_total": cached_consumption_total,
+                "consumption_last_read": str(dt_util.utcnow() - timedelta(hours=24)),
+            },
+        )
+        consumption_total = float(cached_consumption_total)
+    else:
+        # Corrupted state shouldn't happen, but we defend against it
+        restore_state = State("sensor.tanky_mctankface_oil_consumption", "", attributes={})
+        consumption_total = 0.0
     mock_restore_cache(hass, [restore_state])
 
     await hass.config_entries.async_setup(config_entry.entry_id)
@@ -159,7 +166,8 @@ async def test_oil_consumption_restore(hass, mock_sensor_client, mocker):
     await hass.async_block_till_done()
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
-    consumption_total += round(float(state.state) * DEFAULT_OIL_ENERGY_DENSITY, 1)
+    if cached_consumption_total is not None:
+        consumption_total += round(float(state.state) * DEFAULT_OIL_ENERGY_DENSITY, 1)
     state = hass.states.get("sensor.tanky_mctankface_oil_consumption")
     assert state is not None
     assert state.state == str(consumption_total)

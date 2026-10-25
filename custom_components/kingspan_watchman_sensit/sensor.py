@@ -192,17 +192,16 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         await super().async_added_to_hass()
         if (old_state := await self.async_get_last_state()) is not None:
             raw_last_read = old_state.attributes.get("consumption_last_read")
-            if raw_last_read is not None:  # pragma: no branch
+            if raw_last_read is not None:
                 self._consumption_last_read = dt_util.parse_datetime(str(raw_last_read))
             raw_total = old_state.attributes.get("consumption_total")
-            if raw_total is not None:  # pragma: no branch
+            if raw_total is not None:
                 self._consumption_total = round(float(raw_total), 1)
             _LOGGER.debug(
                 "Restoring consumption: %s kWh at %s",
                 self._consumption_total,
                 self._consumption_last_read,
             )
-
         self._update_consumption()
 
     @callback
@@ -216,6 +215,7 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
         last_read = self.tank_data.last_read
         if self._consumption_last_read is None:
             self._consumption_last_read = last_read
+            self._consumption_total = 0.0
             return
 
         if last_read is not None and self._consumption_last_read != last_read:
@@ -238,6 +238,4 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
     @property
     def native_value(self) -> Decimal | None:
         """Return the cumulative energy consumption value."""
-        if self._consumption_total is None:
-            return None
         return Decimal(f"{self._consumption_total:.1f}")
