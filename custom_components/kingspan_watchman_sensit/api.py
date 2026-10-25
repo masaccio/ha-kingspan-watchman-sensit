@@ -197,7 +197,7 @@ class SENSiTApiClient:
                 delta_levels.append(current_level - row["level_litres"])
             current_level = row["level_litres"]
 
-        # Coverage mote: a corner case that should never happen in reality:
+        # Coverage note: a corner case that should never happen in reality:
         # two data history data points and one is a refill
         if not delta_levels:  # pragma: no cover
             return 0.0
