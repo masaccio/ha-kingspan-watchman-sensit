@@ -143,6 +143,9 @@ class MockAsyncTank:
         else:
             return datetime.now()
 
+    def clear_cache(self):
+        pass
+
     async def history(self) -> list[dict]:
         # Build a month of history with a refill halfway through
         if self._history_type == HistoryType.DECREASING:

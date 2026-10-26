@@ -145,6 +145,7 @@ class SENSiTApiClient:
             results: list[TankData] = []
 
             for tank in tanks:
+                tank.clear_cache()
                 raw_history = await tank.history()
                 filtered = filter_history(
                     raw_history,

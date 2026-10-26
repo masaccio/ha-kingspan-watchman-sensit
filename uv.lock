@@ -1236,7 +1236,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.10.1" },
-    { name = "kingspan-connect-sensor", specifier = "==4.3.0" },
+    { name = "kingspan-connect-sensor", specifier = ">=4.4.0" },
     { name = "mypy" },
     { name = "probatio" },
     { name = "pylint" },
@@ -1539,20 +1539,18 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.3.0"
+version = "4.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
-    { name = "asyncio" },
-    { name = "datetime" },
     { name = "httpx" },
     { name = "lxml" },
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/24/5b3563a5e979863f99046c7ca8efdad58f79dd1b12d46eebeb14aa1b8660/kingspan_connect_sensor-4.3.0.tar.gz", hash = "sha256:567a5d90376ef6482de25c8846cdda855d13058c1586b091b6ee4ee09b819fc1", size = 15995, upload-time = "2026-10-24T16:05:00.403Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/76/4cbeeb0b6ab3ec8e34144360fb66cc02ca72a3dc4a2b268593a6f59be059/kingspan_connect_sensor-4.4.0.tar.gz", hash = "sha256:ae17d07a46931dc05e6b33b3f8df0c2b1e6278173ef9fa7a3ba8a65aa1bb51fa", size = 16235, upload-time = "2026-10-26T15:04:04.256Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/12/8c/9ff1b834b1a3c33ab8bf7fcf8c606ce0970f815ae5336b307103378a11b9/kingspan_connect_sensor-4.3.0-py3-none-any.whl", hash = "sha256:941fb963d5890edeb4ffc91ddec08cd7184cc4f43134390095468ba26f6c5f4c", size = 13193, upload-time = "2026-10-24T16:04:59.411Z" },
+    { url = "https://files.pythonhosted.org/packages/39/35/cf93db5fa31637ba1b1b332eebde523137f36155c90798bad243989caa2d/kingspan_connect_sensor-4.4.0-py3-none-any.whl", hash = "sha256:92cce6df46e95eb2b32e14ee7abfa3272c1b68d13cc0335bbfea76950829efd0", size = 13322, upload-time = "2026-10-26T15:04:03.282Z" },
 ]
 
 [[package]]
