@@ -15,7 +15,11 @@ from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
     async_remove_config_entry_device,
 )
-from custom_components.kingspan_watchman_sensit.const import CONF_USAGE_WINDOW, DOMAIN
+from custom_components.kingspan_watchman_sensit.const import (
+    CONF_KINGSPAN_DEBUG,
+    CONF_USAGE_WINDOW,
+    DOMAIN,
+)
 from custom_components.kingspan_watchman_sensit.diagnostics import (
     async_get_config_entry_diagnostics,
 )
@@ -277,3 +281,19 @@ async def test_remove_stale_device(hass, mock_sensor_client):
         identifiers={(DOMAIN, MOCK_TANK_SERIAL_NUMBER)},
     )
     assert await async_remove_config_entry_device(hass, config_entry, active_device) is False
+
+
+async def test_setup_with_debug_enabled(hass, mock_sensor_client):
+    """Test entry setup when Kingspan debug logging is enabled via options."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=MOCK_CONFIG,
+        options={CONF_KINGSPAN_DEBUG: True},
+    )
+    config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert config_entry.state == ConfigEntryState.LOADED
+    assert logging.getLogger("connectsensor").level == logging.DEBUG
