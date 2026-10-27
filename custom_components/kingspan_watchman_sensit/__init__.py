@@ -13,15 +13,12 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.httpx_client import get_async_client
 
-from .api import SENSiTApiClient
 from .const import (
     CONF_KINGSPAN_DEBUG,
     CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
-    CONF_USAGE_WINDOW,
     CONF_USERNAME,
     DEFAULT_UPDATE_INTERVAL,
-    DEFAULT_USAGE_WINDOW,
     DOMAIN,
     PLATFORMS,
 )
@@ -66,8 +63,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
     """Set up this integration using UI."""
     username = config_entry.data.get(CONF_USERNAME)
     password = config_entry.data.get(CONF_PASSWORD)
-    usage_window = config_entry.options.get(CONF_USAGE_WINDOW, DEFAULT_USAGE_WINDOW)
-    kingspan_debug = config_entry.options.get(CONF_KINGSPAN_DEBUG, False)
 
     if not username or not password:
         _async_create_repair_issue(hass, config_entry)
@@ -77,19 +72,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
             translation_key="credentials_not_set",
         )
 
-    httpx_client = get_async_client(hass)
-    client = SENSiTApiClient(
-        username=username,
-        password=str(password),
-        usage_window=usage_window,
-        debug=kingspan_debug,
-        client=httpx_client,
-    )
+    # Configure upstream debug logging based on options flow
+    kingspan_debug = config_entry.options.get(CONF_KINGSPAN_DEBUG, False)
+    connectsensor_logger = logging.getLogger("connectsensor")
+    if kingspan_debug:
+        _LOGGER.debug("Enabling Kingspan API debug")
+        connectsensor_logger.setLevel(logging.DEBUG)
+    else:
+        connectsensor_logger.setLevel(logging.NOTSET)
 
     coordinator = SENSiTDataUpdateCoordinator(
         hass,
-        client=client,
         config_entry=config_entry,
+        httpx_client=get_async_client(hass),
         update_interval=timedelta(
             hours=config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         ),
@@ -115,9 +110,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(
-        config_entry, PLATFORMS
-    ):  # pragma: no branch
+    if unloaded := await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS):
         _async_delete_repair_issue(hass, config_entry)
     return unloaded
 
@@ -138,7 +131,6 @@ async def async_remove_config_entry_device(
 
     for identifier in device_entry.identifiers:
         if identifier[0] == DOMAIN and identifier[1] in active_serials:
-            # Device is still active on Kingspan, reject removal
             return False
 
     return True

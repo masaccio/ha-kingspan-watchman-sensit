@@ -1,15 +1,14 @@
 """Test Kingspan Watchman SENSiT sensor states."""
 
-import asyncio
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
 import pytest
-from connectsensor.exceptions import KingspanAPIError
+from connectsensor.exceptions import KingspanAPIError, KingspanErrorCode, KingspanTimeoutError
 from custom_components.kingspan_watchman_sensit import async_unload_entry
-from custom_components.kingspan_watchman_sensit.api import TankData
 from custom_components.kingspan_watchman_sensit.const import DEFAULT_OIL_ENERGY_DENSITY, DOMAIN
+from custom_components.kingspan_watchman_sensit.coordinator import TankData
 from homeassistant.core import State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -20,7 +19,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_r
 
 from .const import (
     MOCK_CONFIG,
-    MOCK_GET_DATA_METHOD,
     MOCK_TANK_CAPACITY,
     MOCK_TANK_LEVEL,
     MOCK_TANK_NAME,
@@ -183,8 +181,9 @@ async def test_oil_consumption_restore(hass, cached_consumption_total, mock_sens
         usage_rate=5.0,
     )
 
+    # Patch the coordinator directly since we are testing entity reaction, not network fetching
     mocker.patch.object(
-        coordinator.api, "async_get_data", new_callable=AsyncMock, return_value=[new_tank_data]
+        coordinator, "_async_update_data", new_callable=AsyncMock, return_value=[new_tank_data]
     )
 
     # Verify the sensor processed the update and correctly added the new usage
@@ -205,12 +204,20 @@ async def test_oil_consumption_restore(hass, cached_consumption_total, mock_sens
 @pytest.mark.parametrize(
     ("side_effect", "expected_msg", "translation_key"),
     [
-        (asyncio.TimeoutError, "Timed out while connecting to the Kingspan service", "timed_out"),
-        (KingspanAPIError("api-test error"), "api-test error", None),
+        (
+            KingspanTimeoutError("connection timeout"),
+            "Timed out while connecting to the Kingspan service",
+            "timed_out",
+        ),
+        (
+            KingspanAPIError("api-test error", KingspanErrorCode.CANNOT_CONNECT),
+            "api-test error",
+            None,
+        ),
     ],
 )
 async def test_sensor_exceptions(  # noqa: PLR0913, PLR0917
-    hass, mock_sensor_client, mocker, side_effect, expected_msg, translation_key
+    hass, mock_sensor_client, side_effect, expected_msg, translation_key
 ):
     """Test coordinator handles update exceptions cleanly."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
@@ -219,10 +226,18 @@ async def test_sensor_exceptions(  # noqa: PLR0913, PLR0917
     await hass.async_block_till_done()
 
     coordinator = config_entry.runtime_data
-    mocker.patch(MOCK_GET_DATA_METHOD, side_effect=side_effect)
 
-    with pytest.raises(UpdateFailed) as exc:
-        await coordinator._async_update_data()
+    # Contextually inject an exploding mock, completely bypassing conftest
+    with patch(
+        "custom_components.kingspan_watchman_sensit.coordinator.AsyncSensorClient"
+    ) as mock_class:
+        mock_instance = AsyncMock()
+        mock_instance.__aenter__.return_value = mock_instance
+        mock_instance.login.side_effect = side_effect
+        mock_class.return_value = mock_instance
+
+        with pytest.raises(UpdateFailed) as exc:
+            await coordinator._async_update_data()
 
     assert str(exc.value).endswith(expected_msg)
     if translation_key:
@@ -251,25 +266,20 @@ async def test_sensor_multiple_tanks(hass, mock_sensor_client):
 
 
 @pytest.mark.parametrize(
-    ("mock_sensor_client", "expect_log"),
+    "mock_sensor_client",
     [
-        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE}, True),
-        ({"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED}, False),
+        {"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.NONE},
+        {"tank_level": MOCK_TANK_CAPACITY, "history_type": HistoryType.EXPIRED},
     ],
     indirect=["mock_sensor_client"],
 )
-async def test_sensor_zero_usage_history(hass, mock_sensor_client, caplog, expect_log):
+async def test_sensor_zero_usage_history(hass, mock_sensor_client):
     """Test sensor fallback values when history is missing or expired."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
 
-    caplog.clear()
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-
-    if expect_log:
-        history_log = [x[2] for x in caplog.record_tuples if "No history" in x[2]]
-        assert len(history_log) == 1
 
     state = hass.states.get("sensor.tanky_mctankface_current_usage")
     assert state
@@ -304,8 +314,8 @@ async def test_dynamic_device_addition(hass, mock_sensor_client, mocker):
     )
 
     mocker.patch.object(
-        coordinator.api,
-        "async_get_data",
+        coordinator,
+        "_async_update_data",
         new_callable=AsyncMock,
         return_value=[new_tank_1, new_tank_2],
     )

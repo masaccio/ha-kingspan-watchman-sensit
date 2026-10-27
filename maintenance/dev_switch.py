@@ -1,33 +1,31 @@
-"""Development platform to monkey-patch API exceptions."""
+"""Development platform to monkey-patch coordinator responses."""
 
-# pylint: disable=abstract-method
+# This code optionally patched into a live Home Assistant for debug and the linters
+# get very confused about this living outside the codebase.
+
+# pylint: disable=abstract-method, protected-access, relative-beyond-top-level, wrong-import-order
 
 import logging
 from datetime import timedelta
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import EntityCategory
-from homeassistant.helpers.device_registry import DeviceInfo
-
-from .api import (  # type: ignore[import-not-found] # pylint: disable=E0402
-    SENSiTApiClientError,
-    SENSiTAuthError,
-    SENSiTConnectionError,
-    SENSiTNoDataError,
-)
-from .const import (  # type: ignore[import-not-found] # pylint: disable=E0402
+from custom_components.kingspan_watchman_sensit.const import (
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import EntityCategory
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 _LOGGER = logging.getLogger(__name__)
 
 MOCK_EXCEPTIONS = {
-    "force_timeout_error": SENSiTConnectionError("Simulated Timeout"),
-    "force_auth_error": SENSiTAuthError("Simulated Auth Failure"),
-    "force_api_error": SENSiTApiClientError("Simulated API Error"),
-    "force_no_data_error": SENSiTNoDataError("No level data available (Simulated)"),
+    "force_timeout_error": UpdateFailed("Timed out while connecting to the Kingspan service"),
+    "force_auth_error": ConfigEntryAuthFailed("Credentials invalid"),
+    "force_api_error": UpdateFailed("Failed to fetch data from API: Simulated API Error"),
+    "force_no_data_error": None,  # Simulated by returning an empty list
 }
 
 
@@ -35,9 +33,9 @@ async def async_setup_entry(_hass, config_entry, async_add_entities):
     """Set up the mock exception switches."""
     coordinator = config_entry.runtime_data
 
-    # Preserve the original method safely
-    if not hasattr(coordinator.api, "original_async_get_data"):
-        coordinator.api.original_async_get_data = coordinator.api.async_get_data
+    # Preserve the original coordinator method safely
+    if not hasattr(coordinator, "original_async_update_data"):
+        coordinator.original_async_update_data = coordinator._async_update_data
 
     switches: list[SwitchEntity] = [
         MockExceptionSwitch(coordinator, key, exc) for key, exc in MOCK_EXCEPTIONS.items()
@@ -91,7 +89,7 @@ class FastPollingSwitch(SwitchEntity):
 
 
 class MockExceptionSwitch(SwitchEntity):
-    """Switch that forces the API to raise a specific exception."""
+    """Switch that forces the coordinator to return a simulated failure."""
 
     # pylint: disable=too-many-instance-attributes
 
@@ -120,13 +118,16 @@ class MockExceptionSwitch(SwitchEntity):
 
         async def patched_get_data(*_args, **_kwargs):
             _LOGGER.warning("Monkey patch triggered: Raising %s", self._exception_key)
+            # A 'None' exception object simulates the 'no data' edge case
+            if self._exception_obj is None:
+                return []
             raise self._exception_obj
 
-        self.coordinator.api.async_get_data = patched_get_data
+        self.coordinator._async_update_data = patched_get_data
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
-        """Restore the original API method."""
+        """Restore the original coordinator update method."""
         self._attr_is_on = False
-        self.coordinator.api.async_get_data = self.coordinator.api.original_async_get_data
+        self.coordinator._async_update_data = self.coordinator.original_async_update_data
         self.async_write_ha_state()

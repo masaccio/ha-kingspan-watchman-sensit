@@ -8,16 +8,17 @@ from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import probatio as vol
+from connectsensor.client import AsyncSensorClient
+from connectsensor.exceptions import (
+    KingspanAPIError,
+    KingspanErrorCode,
+)
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.helpers.httpx_client import get_async_client
 
-from .api import (
-    SENSiTApiClient,
-    SENSiTAuthError,
-    SENSiTConnectionError,
-    SENSiTNoDataError,
-)
 from .const import (
+    API_TIMEOUT,
     CONF_KINGSPAN_DEBUG,
     CONF_NAME,
     CONF_OIL_ENERGY_DENSITY,
@@ -63,10 +64,7 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             self._errors["base"] = error
 
-        return await self._show_config_form(
-            step_id="user",
-            defaults=user_input,
-        )
+        return await self._show_config_form(step_id="user", defaults=user_input)
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -181,17 +179,14 @@ class SENSiTFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, username: str, password: str) -> str | None:
         """Return None if credentials are valid, or an error key string."""
         try:
-            client = SENSiTApiClient(username, password)
-            await client.async_get_data()
-        except SENSiTAuthError:
-            return "auth"
-        except SENSiTConnectionError:
-            return "cannot_connect"
-        except SENSiTNoDataError:
-            return "no_data"
+            httpx_client = get_async_client(self.hass)
+            async with AsyncSensorClient(client=httpx_client, timeout=API_TIMEOUT) as client:
+                await client.login(username, password)
+        except KingspanAPIError as err:
+            return str(err.code.value)
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected exception testing credentials")
-            return "unknown_error"
+            return str(KingspanErrorCode.UNKNOWN.value)
         return None
 
     def is_matching(self, other_flow: object) -> bool:

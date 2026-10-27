@@ -115,7 +115,7 @@ def main():
         for src_file in integration_files:
             content_override = None
 
-            if args.use_local_api and src_file.name == "api.py":
+            if args.use_local_api and src_file.name == "coordinator.py":
                 content = src_file.read_text(encoding="utf-8")
                 content_override = insert_local_connectsensor(content)
 

@@ -6,9 +6,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import TankData
 from .const import ATTRIBUTION, CONF_NAME, DEFAULT_TANK_NAME, DOMAIN, MANUFACTURER, MODEL
-from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator
+from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator, TankData
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 

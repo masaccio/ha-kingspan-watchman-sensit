@@ -202,7 +202,9 @@ def mock_sensor_client(request):
     # See https://docs.python.org/3/library/unittest.mock.html#where-to-patch
     with (
         patch("connectsensor.client.AsyncSensorClient") as mock_client,
-        patch("custom_components.kingspan_watchman_sensit.api.AsyncSensorClient") as ha_mock_client,
+        patch(
+            "custom_components.kingspan_watchman_sensit.coordinator.AsyncSensorClient"
+        ) as ha_mock_client,
     ):
         mock_client.return_value.__aenter__.return_value = MockAsyncClient(
             tank_level=tank_level,

@@ -1236,7 +1236,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.10.1" },
-    { name = "kingspan-connect-sensor", specifier = ">=4.4.0" },
+    { name = "kingspan-connect-sensor", specifier = ">=4.5.0" },
     { name = "mypy" },
     { name = "probatio" },
     { name = "pylint" },
@@ -1539,7 +1539,7 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.4.0"
+version = "4.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
@@ -1548,9 +1548,9 @@ dependencies = [
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/76/4cbeeb0b6ab3ec8e34144360fb66cc02ca72a3dc4a2b268593a6f59be059/kingspan_connect_sensor-4.4.0.tar.gz", hash = "sha256:ae17d07a46931dc05e6b33b3f8df0c2b1e6278173ef9fa7a3ba8a65aa1bb51fa", size = 16235, upload-time = "2026-10-26T15:04:04.256Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/b4/27639f680262b5ddc821b9df6768516a5b01d1b13a923e37e0f52ecc8019/kingspan_connect_sensor-4.5.0.tar.gz", hash = "sha256:13dc08abff49e454b9ce9006200f6ef25419c87976bb2454712c2df623b9f595", size = 17253, upload-time = "2026-10-27T14:30:23.133Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/35/cf93db5fa31637ba1b1b332eebde523137f36155c90798bad243989caa2d/kingspan_connect_sensor-4.4.0-py3-none-any.whl", hash = "sha256:92cce6df46e95eb2b32e14ee7abfa3272c1b68d13cc0335bbfea76950829efd0", size = 13322, upload-time = "2026-10-26T15:04:03.282Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/b0/152b08aed184c91a2bb6fb5ee4b1c36e1283af58bba91b61501e2e17f117/kingspan_connect_sensor-4.5.0-py3-none-any.whl", hash = "sha256:aeb2b07c50127e2630de4db0195fce24670bdbc183c674696431eaccb1d33c84", size = 14131, upload-time = "2026-10-27T14:30:22.086Z" },
 ]
 
 [[package]]

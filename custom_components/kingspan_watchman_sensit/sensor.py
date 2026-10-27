@@ -22,9 +22,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
-from .api import TankData
 from .const import CONF_OIL_ENERGY_DENSITY, DEFAULT_OIL_ENERGY_DENSITY
-from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator
+from .coordinator import SENSiTConfigEntry, SENSiTDataUpdateCoordinator, TankData
 from .entity import SENSiTEntity
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)

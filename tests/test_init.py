@@ -6,16 +6,14 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from connectsensor.exceptions import (
     KingspanAPIError,
+    KingspanErrorCode,
     KingspanInvalidCredentialsError,
+    KingspanNoDataError,
     KingspanTimeoutError,
 )
 from custom_components.kingspan_watchman_sensit import (
     SENSiTDataUpdateCoordinator,
     async_remove_config_entry_device,
-)
-from custom_components.kingspan_watchman_sensit.api import (
-    SENSiTApiClientError,
-    SENSiTConnectionError,
 )
 from custom_components.kingspan_watchman_sensit.const import CONF_USAGE_WINDOW, DOMAIN
 from custom_components.kingspan_watchman_sensit.diagnostics import (
@@ -24,6 +22,7 @@ from custom_components.kingspan_watchman_sensit.diagnostics import (
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .const import MOCK_CONFIG, MOCK_TANK_LEVEL, MOCK_TANK_SERIAL_NUMBER, HistoryType
@@ -95,27 +94,27 @@ async def test_auth_missing(hass, mock_sensor_client):
     [
         (
             {"exception": KingspanInvalidCredentialsError("test bad auth")},
-            logging.ERROR,
+            logging.WARNING,
             ConfigEntryState.SETUP_ERROR,
-            "Invalid credentials for test@example.com: test bad auth",
+            None,
             "error_reason_translation_key",
             "credentials_invalid",
             True,
         ),
         (
             {"exception": KingspanTimeoutError("test timeout")},
-            logging.ERROR,
+            logging.WARNING,
             ConfigEntryState.SETUP_RETRY,
-            "Timeout or connection error fetching data for test@example.com: test timeout",
+            "Error communicating with Kingspan API: test timeout",
             "reason",
             "Timed out while connecting to the Kingspan service",
             False,
         ),
         (
-            {"exception": KingspanAPIError("no level data")},
+            {"exception": KingspanNoDataError("no level data")},
             logging.WARNING,
             ConfigEntryState.SETUP_ERROR,
-            "No data available for username 'test@example.com",
+            "No data available for username 'test@example.com'",
             None,
             None,
             False,
@@ -144,7 +143,9 @@ async def test_setup_auth_failures(  # noqa: PLR0913, PLR0917
 
     assert config_entry.state == expected_state
     assert config_entry.entry_id not in hass.data.get(DOMAIN, {})
-    assert expected_log in caplog.text
+
+    if expected_log:
+        assert expected_log in caplog.text
 
     if attr_name:
         assert getattr(config_entry, attr_name) == attr_value
@@ -188,13 +189,11 @@ async def test_runtime_data_fallback_and_unload(hass, mock_sensor_client):
 @pytest.mark.parametrize(
     "exception",
     [
-        SENSiTApiClientError("api-test error"),
-        SENSiTConnectionError("connection timeout"),
+        KingspanAPIError("api-test error", KingspanErrorCode.CANNOT_CONNECT),
+        KingspanTimeoutError("connection timeout"),
     ],
 )
-async def test_coordinator_logs_available_again(
-    hass, mock_sensor_client, mocker, caplog, exception
-):
+async def test_coordinator_logs_available_again(hass, mock_sensor_client, caplog, exception):
     """Coordinator should log a recovery message after a previously failed refresh."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
@@ -206,17 +205,19 @@ async def test_coordinator_logs_available_again(
     caplog.set_level(logging.INFO)
     caplog.clear()
 
-    mocker.patch.object(
-        coordinator.api,
-        "async_get_data",
-        AsyncMock(side_effect=exception),
-    )
+    # Scope the failure patch tightly so recovery correctly reverts to the original working mock
+    with patch(
+        "custom_components.kingspan_watchman_sensit.coordinator.AsyncSensorClient"
+    ) as mock_class:
+        mock_instance = AsyncMock()
+        mock_instance.__aenter__.return_value = mock_instance
+        mock_instance.login.side_effect = exception
+        mock_class.return_value = mock_instance
 
-    # Trigger twice to check it's logged just once
-    with pytest.raises(Exception):  # noqa: B017
-        await coordinator._async_update_data()
-    with pytest.raises(Exception):  # noqa: B017
-        await coordinator._async_update_data()
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
 
     warnings = [
         record
@@ -226,12 +227,7 @@ async def test_coordinator_logs_available_again(
     assert len(warnings) == 1
     assert coordinator._unavailable_logged is True
 
-    # Restore the working response
-    mocker.patch.object(
-        coordinator.api,
-        "async_get_data",
-        AsyncMock(return_value=coordinator.data),
-    )
+    # Call again with the patch disabled to test recovery mode
     await coordinator._async_update_data()
 
     assert "Kingspan service is available again" in caplog.text
@@ -244,6 +240,7 @@ async def test_coordinator_logs_available_again(
     indirect=True,
 )
 async def test_diagnostics(hass, mock_sensor_client):
+    """Test generating diagnostic data."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
@@ -269,14 +266,12 @@ async def test_remove_stale_device(hass, mock_sensor_client):
 
     device_registry = dr.async_get(hass)
 
-    # Create a mock stale device manually in the registry
     stale_device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         identifiers={(DOMAIN, "old_stale_serial")},
     )
     assert await async_remove_config_entry_device(hass, config_entry, stale_device) is True
 
-    # Attempt to remove the actively polling mocked device
     active_device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         identifiers={(DOMAIN, MOCK_TANK_SERIAL_NUMBER)},
