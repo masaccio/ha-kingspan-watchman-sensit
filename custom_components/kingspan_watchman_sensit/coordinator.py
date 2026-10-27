@@ -159,9 +159,6 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
 
             raise UpdateFailed(f"Failed to fetch data from API: {err.message}") from err
 
-        except Exception as err:
-            raise UpdateFailed(f"Unexpected error fetching Kingspan data: {err}") from err
-
         if self._unavailable_logged:
             _LOGGER.info("Kingspan service is available again")
             self._unavailable_logged = False
