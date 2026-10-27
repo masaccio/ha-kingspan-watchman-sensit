@@ -22,7 +22,7 @@ manifest = {
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
     "requirements": [
-        f"kingspan-connect-sensor>={connectsensor_version}",
+        f"kingspan-connect-sensor=={connectsensor_version}",
     ],
     "version": pyproject["project"]["version"],
 }

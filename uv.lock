@@ -1198,7 +1198,7 @@ wheels = [
 
 [[package]]
 name = "ha-kingspan-connect-sensor"
-version = "2.1.0b4"
+version = "2.1.0b5"
 source = { virtual = "." }
 dependencies = [
     { name = "async-property" },
@@ -1236,7 +1236,7 @@ requires-dist = [
     { name = "async-timeout", specifier = ">=4.0.2" },
     { name = "asyncio", specifier = ">=3.4.3" },
     { name = "homeassistant", specifier = ">=2026.10.1" },
-    { name = "kingspan-connect-sensor", specifier = ">=4.6.0" },
+    { name = "kingspan-connect-sensor", specifier = "==4.6.1" },
     { name = "mypy" },
     { name = "probatio" },
     { name = "pylint" },
@@ -1539,7 +1539,7 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.6.0"
+version = "4.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-property" },
@@ -1548,9 +1548,9 @@ dependencies = [
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/0c/22b8ceff4a40d18ce2e939a318915280e9c6097db3e4e7aec18d75a777e5/kingspan_connect_sensor-4.6.0.tar.gz", hash = "sha256:3e42522a66e953869634a51e07425b95d90223e6f5a7437f6bc6b2114e23c928", size = 20737, upload-time = "2026-10-27T16:34:33.63Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b2/34/1d86b3527da7f9514d1dc4a0839d8c618f8eab2f353cca08b2eb25ee1b7d/kingspan_connect_sensor-4.6.1.tar.gz", hash = "sha256:c5584a7b6f3e7144369e42415e5d29e5c6246b5764607c9a2c0e374cb0b6952f", size = 20743, upload-time = "2026-10-27T17:51:29.492Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a1/53/d292678d21e42bc080ecc962f5a52ade393c716cb9264766de08b7d989eb/kingspan_connect_sensor-4.6.0-py3-none-any.whl", hash = "sha256:1406769e5a98fdbafc093ec9482820010d6dc94b194aa4aedf9f75be0cfad6af", size = 15942, upload-time = "2026-10-27T16:34:32.265Z" },
+    { url = "https://files.pythonhosted.org/packages/88/3f/474759c7681263f158f4e9af1cc5e526453e159d83a5a50d97266e60110d/kingspan_connect_sensor-4.6.1-py3-none-any.whl", hash = "sha256:f1341651a9af05f7c2beb321ec3e6ec93bd18ab47a2e3b9cc966a396a1b1d2fb", size = 15954, upload-time = "2026-10-27T17:51:28.396Z" },
 ]
 
 [[package]]
