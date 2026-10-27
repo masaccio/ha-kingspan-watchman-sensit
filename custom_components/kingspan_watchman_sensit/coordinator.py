@@ -3,11 +3,16 @@
 import inspect
 import logging
 from collections.abc import Awaitable
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import TypedDict, cast
+from typing import cast
 
 import httpx
+from connectsensor.analysis import (
+    TankData,
+    calculate_forecast_empty,
+    calculate_usage_rate,
+    filter_history,
+)
 from connectsensor.client import APIVersion, AsyncSensorClient
 from connectsensor.exceptions import KingspanAPIError, KingspanErrorCode
 from homeassistant.config_entries import ConfigEntry
@@ -23,55 +28,12 @@ from .const import (
     CONF_USERNAME,
     DEFAULT_USAGE_WINDOW,
     DOMAIN,
-    REFILL_THRESHOLD,
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 _LOGGER.debug("AsyncSensorClient loaded from %s", inspect.getfile(AsyncSensorClient))
 
 type SENSiTConfigEntry = ConfigEntry[SENSiTDataUpdateCoordinator]  # pylint: disable=invalid-name
-
-
-class TankHistoryPoint(TypedDict):
-    """Single point of tank history returned by the Kingspan API."""
-
-    level_litres: float
-    reading_date: datetime
-
-
-@dataclass(slots=True)
-class TankData:  # pylint: disable=too-many-instance-attributes
-    """Structured tank data built by the Coordinator."""
-
-    level: float = 0.0
-    serial_number: str = ""
-    model: str = ""
-    name: str = ""
-    capacity: float = 0.0
-    last_read: datetime | None = None
-    history: list[TankHistoryPoint] = field(default_factory=list)
-    usage_rate: float = 0.0
-    forecast_empty: int = 0
-
-
-def filter_history(
-    history: list[TankHistoryPoint] | None, usage_window: int
-) -> list[TankHistoryPoint]:
-    """Filter tank history to a smaller recent window of days, sorted chronologically."""
-    if not history:
-        return []
-
-    cutoff = as_local(datetime.today() - timedelta(days=usage_window))
-    filtered_history: list[TankHistoryPoint] = [
-        {
-            "level_litres": point["level_litres"],
-            "reading_date": as_local(point["reading_date"]),
-        }
-        for point in history
-    ]
-    recent = [point for point in filtered_history if point["reading_date"] >= cutoff]
-    recent.sort(key=lambda x: x["reading_date"])
-    return recent
 
 
 class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
@@ -118,8 +80,8 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
                     raw_history = await tank.history()
                     filtered = filter_history(raw_history, usage_window)  # pyright: ignore[reportArgumentType]
 
-                    rate = self._calculate_usage_rate(filtered)
-                    forecast = self._calculate_forecast_empty(filtered, rate)
+                    rate = calculate_usage_rate(filtered)
+                    forecast = calculate_forecast_empty(filtered, rate)
 
                     tank_data = TankData(
                         level=float(await cast(Awaitable[float], tank.level)),
@@ -164,32 +126,3 @@ class SENSiTDataUpdateCoordinator(DataUpdateCoordinator[list[TankData]]):
             self._unavailable_logged = False
 
         return results
-
-    @staticmethod
-    def _calculate_usage_rate(history: list[TankHistoryPoint]) -> float:
-        """Calculate the average daily usage rate over the filtered window."""
-        if len(history) < 2:
-            return 0.0
-
-        delta_levels: list[float] = []
-        current_level = history[0]["level_litres"]
-        for row in history[1:]:
-            if current_level != 0 and (row["level_litres"] / current_level) < REFILL_THRESHOLD:
-                delta_levels.append(current_level - row["level_litres"])
-            current_level = row["level_litres"]
-
-        # Coverage note: a corner case that should never happen in reality:
-        # two data history data points and one is a refill
-        if not delta_levels:  # pragma: no cover
-            return 0.0
-
-        return sum(delta_levels) / len(delta_levels)
-
-    @staticmethod
-    def _calculate_forecast_empty(history: list[TankHistoryPoint], rate: float) -> int:
-        """Estimate how many days until the tank is empty."""
-        if not history or rate == 0:
-            return 0
-
-        current_level = int(history[-1]["level_litres"])
-        return int(current_level / abs(rate))
