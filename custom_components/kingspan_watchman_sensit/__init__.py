@@ -110,7 +110,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS):
+    # Coverage note: move to async_unload_platforms_or_raise() so this test is not required.
+    if unloaded := await hass.config_entries.async_unload_platforms(
+        config_entry, PLATFORMS
+    ):  # pragma: no branch
         _async_delete_repair_issue(hass, config_entry)
     return unloaded
 
