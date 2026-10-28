@@ -72,6 +72,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry
             translation_key="credentials_not_set",
         )
 
+    # Migrate legacy configurations
+    expected_unique_id = username.strip().casefold()
+    if config_entry.unique_id != expected_unique_id:
+        hass.config_entries.async_update_entry(config_entry, unique_id=expected_unique_id)
+
     # Configure upstream debug logging based on options flow
     kingspan_debug = config_entry.options.get(CONF_KINGSPAN_DEBUG, False)
     connectsensor_logger = logging.getLogger("connectsensor")

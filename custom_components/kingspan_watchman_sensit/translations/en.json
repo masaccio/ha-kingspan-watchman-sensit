@@ -47,7 +47,7 @@
       }
     },
     "error": {
-      "auth": "Username/Password is wrong.",
+      "invalid_auth": "Invalid authentication. Please check your username and password.",
       "cannot_connect": "Failed to connect to the Kingspan service.",
       "no_data": "No tank level data found for this account.",
       "unknown_error": "Unexpected error occurred."

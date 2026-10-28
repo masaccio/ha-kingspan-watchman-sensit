@@ -47,7 +47,7 @@
       }
     },
     "error": {
-      "auth": "Benutzername oder Passwort ist falsch.",
+      "invalid_auth": "Ungültige Authentifizierung. Bitte überprüfe deinen Benutzernamen und dein Passwort.",
       "cannot_connect": "Verbindung zum Kingspan-Dienst fehlgeschlagen.",
       "no_data": "Keine Tankfüllstandsdaten für dieses Konto gefunden.",
       "unknown_error": "Ein unerwarteter Fehler ist aufgetreten."

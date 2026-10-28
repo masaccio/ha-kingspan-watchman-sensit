@@ -47,7 +47,7 @@
       }
     },
     "error": {
-      "auth": "Le nom d'utilisateur ou le mot de passe est incorrect.",
+      "invalid_auth": "Authentification invalide. Veuillez vérifier votre nom d'utilisateur et votre mot de passe.",
       "cannot_connect": "Échec de la connexion au service Kingspan.",
       "no_data": "Aucune donnée de niveau de cuve trouvée pour ce compte.",
       "unknown_error": "Une erreur inattendue s'est produite."

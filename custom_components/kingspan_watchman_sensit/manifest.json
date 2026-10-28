@@ -11,5 +11,5 @@
   "requirements": [
     "kingspan-connect-sensor==4.6.1"
   ],
-  "version": "2.1.0beta5"
+  "version": "2.1.0beta6"
 }
