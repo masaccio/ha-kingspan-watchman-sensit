@@ -1539,18 +1539,17 @@ wheels = [
 
 [[package]]
 name = "kingspan-connect-sensor"
-version = "4.4.0"
+version = "4.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "async-property" },
     { name = "httpx" },
     { name = "lxml" },
     { name = "requests" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/76/4cbeeb0b6ab3ec8e34144360fb66cc02ca72a3dc4a2b268593a6f59be059/kingspan_connect_sensor-4.4.0.tar.gz", hash = "sha256:ae17d07a46931dc05e6b33b3f8df0c2b1e6278173ef9fa7a3ba8a65aa1bb51fa", size = 16235, upload-time = "2026-10-26T15:04:04.256Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/83/ce3f81029f8aedec2438c2d7f92ba330eb05858c31aa1c8184fdca8ebf47/kingspan_connect_sensor-4.6.3.tar.gz", hash = "sha256:ca561349df225c35e47ab3a151a95f18e031427df8ff943fe63dbcff323d9e13", size = 20682, upload-time = "2026-10-28T16:24:11.545Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/35/cf93db5fa31637ba1b1b332eebde523137f36155c90798bad243989caa2d/kingspan_connect_sensor-4.4.0-py3-none-any.whl", hash = "sha256:92cce6df46e95eb2b32e14ee7abfa3272c1b68d13cc0335bbfea76950829efd0", size = 13322, upload-time = "2026-10-26T15:04:03.282Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/d7/f7b22a4ca3555018a78813afad7a9df61238c005a58ebc48042f3797afa3/kingspan_connect_sensor-4.6.3-py3-none-any.whl", hash = "sha256:fbcb7da0c3fe47860c18809efb1cd7b89ac35c2881661bf70fd5080850cea639", size = 15922, upload-time = "2026-10-28T16:24:10.335Z" },
 ]
 
 [[package]]
