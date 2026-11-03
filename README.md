@@ -63,6 +63,10 @@ The integration uses Home Assistant's config-entry polling model to fetch update
 
 The underlying SENSiT transmitter updates at regular intervals, and the integration reads the latest available data from the cloud rather than from a local network device. For this reason, the displayed state reflects the most recent cloud reading rather than a direct local sensor feed.
 
+If a connection or API error prevents an update, sensors retain their last successful readings with `data_stale: true`. The `last_successful_update` attribute records when the integration last fetched data; the last reading date sensor still reports the original measurement time. Polling continues at the configured interval, and a successful refresh clears the stale flag. Stale readings do not add to cumulative oil consumption.
+
+The last successful sensor snapshot is stored locally so readings can also be restored after a Home Assistant restart during an outage. This requires at least one successful refresh with this version installed. Authentication failures still require reauthentication, and an account with no tank data is not replaced with cached readings. Removing the integration deletes its cache. Automations that require fresh measurements should check `data_stale` before acting.
+
 ## Supported devices
 
 This integration is designed for Kingspan Watchman SENSiT smart tank-monitoring systems that expose data through the Kingspan cloud API for residential and commercial oil tank monitoring.

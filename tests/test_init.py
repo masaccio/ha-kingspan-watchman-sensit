@@ -213,10 +213,9 @@ async def test_coordinator_logs_available_again(
     )
 
     # Trigger twice to check it's logged just once
-    with pytest.raises(Exception):  # noqa: B017
-        await coordinator._async_update_data()
-    with pytest.raises(Exception):  # noqa: B017
-        await coordinator._async_update_data()
+    assert await coordinator._async_update_data() == coordinator.data
+    assert await coordinator._async_update_data() == coordinator.data
+    assert coordinator.data_stale is True
 
     warnings = [
         record
@@ -236,6 +235,7 @@ async def test_coordinator_logs_available_again(
 
     assert "Kingspan service is available again" in caplog.text
     assert coordinator._unavailable_logged is False
+    assert coordinator.data_stale is False
 
 
 @pytest.mark.parametrize(

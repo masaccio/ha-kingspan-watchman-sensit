@@ -27,6 +27,8 @@ async def async_get_config_entry_diagnostics(
         "config_entry_data": async_redact_data(entry.data, TO_REDACT),
         "config_entry_options": async_redact_data(entry.options, TO_REDACT),
         "last_update_success": coordinator.last_update_success,
+        "data_stale": coordinator.data_stale,
+        "last_successful_update": coordinator.last_successful_update,
         "tank_count": len(coordinator.data),
         "tanks": [async_redact_data(asdict(tank), TO_REDACT) for tank in coordinator.data],
     }

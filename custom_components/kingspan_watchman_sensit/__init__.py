@@ -12,6 +12,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.httpx_client import get_async_client
+from homeassistant.helpers.storage import Store
 
 from .api import SENSiTApiClient
 from .const import (
@@ -125,6 +126,11 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntr
 async def async_reload_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
     """Reload config entry."""
     await hass.config_entries.async_reload(config_entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, config_entry: SENSiTConfigEntry) -> None:
+    """Remove cached readings when the integration entry is deleted."""
+    await Store(hass, 1, f"{DOMAIN}.{config_entry.entry_id}").async_remove()
 
 
 async def async_remove_config_entry_device(

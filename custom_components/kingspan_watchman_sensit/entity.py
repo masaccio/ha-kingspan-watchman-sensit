@@ -67,6 +67,15 @@ class SENSiTEntity(CoordinatorEntity[SENSiTDataUpdateCoordinator]):
         return None
 
     @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Identify readings retained while the Kingspan service is unreachable."""
+        return {
+            **self._attr_extra_state_attributes,
+            "data_stale": self.coordinator.data_stale,
+            "last_successful_update": self.coordinator.last_successful_update,
+        }
+
+    @property
     def available(self) -> bool:
         return super().available and any(
             tank.serial_number == self.serial_number for tank in self.coordinator.data

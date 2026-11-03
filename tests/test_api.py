@@ -60,7 +60,7 @@ async def test_api(mock_sensor_client, mocker, caplog):
             f"Timeout or connection error logging in for {TEST_USERNAME}: ",
         ),
         (
-            KingspanAPIError,
+            KingspanAPIError(""),
             SENSiTApiClientError,
             f"API error logging in for {TEST_USERNAME}: unknown API error",
         ),

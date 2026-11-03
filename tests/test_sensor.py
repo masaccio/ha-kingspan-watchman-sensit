@@ -212,13 +212,14 @@ async def test_oil_consumption_restore(hass, cached_consumption_total, mock_sens
 async def test_sensor_exceptions(  # noqa: PLR0913, PLR0917
     hass, mock_sensor_client, mocker, side_effect, expected_msg, translation_key
 ):
-    """Test coordinator handles update exceptions cleanly."""
+    """Test coordinator handles update exceptions when no cached data is available."""
     config_entry = MockConfigEntry(domain=DOMAIN, data=MOCK_CONFIG)
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
     coordinator = config_entry.runtime_data
+    coordinator.data = []
     mocker.patch(MOCK_GET_DATA_METHOD, side_effect=side_effect)
 
     with pytest.raises(UpdateFailed) as exc:

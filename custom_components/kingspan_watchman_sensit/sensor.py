@@ -218,6 +218,9 @@ class OilConsumptionSensor(SENSiTEntity, SensorEntity, RestoreEntity):
             self._consumption_total = 0.0
             return
 
+        if self.coordinator.data_stale:
+            return
+
         if last_read is not None and self._consumption_last_read != last_read:
             usage_rate = self.tank_data.usage_rate
             energy_density = _get_energy_density(self.config_entry)
