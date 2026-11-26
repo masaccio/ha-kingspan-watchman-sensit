@@ -11,10 +11,11 @@ from collections.abc import AsyncGenerator, Awaitable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import TypedDict, cast
+from typing import cast
 
 import httpx
 from connectsensor import __version__ as api_version
+from connectsensor.analysis import TankHistoryPoint
 from connectsensor.client import APIVersion, AsyncSensorClient
 from connectsensor.exceptions import (
     KingspanAPIError,
@@ -45,13 +46,6 @@ class SENSiTConnectionError(SENSiTApiClientError):
 
 class SENSiTNoDataError(SENSiTApiClientError):
     """Exception raised when the account has no tank level data."""
-
-
-class TankHistoryPoint(TypedDict):
-    """Single point of tank history returned by the Kingspan API."""
-
-    level_litres: float
-    reading_date: datetime
 
 
 @dataclass(slots=True)
