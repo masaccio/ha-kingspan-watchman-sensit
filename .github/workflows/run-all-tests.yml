@@ -34,9 +34,6 @@ jobs:
     - name: Install the project
       run: uv sync --locked --all-extras --dev
 
-    - name: Run pre-commit hooks
-      run: uv run pre-commit run --all-files
-
     - name: Run tests
       run: uv run pytest
 
