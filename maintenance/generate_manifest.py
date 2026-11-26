@@ -5,7 +5,6 @@ import json
 from importlib.metadata import version
 
 import toml
-from connectsensor import __version__ as connectsensor_version
 
 MANIFEST = "custom_components/kingspan_watchman_sensit/manifest.json"
 
@@ -22,7 +21,7 @@ manifest = {
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/masaccio/ha-kingspan-watchman-sensit/issues",
     "requirements": [
-        f"kingspan-connect-sensor>={connectsensor_version}",
+        "kingspan-connect-sensor>=4.4.0,<5.0.0",
     ],
     "version": pyproject["project"]["version"],
 }
