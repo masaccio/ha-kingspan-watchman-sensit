@@ -52,11 +52,14 @@ def insert_local_connectsensor(content: str) -> str:
 
 
 def patch_const_for_switches(content: str) -> str:
-    """Injects Platform.SWITCH into the PLATFORMS list safely."""
+    """Injects Platform.SWITCH and Platform.NUMBER into the PLATFORMS list safely."""
     if "Platform.SWITCH" not in content:
         content = re.sub(
             r"(PLATFORMS:\s*list\[Platform\]\s*=\s*\[)([^\]]*)(\])",
-            lambda m: f"{m.group(1)}{m.group(2).rstrip().rstrip(',')}, Platform.SWITCH{m.group(3)}",
+            lambda m: (
+                f"{m.group(1)}{m.group(2).rstrip().rstrip(',')}, "
+                "Platform.SWITCH, Platform.NUMBER{m.group(3)}"
+            ),
             content,
             flags=re.DOTALL,
         )
@@ -98,9 +101,9 @@ def main():
         "--restart", action="store_true", dest="restart_hass", help="Restart Home Assistant Core"
     )
     parser.add_argument(
-        "--mock-errors",
+        "--mocks",
         action="store_true",
-        dest="mock_errors",
+        dest="mocks",
         help="Deploy hidden UI switches to monkey-patch API exceptions",
     )
 
@@ -119,7 +122,7 @@ def main():
                 content = src_file.read_text(encoding="utf-8")
                 content_override = insert_local_connectsensor(content)
 
-            if args.mock_errors and src_file.name == "const.py":
+            if args.mocks and src_file.name == "const.py":
                 content = src_file.read_text(encoding="utf-8")
                 content_override = patch_const_for_switches(content)
 
@@ -128,8 +131,9 @@ def main():
             make_dir(conn, str(target_dir))
             copy_file(conn, src_file, str(target_dir), content_override)
 
-        if args.mock_errors:
+        if args.mocks:
             copy_file(conn, DEV_SWITCHES, str(REMOTE_INTEGRATION_DIR), rename="switch.py")
+            copy_file(conn, DEV_SWITCHES, str(REMOTE_INTEGRATION_DIR), rename="number.py")
 
         # API, Translations, Brand logic remains identical...
         remote_api_dir = posixpath.join(REMOTE_INTEGRATION_DIR, "connectsensor")
